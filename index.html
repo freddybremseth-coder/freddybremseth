@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freddy Bremseth</title>
+  <meta name="description" content="Freddy Bremseth — Eiendomsrådgiver, Entreprenør, Musiker og Forfatter. Costa Blanca, AI, Olivenfarming.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:  #0c0b0a;
+      --bg2: #131210;
+      --bg3: #1c1a17;
+      --gold: #c9a96e;
+      --gold-lt: #e2c57d;
+      --gold-dim: rgba(201,169,110,0.12);
+      --gold-border: rgba(201,169,110,0.25);
+      --text: #f0ead8;
+      --muted: #7a6e5e;
+      --muted2: #a89880;
+      --r: 6px;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 400; line-height: 1.6; overflow-x: hidden; }
+    h1,h2,h3,h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; line-height: 1.2; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    section { padding: 100px 0; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+    .gold { color: var(--gold); }
+    .section-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-family: 'DM Sans', sans-serif; font-weight: 500; margin-bottom: 16px; }
+    .section-title { font-size: clamp(32px, 4vw, 52px); margin-bottom: 24px; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, rgba(12,11,10,0.95) 0%, transparent 100%); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(201,169,110,0.08); transition: background 0.3s; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; letter-spacing: 1px; }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted2); transition: color 0.2s; font-weight: 500; cursor: pointer; }
+    .nav-links a:hover { color: var(--gold); }
+    .lang-toggle { display: flex; gap: 4px; background: var(--bg3); border-radius: 20px; padding: 3px; border: 1px solid var(--gold-border); }
+    .lang-btn { padding: 4px 12px; border-radius: 16px; font-size: 11px; letter-spacing: 1px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--muted2); transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+    .lang-btn.active { background: var(--gold); color: #0c0b0a; }
+
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; align-items: center; padding-top: 80px; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at 70% 50%, rgba(201,169,110,0.06) 0%, transparent 70%), radial-gradient(ellipse 40% 60% at 20% 80%, rgba(100,80,50,0.05) 0%, transparent 60%); }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .hero-photo-wrap { position: relative; }
+    .hero-photo { width: 100%; max-width: 480px; aspect-ratio: 4/5; object-fit: cover; object-position: center top; border-radius: 4px; filter: grayscale(15%) contrast(1.05); }
+    .hero-photo-frame { position: absolute; inset: -12px; border: 1px solid var(--gold-border); border-radius: 6px; pointer-events: none; }
+    .hero-photo-frame::before { content: ''; position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; border: 1px solid rgba(201,169,110,0.08); border-radius: 4px; }
+    .hero-overline { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .hero-name { font-size: clamp(48px, 6vw, 80px); font-weight: 700; line-height: 1.05; margin-bottom: 8px; }
+    .hero-name em { font-style: italic; color: var(--gold); }
+    .hero-subtitle { font-size: 16px; color: var(--muted2); margin-bottom: 40px; line-height: 1.8; font-weight: 300; }
+    .hero-roles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 48px; }
+    .hero-role { padding: 6px 16px; border: 1px solid var(--gold-border); border-radius: 20px; font-size: 12px; letter-spacing: 1px; color: var(--gold); font-weight: 500; }
+    .hero-cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; background: var(--gold); color: #0c0b0a; border-radius: 2px; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; transition: all 0.25s; }
+    .hero-cta:hover { background: var(--gold-lt); transform: translateY(-2px); }
+    .hero-cta svg { transition: transform 0.25s; }
+    .hero-cta:hover svg { transform: translateX(4px); }
+
+    /* TICKER */
+    .ticker-wrap { background: var(--bg2); border-top: 1px solid var(--gold-border); border-bottom: 1px solid var(--gold-border); padding: 14px 0; overflow: hidden; }
+    .ticker-track { display: flex; animation: ticker 28s linear infinite; white-space: nowrap; }
+    .ticker-item { display: inline-flex; align-items: center; gap: 24px; padding: 0 40px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted2); }
+    .ticker-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ABOUT */
+    .about { background: var(--bg2); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .about-text p { color: var(--muted2); margin-bottom: 20px; font-size: 16px; line-height: 1.85; }
+    .about-text p:first-of-type { font-size: 18px; color: var(--text); }
+    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
+    .stat { padding: 24px; border: 1px solid var(--gold-border); border-radius: var(--r); background: var(--bg3); }
+    .stat-num { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--gold); margin-bottom: 4px; }
+    .stat-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+    .about-quote { background: var(--bg3); border: 1px solid var(--gold-border); border-radius: var(--r); padding: 20px 24px; margin-bottom: 24px; }
+    .about-quote p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; color: var(--text); line-height: 1.6; }
+    .about-quote span { display: block; margin-top: 8px; font-size: 11px; letter-spacing: 1px; color: var(--gold); }
+    .role-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: var(--bg3); border: 1px solid var(--gold-border); border-radius: var(--r); margin-bottom: 12px; transition: border-color 0.2s; }
+    .role-card:hover { border-color: var(--gold); }
+    .role-icon { font-size: 22px; width: 44px; height: 44px; background: var(--gold-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .role-label { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .role-sub { font-size: 12px; color: var(--muted); letter-spacing: 0.3px; }
+
+    /* MUSIC */
+    .music { background: var(--bg); }
+    .music-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .music-visual { border-radius: var(--r); overflow: hidden; border: 1px solid var(--gold-border); }
+    .music-main-img { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+    .music-main-img img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.6s; }
+    .music-main-img .img-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,11,10,0.7) 0%, transparent 50%); }
+    .music-nav-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .music-dots { display: flex; gap: 8px; }
+    .music-dot { width: 8px; height: 8px; border-radius: 50%; border: none; cursor: pointer; padding: 0; transition: background 0.2s; }
+    .music-strip { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--gold-border); }
+    .music-strip img { width: 100%; height: 90px; object-fit: cover; opacity: 0.7; transition: opacity 0.2s; cursor: pointer; }
+    .music-strip img:hover { opacity: 1; }
+    .music-strip-logo { background: var(--bg3); display: flex; align-items: center; justify-content: center; padding: 12px; height: 90px; }
+    .music-strip-logo img { max-height: 50px; object-fit: contain; }
+    .yt-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #ff0000; color: #fff; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
+    .bars { display: flex; gap: 4px; align-items: flex-end; height: 32px; }
+    .bar { width: 4px; background: var(--gold); border-radius: 2px; animation: equalize 1.2s ease-in-out infinite; }
+    .bar:nth-child(1) { animation-delay: 0s; height: 60%; }
+    .bar:nth-child(2) { animation-delay: 0.15s; height: 100%; }
+    .bar:nth-child(3) { animation-delay: 0.3s; height: 45%; }
+    .bar:nth-child(4) { animation-delay: 0.45s; height: 80%; }
+    .bar:nth-child(5) { animation-delay: 0.6s; height: 35%; }
+    @keyframes equalize { 0%,100% { transform: scaleY(0.5); } 50% { transform: scaleY(1); } }
+    .music-desc h2 { font-size: 36px; margin-bottom: 16px; }
+    .music-desc p { color: var(--muted2); margin-bottom: 16px; line-height: 1.8; }
+    .genre-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0; }
+    .genre-tag { padding: 6px 14px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 20px; font-size: 12px; color: var(--gold); }
+    .music-link { display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px; border: 1px solid var(--gold); color: var(--gold); border-radius: 2px; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; transition: all 0.25s; }
+    .music-link:hover { background: var(--gold); color: #0c0b0a; }
+
+    /* BRANDS */
+    .brands { background: var(--bg2); }
+    .brands-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 60px; }
+    .brand-card { border: 1px solid var(--gold-border); border-radius: var(--r); background: var(--bg3); transition: all 0.3s; position: relative; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
+    .brand-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(201,169,110,0.06) 0%, transparent 60%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .brand-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .brand-card:hover::before { opacity: 1; }
+    .brand-card-body { padding: 28px 28px 24px; display: flex; flex-direction: column; flex: 1; }
+    .brand-img-header { width: 100%; height: 120px; overflow: hidden; position: relative; }
+    .brand-img-header img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; transition: transform 0.4s; }
+    .brand-card:hover .brand-img-header img { transform: scale(1.04); }
+    .brand-logo-header { padding: 20px 28px; background: rgba(255,255,255,0.04); border-bottom: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: flex-start; min-height: 80px; }
+    .brand-logo-header img { max-height: 48px; max-width: 160px; object-fit: contain; }
+    .brand-icon { width: 48px; height: 48px; border-radius: 10px; background: var(--gold-dim); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 22px; }
+    .brand-name { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 6px; }
+    .brand-url { font-size: 11px; letter-spacing: 1px; color: var(--gold); margin-bottom: 14px; }
+    .brand-desc { font-size: 13px; color: var(--muted2); line-height: 1.7; flex: 1; }
+    .brand-products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-top: 16px; border-radius: 3px; overflow: hidden; }
+    .brand-products img { width: 100%; height: 64px; object-fit: cover; opacity: 0.8; transition: opacity 0.2s; }
+    .brand-products img:hover { opacity: 1; }
+    .brand-arrow { margin-top: 20px; font-size: 12px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: gap 0.2s; }
+    .brand-card:hover .brand-arrow { gap: 14px; }
+
+    /* REAL ESTATE */
+    .realestate { background: var(--bg); }
+    .re-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .re-visual { border-radius: var(--r); overflow: hidden; border: 1px solid var(--gold-border); }
+    .re-img-wrap { position: relative; }
+    .re-img-wrap img { width: 100%; height: 280px; object-fit: cover; display: block; }
+    .re-img-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,11,10,0.85) 0%, transparent 55%); }
+    .re-badge { position: absolute; top: 16px; left: 16px; background: var(--gold); color: #0c0b0a; padding: 4px 12px; border-radius: 2px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .re-title-block { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 24px; }
+    .re-title-block h3 { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 4px; }
+    .re-title-block p { font-size: 13px; color: var(--muted2); letter-spacing: 0.5px; }
+    .re-features { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--bg3); border-top: 1px solid var(--gold-border); }
+    .re-feature { padding: 14px 0; text-align: center; border-right: 1px solid var(--gold-border); }
+    .re-feature:last-child { border-right: none; }
+    .re-feature-icon { font-size: 18px; margin-bottom: 4px; }
+    .re-feature-val { font-size: 13px; font-weight: 600; }
+    .re-feature-lbl { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+    .re-view-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; background: var(--gold); color: #0c0b0a; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-family: 'DM Sans', sans-serif; transition: background 0.2s; }
+    .re-view-btn:hover { background: var(--gold-lt); }
+    .re-content p { color: var(--muted2); margin-bottom: 16px; font-size: 16px; line-height: 1.8; }
+    .re-links { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+    .re-link-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border: 1px solid var(--gold-border); border-radius: var(--r); background: var(--bg3); transition: all 0.25s; }
+    .re-link-card:hover { border-color: var(--gold); background: var(--bg2); }
+    .re-link-icon { font-size: 20px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--gold-dim); border-radius: 8px; flex-shrink: 0; }
+    .re-link-info h4 { font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+    .re-link-info p { font-size: 12px; color: var(--muted); margin: 0; }
+    .re-link-arrow { margin-left: auto; color: var(--gold); font-size: 18px; }
+
+    /* TOURS */
+    .tours { background: var(--bg2); }
+    .tours-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
+    .tour-card { border: 1px solid var(--gold-border); border-radius: var(--r); padding: 28px 24px; background: var(--bg3); text-align: center; transition: all 0.3s; }
+    .tour-card:hover { border-color: var(--gold); transform: translateY(-4px); }
+    .tour-icon { font-size: 32px; margin-bottom: 16px; }
+    .tour-title { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 8px; }
+    .tour-desc { font-size: 13px; color: var(--muted2); line-height: 1.7; }
+    .tours-cta { margin-top: 48px; text-align: center; }
+
+    /* BOOKS */
+    .books { background: var(--bg); }
+    .books-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gold-border); margin-bottom: 48px; overflow-x: auto; }
+    .books-tab { padding: 12px 24px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-weight: 500; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+    .books-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .books-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .book-card { border: 1px solid var(--gold-border); border-radius: var(--r); padding: 20px; background: var(--bg3); display: flex; gap: 16px; align-items: flex-start; transition: all 0.25s; }
+    .book-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .book-spine { width: 48px; min-width: 48px; height: 64px; border-radius: 3px; background: linear-gradient(135deg, var(--gold-dim) 0%, rgba(201,169,110,0.25) 100%); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .book-info { flex: 1; min-width: 0; }
+    .book-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+    .book-series { font-size: 11px; color: var(--gold); letter-spacing: 0.5px; margin-bottom: 8px; }
+    .book-lang { display: inline-block; padding: 2px 8px; background: var(--gold-dim); border-radius: 10px; font-size: 10px; color: var(--muted2); letter-spacing: 0.5px; }
+
+    /* BLOG */
+    .blog { background: var(--bg2); }
+    .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; }
+    .blog-card { border: 1px solid var(--gold-border); border-radius: var(--r); overflow: hidden; background: var(--bg3); transition: all 0.3s; display: flex; flex-direction: column; }
+    .blog-card:hover { border-color: var(--gold); transform: translateY(-4px); }
+    .blog-img { width: 100%; height: 180px; object-fit: cover; filter: brightness(0.85); }
+    .blog-img-placeholder { width: 100%; height: 180px; background: linear-gradient(135deg, var(--bg3) 0%, rgba(201,169,110,0.1) 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; }
+    .blog-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+    .blog-tag { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 10px; }
+    .blog-title { font-size: 17px; font-weight: 600; line-height: 1.4; margin-bottom: 10px; font-family: 'Playfair Display', serif; }
+    .blog-excerpt { font-size: 13px; color: var(--muted2); line-height: 1.7; flex: 1; }
+    .blog-meta { margin-top: 16px; font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+
+    /* CONTACT */
+    .contact { background: var(--bg2); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+    .contact-links { display: flex; flex-direction: column; gap: 14px; margin-top: 32px; }
+    .contact-link { display: flex; align-items: center; gap: 14px; color: var(--muted2); font-size: 14px; transition: color 0.2s; }
+    .contact-link:hover { color: var(--gold); }
+    .contact-link-icon { width: 36px; height: 36px; background: var(--bg3); border: 1px solid var(--gold-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .wa-link { background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.3); border-radius: var(--r); padding: 12px 16px; }
+    .wa-link .contact-link-icon { background: #25D366; border: none; }
+    .wa-link .wa-label { font-size: 14px; font-weight: 600; color: #4ade80; margin-bottom: 2px; }
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+    .form-input { padding: 14px 16px; background: var(--bg3); border: 1px solid var(--gold-border); border-radius: var(--r); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--gold); }
+    .form-input::placeholder { color: var(--muted); }
+    textarea.form-input { min-height: 120px; resize: vertical; }
+    .form-submit { padding: 14px 32px; background: var(--gold); color: #0c0b0a; border: none; border-radius: 2px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.25s; }
+    .form-submit:hover { background: var(--gold-lt); }
+    .form-success { text-align: center; padding: 40px 32px; color: var(--gold); font-family: 'Playfair Display', serif; font-size: 20px; border: 1px solid var(--gold-border); border-radius: var(--r); }
+
+    /* FOOTER */
+    footer { background: var(--bg); border-top: 1px solid var(--gold-border); padding: 48px 0; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+    .footer-logo { font-family: 'Playfair Display', serif; font-size: 18px; }
+    .footer-logo span { color: var(--gold); }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--gold); }
+    .footer-copy { font-size: 12px; color: var(--muted); }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .brands-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 900px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .hero-grid, .about-grid, .re-grid, .contact-grid, .music-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-photo { max-width: 320px; margin: 0 auto; }
+      .hero-photo-wrap { text-align: center; }
+      .tours-grid { grid-template-columns: 1fr 1fr; }
+      .books-grid { grid-template-columns: 1fr 1fr; }
+      .blog-grid { grid-template-columns: 1fr 1fr; }
+      section { padding: 60px 0; }
+    }
+    @media (max-width: 600px) {
+      .brands-grid { grid-template-columns: 1fr; }
+      .tours-grid { grid-template-columns: 1fr; }
+      .books-grid { grid-template-columns: 1fr; }
+      .blog-grid { grid-template-columns: 1fr; }
+      .about-stats { grid-template-columns: 1fr 1fr; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+const UP = 'project/uploads/';
+
+const T = {
+  no: {
+    nav: ['Om meg','Musikk','Merkevarer','Eiendom','Turer','Bøker','Blogg','Kontakt'],
+    navIds: ['about','music','brands','realestate','tours','books','blog','contact'],
+    heroOver: 'Eiendomsrådgiver · Entreprenør · Musiker · Forfatter',
+    heroSub: 'Jeg skaper verdier i skjæringspunktet mellom eiendom, bærekraft og teknologi — fra Costa Blanca til det digitale rommet.',
+    heroCta: 'Utforsk verden min',
+    heroRoles: ['Eiendomsrådgiver','AI-Entreprenør','Musiker','Forfatter','Bærekraft'],
+    aboutLabel: 'Om meg',
+    aboutTitle: 'Freddy Bremseth',
+    aboutP1: 'Jeg brenner for å skape verdier i skjæringspunktet mellom eiendom, bærekraftig livsstil og moderne teknologi. Som eiendomsrådgiver for Soleada.no og gjennom mine egne selskaper hjelper jeg mennesker med å realisere drømmen om et hjem i Spania.',
+    aboutP2: 'Min tilnærming kombinerer dyp innsikt i det spanske eiendomsmarkedet med en lidenskap for innovasjon. Gjennom Chatgenius.com utforsker jeg hvordan kunstig intelligens kan transformere kundereisen, mens jeg på gården Donaanna.com i Biar praktiserer bærekraft gjennom olivenproduksjon.',
+    aboutQ: '"Jeg tror på kraften i gode relasjoner og sømløse digitale opplevelser."',
+    stat1n:'7+', stat1l:'Merkevarer',
+    stat2n:'15+', stat2l:'Bøker utgitt',
+    stat3n:'Biar', stat3l:'Spania, Costa Blanca',
+    stat4n:'AI', stat4l:'Fremtidens teknologi',
+    roles: [
+      { icon:'🏠', label:'Eiendomsrådgiver', sub:'Soleada.no · Costa Blanca Nord' },
+      { icon:'🫒', label:'Olivenbonde & Forfatter', sub:'Donaanna.com · Biar, Alicante' },
+      { icon:'🤖', label:'AI-Entreprenør', sub:'ChatGenius · Re-Master Freddy' },
+      { icon:'🌊', label:'Tur-arrangør', sub:'CostablancaTours.com' },
+    ],
+    musicLabel: 'Re-Master Freddy',
+    musicTitle: 'AI-drevet musikk',
+    musicP1: 'Re-Master Freddy er broen mellom kunstig intelligens og dansemusikken. Vi analyserer og re-designer lydlandskaper for å levere fremtidens hits — i dag.',
+    musicP2: 'Daglige AI-utgivelser innen EDM, Deep House, Lo-Fi, Techno og mer.',
+    musicBtn: 'YouTube-kanalen',
+    musicGenres: ['EDM & Techno','Melodic House','Lo-Fi & Chill','Future Bass','Phonk','Deep House'],
+    brandsLabel: 'Mine merkevarer',
+    brandsTitle: 'Et univers av prosjekter',
+    brandsVisit: 'Besøk siden',
+    reLabel: 'Eiendom',
+    reTitle: 'Drømmeboligen på Costa Blanca',
+    reP1: 'Norges fremste guide for boligkjøp i Spania. Jeg kombinerer lokal ekspertise med personlig oppfølging gjennom hele kjøpsprosessen.',
+    reP2: 'Som tilknyttet rådgiver for Soleada.no og gjennom mine egne prosjekter hjelper jeg deg fra første visning til nøklene er i hånden.',
+    reForSale: 'Til salgs',
+    reVilla: 'Villa med havutsikt · Costa Blanca',
+    reAlicante: 'Alicante · Spania',
+    reBedrooms: 'Soverom', rePool: 'Basseng', reView: 'Havutsikt',
+    reViewBtn: 'Se boligen →',
+    reSoleadaSub: 'Norske eiendomsrådgivere i Spania',
+    reZenecoSub: 'Bærekraftige boligprosjekter',
+    toursLabel: 'Costa Blanca Tours',
+    toursTitle: 'Opplevelser utover det vanlige',
+    toursSub: 'Unike turer og eventyr langs den spanske middelhavskysten',
+    toursCta: 'Se alle turer',
+    booksLabel: 'Mine bøker',
+    booksTitle: 'Kunnskap og inspirasjon',
+    bookTabs: ['Alle','Mediterraneo Vital','The Balanced Life','Personlig utvikling'],
+    booksAmazon: 'Se alle bøker på Amazon',
+    blogLabel: 'Blogg & Nyheter',
+    blogTitle: 'Siste fra verden min',
+    contactLabel: 'Kontakt',
+    contactTitle: 'La oss snakke',
+    contactP: 'Enten du leter etter et hjem i Spania, vil diskutere AI og teknologi, eller bare vil si hei — jeg hører gjerne fra deg.',
+    formName: 'Ditt navn',
+    formEmail: 'E-postadresse',
+    formMsg: 'Melding',
+    formSend: 'Send melding',
+    formSuccess: 'Takk! Jeg svarer deg snart.',
+  },
+  en: {
+    nav: ['About','Music','Brands','Real Estate','Tours','Books','Blog','Contact'],
+    navIds: ['about','music','brands','realestate','tours','books','blog','contact'],
+    heroOver: 'Real Estate Advisor · Entrepreneur · Musician · Author',
+    heroSub: 'Creating value at the intersection of real estate, sustainability and technology — from Costa Blanca to the digital frontier.',
+    heroCta: 'Explore my world',
+    heroRoles: ['Real Estate Advisor','AI Entrepreneur','Musician','Author','Sustainability'],
+    aboutLabel: 'About me',
+    aboutTitle: 'Freddy Bremseth',
+    aboutP1: 'I am passionate about creating value at the intersection of real estate, sustainable living, and modern technology. As a real estate advisor for Soleada.no and through my own companies, I help people realise their dream of a home in Spain.',
+    aboutP2: 'My approach combines deep insight into the Spanish real estate market with a passion for innovation. Through Chatgenius.com I explore how AI can transform the customer journey, while at Donaanna.com in Biar I practise sustainability through olive production.',
+    aboutQ: '"I believe in the power of great relationships and seamless digital experiences."',
+    stat1n:'7+', stat1l:'Brands',
+    stat2n:'15+', stat2l:'Books published',
+    stat3n:'Biar', stat3l:'Spain, Costa Blanca',
+    stat4n:'AI', stat4l:'Future technology',
+    roles: [
+      { icon:'🏠', label:'Real Estate Advisor', sub:'Soleada.no · Costa Blanca Norte' },
+      { icon:'🫒', label:'Olive Farmer & Author', sub:'Donaanna.com · Biar, Alicante' },
+      { icon:'🤖', label:'AI Entrepreneur', sub:'ChatGenius · Re-Master Freddy' },
+      { icon:'🌊', label:'Tour Organiser', sub:'CostablancaTours.com' },
+    ],
+    musicLabel: 'Re-Master Freddy',
+    musicTitle: 'AI-Powered Music',
+    musicP1: 'Re-Master Freddy is the bridge between artificial intelligence and the dance floor. We analyse and re-engineer the DNA of sound to deliver tomorrow\'s hits today.',
+    musicP2: 'Daily AI releases across EDM, Deep House, Lo-Fi, Techno and more.',
+    musicBtn: 'YouTube Channel',
+    musicGenres: ['EDM & Techno','Melodic House','Lo-Fi & Chill','Future Bass','Phonk','Deep House'],
+    brandsLabel: 'My brands',
+    brandsTitle: 'A universe of projects',
+    brandsVisit: 'Visit site',
+    reLabel: 'Real Estate',
+    reTitle: 'Your Dream Home on Costa Blanca',
+    reP1: 'Your trusted guide to buying property in Spain. I combine local expertise with personal support throughout the entire buying process.',
+    reP2: 'As an affiliated advisor for Soleada.no and through my own projects I help you from the first viewing to handing over the keys.',
+    reForSale: 'For Sale',
+    reVilla: 'Sea View Villa · Costa Blanca',
+    reAlicante: 'Alicante · Spain',
+    reBedrooms: 'Bedrooms', rePool: 'Pool', reView: 'Sea View',
+    reViewBtn: 'View property →',
+    reSoleadaSub: 'Norwegian property advisors in Spain',
+    reZenecoSub: 'Sustainable housing projects',
+    toursLabel: 'Costa Blanca Tours',
+    toursTitle: 'Experiences beyond the ordinary',
+    toursSub: 'Unique tours and adventures along the Spanish Mediterranean coast',
+    toursCta: 'View all tours',
+    booksLabel: 'My books',
+    booksTitle: 'Knowledge & Inspiration',
+    bookTabs: ['All','Mediterraneo Vital','The Balanced Life','Personal Dev'],
+    booksAmazon: 'View all books on Amazon',
+    blogLabel: 'Blog & News',
+    blogTitle: 'Latest from my world',
+    contactLabel: 'Contact',
+    contactTitle: "Let's talk",
+    contactP: 'Whether you\'re looking for a home in Spain, want to discuss AI and technology, or simply want to say hi — I\'d love to hear from you.',
+    formName: 'Your name',
+    formEmail: 'Email address',
+    formMsg: 'Message',
+    formSend: 'Send message',
+    formSuccess: "Thank you! I'll get back to you soon.",
+  },
+  es: {
+    nav: ['Sobre mí','Música','Marcas','Inmuebles','Tours','Libros','Blog','Contacto'],
+    navIds: ['about','music','brands','realestate','tours','books','blog','contact'],
+    heroOver: 'Asesor Inmobiliario · Empresario · Músico · Autor',
+    heroSub: 'Creando valor en la intersección entre inmuebles, sostenibilidad y tecnología — desde Costa Blanca hasta la frontera digital.',
+    heroCta: 'Explora mi mundo',
+    heroRoles: ['Asesor Inmobiliario','Empresario IA','Músico','Autor','Sostenibilidad'],
+    aboutLabel: 'Sobre mí',
+    aboutTitle: 'Freddy Bremseth',
+    aboutP1: 'Me apasiona crear valor en la intersección entre inmuebles, estilo de vida sostenible y tecnología moderna. Como asesor inmobiliario para Soleada.no y a través de mis propias empresas, ayudo a las personas a hacer realidad el sueño de tener una casa en España.',
+    aboutP2: 'Mi enfoque combina un profundo conocimiento del mercado inmobiliario español con una pasión por la innovación. A través de Chatgenius.com exploro cómo la IA puede transformar la experiencia del cliente, mientras que en la finca Donaanna.com en Biar practico la sostenibilidad a través de la producción de aceite de oliva.',
+    aboutQ: '"Creo en el poder de las buenas relaciones y las experiencias digitales fluidas."',
+    stat1n:'7+', stat1l:'Marcas',
+    stat2n:'15+', stat2l:'Libros publicados',
+    stat3n:'Biar', stat3l:'España, Costa Blanca',
+    stat4n:'IA', stat4l:'Tecnología del futuro',
+    roles: [
+      { icon:'🏠', label:'Asesor Inmobiliario', sub:'Soleada.no · Costa Blanca Norte' },
+      { icon:'🫒', label:'Olivicultor & Autor', sub:'Donaanna.com · Biar, Alicante' },
+      { icon:'🤖', label:'Emprendedor IA', sub:'ChatGenius · Re-Master Freddy' },
+      { icon:'🌊', label:'Organizador de Tours', sub:'CostablancaTours.com' },
+    ],
+    musicLabel: 'Re-Master Freddy',
+    musicTitle: 'Música impulsada por IA',
+    musicP1: 'Re-Master Freddy es el puente entre la inteligencia artificial y la pista de baile. Analizamos y re-diseñamos paisajes sonoros para entregar los éxitos del mañana, hoy.',
+    musicP2: 'Lanzamientos diarios de IA en EDM, Deep House, Lo-Fi, Techno y más.',
+    musicBtn: 'Canal de YouTube',
+    musicGenres: ['EDM & Techno','Melodic House','Lo-Fi & Chill','Future Bass','Phonk','Deep House'],
+    brandsLabel: 'Mis marcas',
+    brandsTitle: 'Un universo de proyectos',
+    brandsVisit: 'Visitar sitio',
+    reLabel: 'Inmuebles',
+    reTitle: 'Tu hogar soñado en Costa Blanca',
+    reP1: 'Tu guía de confianza para comprar propiedades en España. Combino experiencia local con apoyo personal durante todo el proceso de compra.',
+    reP2: 'Como asesor afiliado de Soleada.no y a través de mis propios proyectos, te acompaño desde la primera visita hasta la entrega de las llaves.',
+    reForSale: 'En venta',
+    reVilla: 'Villa con vistas al mar · Costa Blanca',
+    reAlicante: 'Alicante · España',
+    reBedrooms: 'Habitaciones', rePool: 'Piscina', reView: 'Vistas al mar',
+    reViewBtn: 'Ver propiedad →',
+    reSoleadaSub: 'Asesores inmobiliarios noruegos en España',
+    reZenecoSub: 'Proyectos de vivienda sostenible',
+    toursLabel: 'Costa Blanca Tours',
+    toursTitle: 'Experiencias más allá de lo ordinario',
+    toursSub: 'Tours y aventuras únicas a lo largo de la costa mediterránea española',
+    toursCta: 'Ver todos los tours',
+    booksLabel: 'Mis libros',
+    booksTitle: 'Conocimiento e Inspiración',
+    bookTabs: ['Todos','Mediterraneo Vital','The Balanced Life','Desarrollo Personal'],
+    booksAmazon: 'Ver todos los libros en Amazon',
+    blogLabel: 'Blog y Noticias',
+    blogTitle: 'Lo último de mi mundo',
+    contactLabel: 'Contacto',
+    contactTitle: 'Hablemos',
+    contactP: 'Ya sea que busques una casa en España, quieras hablar sobre IA y tecnología, o simplemente quieras saludar — me encantaría saber de ti.',
+    formName: 'Tu nombre',
+    formEmail: 'Correo electrónico',
+    formMsg: 'Mensaje',
+    formSend: 'Enviar mensaje',
+    formSuccess: '¡Gracias! Te responderé pronto.',
+  },
+};
+
+const brands = [
+  {
+    icon: '🏠', name: 'Zeneco Homes', url: 'zenecohomes.com', href: 'https://zenecohomes.com',
+    logo: UP + 'logo-zenecohomes.png',
+    descNo: 'Bærekraftige og økologiske boligprosjekter i Spania. Smart teknologi møter naturlige materialer.',
+    descEn: 'Sustainable and eco-friendly housing projects in Spain. Smart technology meets natural materials.',
+    descEs: 'Proyectos de vivienda sostenible y ecológica en España. Tecnología inteligente y materiales naturales.',
+  },
+  {
+    icon: '🫒', name: 'Doña Anna', url: 'donaanna.com', href: 'https://donaanna.com',
+    logo: UP + 'logo-donaanna.png',
+    img: UP + 'pomelli_photoshoot_image_9_16_0428 (8).png',
+    products: [
+      UP + 'donaanna-raizantigua.jpg',
+      UP + 'donaanna-verdealtoo.jpg',
+      UP + 'donaanna-giftbox.jpg',
+    ],
+    descNo: 'Olivengård i Biar med regenerativt jordbruk og produksjon av premium extra virgin olivenolje.',
+    descEn: 'Olive farm in Biar with regenerative agriculture and premium extra virgin olive oil production.',
+    descEs: 'Finca olivarera en Biar con agricultura regenerativa y producción de aceite de oliva virgen extra.',
+  },
+  {
+    icon: '🌱', name: 'Pinoso Eco Life', url: 'pinosoecolife.com', href: 'https://pinosoecolife.com',
+    logo: UP + 'logo-pinosoecolife.png',
+    descNo: 'Bærekraftige bolig- og livsstilsprosjekter i Pinoso-regionen. Natur og moderne komfort i harmoni.',
+    descEn: 'Sustainable housing and lifestyle projects in the Pinoso region. Nature and modern comfort in harmony.',
+    descEs: 'Proyectos de vivienda y estilo de vida sostenible en la región de Pinoso. Naturaleza y confort moderno.',
+  },
+  {
+    icon: '🤖', name: 'ChatGenius', url: 'chatgenius.com', href: 'https://chatgenius.com',
+    logo: UP + 'logo-chatgenius.png',
+    descNo: 'AI-drevne løsninger for kundeservice, markedsføring og digital transformasjon.',
+    descEn: 'AI-powered solutions for customer service, marketing and digital transformation.',
+    descEs: 'Soluciones impulsadas por IA para atención al cliente, marketing y transformación digital.',
+  },
+  {
+    icon: '🎵', name: 'Re-Master Freddy', url: 'remaster.freddybremseth.com', href: 'https://remaster.freddybremseth.com',
+    logo: UP + 'logo-remaster.png',
+    descNo: 'AI-generert elektronisk musikk — EDM, Techno, House, Lo-Fi og mer. Daglige utgivelser.',
+    descEn: 'AI-generated electronic music — EDM, Techno, House, Lo-Fi and more. Daily releases.',
+    descEs: 'Música electrónica generada por IA — EDM, Techno, House, Lo-Fi y más. Lanzamientos diarios.',
+  },
+  {
+    icon: '🌊', name: 'Costa Blanca Tours', url: 'costablancatours.com', href: 'https://costablancatours.com',
+    descNo: 'Vinturer, romantiske dager, ekspedisjoner og unike opplevelser langs Costa Blanca.',
+    descEn: 'Wine tours, romantic days, expeditions and unique experiences along Costa Blanca.',
+    descEs: 'Rutas del vino, días románticos, expediciones y experiencias únicas a lo largo de Costa Blanca.',
+  },
+  {
+    icon: '🏡', name: 'Soleada.no', url: 'soleada.no', href: 'https://soleada.no',
+    logo: UP + 'logo-soleada.png',
+    descNo: 'Eiendomsrådgivning for norske kjøpere på Costa Blanca Nord. Trygg og personlig hjelp.',
+    descEn: 'Property advisory for Norwegian buyers on Costa Blanca Norte. Safe and personal guidance.',
+    descEs: 'Asesoría inmobiliaria para compradores noruegos en Costa Blanca Norte. Orientación segura y personal.',
+  },
+];
+
+const tours = [
+  {
+    icon: '🍷',
+    no: { title: 'Vinturer', desc: 'Besøk lokale vingårder og opplev de beste vinene fra Valencia-regionen.' },
+    en: { title: 'Wine Tours', desc: 'Visit local wineries and discover the finest wines of the Valencia region.' },
+    es: { title: 'Rutas del Vino', desc: 'Visita bodegas locales y descubre los mejores vinos de la región valenciana.' },
+  },
+  {
+    icon: '💑',
+    no: { title: 'Romantiske dager', desc: 'Skreddersydde romantiske opplevelser for par langs Middelhavets kyst.' },
+    en: { title: 'Romantic Days', desc: 'Tailored romantic experiences for couples along the Mediterranean coast.' },
+    es: { title: 'Días Románticos', desc: 'Experiencias románticas a medida para parejas a lo largo de la costa mediterránea.' },
+  },
+  {
+    icon: '🧭',
+    no: { title: 'Ekspedisjoner', desc: "Eventyrlige turer til Spanias skjulte perler, fjell og naturreservater." },
+    en: { title: 'Expeditions', desc: "Adventure trips to Spain's hidden gems, mountains and nature reserves." },
+    es: { title: 'Expediciones', desc: 'Aventuras a las joyas ocultas de España, montañas y reservas naturales.' },
+  },
+  {
+    icon: '🫒',
+    no: { title: 'Oliventur', desc: 'Besøk Donaanna-gården og lær om tradisjonell og økologisk olivenproduksjon.' },
+    en: { title: 'Olive Experience', desc: 'Visit Donaanna farm and learn about traditional and organic olive production.' },
+    es: { title: 'Experiencia Olivar', desc: 'Visita la finca Donaanna y aprende sobre la producción ecológica de aceite de oliva.' },
+  },
+];
+
+const allBooks = [
+  { emoji:'🫒', title:'The Olive Oil Cure', series:'Mediterraneo Vital', lang:'EN', amazon:'https://www.amazon.com/s?k=Olive+Oil+Cure+Freddy+Bremseth' },
+  { emoji:'🌿', title:'Premium Olive Oil: The Complete Expert\'s Guide', series:'Mediterraneo Vital', lang:'EN', amazon:'https://www.amazon.com/s?k=Premium+Olive+Oil+Expert+Freddy+Bremseth' },
+  { emoji:'🐝', title:'Birøkt og oliven i hjertet av Alicante', series:'Mediterraneo Vital', lang:'NO', amazon:'https://www.amazon.com/s?k=Bir%C3%B8kt+oliven+Alicante+Freddy+Bremseth' },
+  { emoji:'🌱', title:'Fra jord til bord', series:'Mediterraneo Vital', lang:'NO', amazon:'https://www.amazon.com/s?k=Fra+jord+til+bord+Freddy+Bremseth' },
+  { emoji:'🍃', title:'Polyfenolens kraft', series:'Mediterraneo Vital', lang:'NO', amazon:'https://www.amazon.com/s?k=Polyfenolens+kraft+Freddy+Bremseth' },
+  { emoji:'🌾', title:'Kunsten å høste tidlig', series:'Mediterraneo Vital', lang:'NO', amazon:'https://www.amazon.com/s?k=Kunsten+h%C3%B8ste+tidlig+Freddy+Bremseth' },
+  { emoji:'💡', title:'Lev til du er 100 år', series:'Mediterraneo Vital', lang:'NO', amazon:'https://www.amazon.com/s?k=Lev+til+du+er+100+%C3%A5r+Freddy+Bremseth' },
+  { emoji:'🧘', title:'Mindful Balance: Conquer Stress While Thriving in Motherhood & Career', series:'The Balanced Life', lang:'EN', amazon:'https://www.amazon.com/s?k=Mindful+Balance+Stress+Motherhood+Freddy+Bremseth' },
+  { emoji:'💞', title:'The Relationship Blueprint', series:'The Balanced Life', lang:'EN', amazon:'https://www.amazon.com/s?k=Relationship+Blueprint+Freddy+Bremseth' },
+  { emoji:'⏱', title:'Time Mastery for High Achievers', series:'The Balanced Life', lang:'EN', amazon:'https://www.amazon.com/s?k=Time+Mastery+High+Achievers+Freddy+Bremseth' },
+  { emoji:'📱', title:'Declutter Your Digital Life', series:'The Balanced Life', lang:'EN', amazon:'https://www.amazon.com/s?k=Declutter+Digital+Life+Freddy+Bremseth' },
+  { emoji:'😊', title:'The Joy Code: Exploring Happiness', series:'Personal Development', lang:'EN', amazon:'https://www.amazon.com/s?k=Joy+Code+Happiness+Freddy+Bremseth' },
+  { emoji:'🏠', title:'Spania 2030: Alt du må vite om energikrav og smarte boligkjøp', series:'Personal Development', lang:'NO', amazon:'https://www.amazon.com/s?k=Spania+2030+energikrav+Freddy+Bremseth' },
+  { emoji:'📊', title:'Skatt og Staten: Hvordan økonomien virkelig fungerer', series:'Personal Development', lang:'NO', amazon:'https://www.amazon.com/s?k=Skatt+Staten+%C3%B8konomien+Freddy+Bremseth' },
+];
+
+const blogPosts = [
+  {
+    emoji: '🫒',
+    tagNo: 'Olivenfarming', tagEn: 'Olive Farming', tagEs: 'Olivicultura',
+    titleNo: 'Raiz Antigua — vår tidligste høst noensinne',
+    titleEn: 'Raiz Antigua — Our earliest harvest ever',
+    titleEs: 'Raiz Antigua — nuestra cosecha más temprana',
+    excerptNo: 'Oktober i Biar: how we pressed our first ultra-premium early harvest oil and what makes the polyphenol count exceptional this year.',
+    excerptEn: 'October in Biar: how we pressed our first ultra-premium early harvest oil and what makes the polyphenol count exceptional this year.',
+    excerptEs: 'Octubre en Biar: cómo prensamos nuestro primer aceite de cosecha temprana ultra-premium y qué hace que el contenido de polifenoles sea excepcional este año.',
+    date: 'Okt 2024', img: UP + 'pomelli_photoshoot_image_9_16_0428 (8).png',
+  },
+  {
+    emoji: '🏡',
+    tagNo: 'Eiendom', tagEn: 'Real Estate', tagEs: 'Inmuebles',
+    titleNo: '5 ting du må vite før du kjøper bolig i Spania',
+    titleEn: '5 things you must know before buying property in Spain',
+    titleEs: '5 cosas que debes saber antes de comprar una propiedad en España',
+    excerptNo: 'Fra juridiske fallgruver til skjulte kostnader — min guide til en trygg boligkjøpsprosess på Costa Blanca.',
+    excerptEn: 'From legal pitfalls to hidden costs — my guide to a safe property buying process on Costa Blanca.',
+    excerptEs: 'Desde trampas legales hasta costos ocultos — mi guía para un proceso de compra seguro en Costa Blanca.',
+    date: 'Jan 2025', img: UP + 'Zen Eco Homes-img-1774725977187.png',
+  },
+  {
+    emoji: '🎵',
+    tagNo: 'AI Musikk', tagEn: 'AI Music', tagEs: 'Música IA',
+    titleNo: 'Slik lager AI fremtidens dansegulv-hits',
+    titleEn: 'How AI is crafting tomorrow\'s dancefloor hits',
+    titleEs: 'Cómo la IA está creando los éxitos de baile del mañana',
+    excerptNo: 'En titt bak scenen på Re-Master Freddy — verktøyene, prosessen og hva som skjer når nevrale nettverk møter elektronisk musikk.',
+    excerptEn: 'A behind-the-scenes look at Re-Master Freddy — the tools, the process, and what happens when neural networks meet electronic music.',
+    excerptEs: 'Una mirada detrás de escena de Re-Master Freddy — las herramientas, el proceso y lo que sucede cuando las redes neuronales se encuentran con la música electrónica.',
+    date: 'Feb 2025', img: UP + 'Gemini_Generated_Image_9rr3k69rr3k69rr3 (1).png',
+  },
+];
+
+function App() {
+  const [lang, setLang] = useState('no');
+  const [bookTab, setBookTab] = useState(0);
+  const [musicImg, setMusicImg] = useState(0);
+  const [form, setForm] = useState({ name:'', email:'', msg:'', sent: false });
+  const t = T[lang];
+
+  const scrollTo = (id) => {
+    const el = document.getElementById(id);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+  };
+
+  const filteredBooks = bookTab === 0 ? allBooks
+    : bookTab === 1 ? allBooks.filter(b => b.series === 'Mediterraneo Vital')
+    : bookTab === 2 ? allBooks.filter(b => b.series === 'The Balanced Life')
+    : allBooks.filter(b => b.series === 'Personal Development');
+
+  const ticker = ['freddybremseth.com','zenecohomes.com','donaanna.com','chatgenius.com','remaster.freddybremseth.com','costablancatours.com','soleada.no','pinosoecolife.com','Amazon Bestseller','Costa Blanca','Biar · Alicante'];
+
+  const musicImgs = [
+    UP + 'Gemini_Generated_Image_9rr3k69rr3k69rr3 (1).png',
+    UP + 'Gemini_Generated_Image_u286abu286abu286 (2).png',
+  ];
+
+  return (
+    <div>
+      {/* ── NAV ── */}
+      <nav>
+        <div className="nav-logo">Freddy <span>Bremseth</span></div>
+        <div className="nav-links">
+          {t.nav.map((n, i) => (
+            <a key={n} onClick={() => scrollTo(t.navIds[i])}>{n}</a>
+          ))}
+        </div>
+        <div className="lang-toggle">
+          {['no','en','es'].map(l => (
+            <button key={l} className={`lang-btn ${lang === l ? 'active' : ''}`} onClick={() => setLang(l)}>
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="hero" id="hero">
+        <div className="hero-bg"/>
+        <div className="container">
+          <div className="hero-grid">
+            <div className="hero-photo-wrap">
+              <img src={UP + 'photo-1776585941575.png'} alt="Freddy Bremseth" className="hero-photo"/>
+              <div className="hero-photo-frame"/>
+            </div>
+            <div className="hero-content">
+              <div className="hero-overline">{t.heroOver}</div>
+              <h1 className="hero-name">Freddy<br/><em>Bremseth</em></h1>
+              <p className="hero-subtitle">{t.heroSub}</p>
+              <div className="hero-roles">
+                {t.heroRoles.map(r => <span key={r} className="hero-role">{r}</span>)}
+              </div>
+              <a onClick={() => scrollTo('brands')} className="hero-cta" style={{cursor:'pointer'}}>
+                {t.heroCta}
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TICKER ── */}
+      <div className="ticker-wrap">
+        <div className="ticker-track">
+          {[...ticker, ...ticker].map((item, i) => (
+            <span key={i} className="ticker-item">
+              <span className="ticker-dot"/>
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── ABOUT ── */}
+      <section id="about" className="about">
+        <div className="container">
+          <div className="about-grid">
+            <div className="about-text">
+              <div className="section-label">{t.aboutLabel}</div>
+              <h2 className="section-title">{t.aboutTitle}</h2>
+              <p>{t.aboutP1}</p>
+              <p>{t.aboutP2}</p>
+              <div className="about-stats">
+                <div className="stat"><div className="stat-num">{t.stat1n}</div><div className="stat-label">{t.stat1l}</div></div>
+                <div className="stat"><div className="stat-num">{t.stat2n}</div><div className="stat-label">{t.stat2l}</div></div>
+                <div className="stat"><div className="stat-num">{t.stat3n}</div><div className="stat-label">{t.stat3l}</div></div>
+                <div className="stat"><div className="stat-num">{t.stat4n}</div><div className="stat-label">{t.stat4l}</div></div>
+              </div>
+            </div>
+            <div>
+              <div className="about-quote">
+                <p>{t.aboutQ}</p>
+                <span>— Freddy Bremseth</span>
+              </div>
+              {t.roles.map(r => (
+                <div key={r.icon} className="role-card">
+                  <div className="role-icon">{r.icon}</div>
+                  <div>
+                    <div className="role-label">{r.label}</div>
+                    <div className="role-sub">{r.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── MUSIC ── */}
+      <section id="music" className="music">
+        <div className="container">
+          <div className="music-inner">
+            <div className="music-visual">
+              <div className="music-main-img">
+                <img src={musicImgs[musicImg]} alt="Re-Master Freddy"/>
+                <div className="img-overlay"/>
+                <div className="music-nav-bar">
+                  <div className="music-dots">
+                    {musicImgs.map((_, i) => (
+                      <button key={i} className="music-dot" onClick={() => setMusicImg(i)}
+                        style={{background: musicImg === i ? 'var(--gold)' : 'rgba(255,255,255,0.3)'}}/>
+                    ))}
+                  </div>
+                  <a href="https://www.youtube.com/@remaster-freddy" target="_blank" rel="noopener" className="yt-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                      <path d="M23.5 6.2s-.3-2-1.2-2.8c-1.1-1.2-2.4-1.2-3-1.3C16.6 2 12 2 12 2s-4.6 0-7.3.1c-.6.1-1.9.1-3 1.3C.8 4.2.5 6.2.5 6.2S.2 8.5.2 10.8v2.1c0 2.3.3 4.6.3 4.6s.3 2 1.2 2.8c1.1 1.2 2.6 1.1 3.3 1.2C7.2 21.7 12 21.8 12 21.8s4.6 0 7.3-.2c.6-.1 1.9-.1 3-1.3.9-.8 1.2-2.8 1.2-2.8s.3-2.3.3-4.6v-2.1C23.8 8.5 23.5 6.2 23.5 6.2zM9.7 15.5V8.4l8.1 3.6-8.1 3.5z"/>
+                    </svg>
+                    YouTube
+                  </a>
+                </div>
+              </div>
+              <div className="music-strip">
+                <img src={UP + 'Gemini_Generated_Image_9rr3k69rr3k69rr3 (5).png'} alt="Re-Master Freddy artwork"
+                  onClick={() => setMusicImg(0)}/>
+                <div className="music-strip-logo">
+                  <img src={UP + 'logo-remaster.png'} alt="Re-Master Freddy logo"/>
+                </div>
+              </div>
+            </div>
+            <div className="music-desc">
+              <div className="section-label">{t.musicLabel}</div>
+              <h2>{t.musicTitle}</h2>
+              <p>{t.musicP1}</p>
+              <p>{t.musicP2}</p>
+              <div className="genre-tags">
+                {t.musicGenres.map(g => <span key={g} className="genre-tag">{g}</span>)}
+              </div>
+              <div style={{display:'flex', gap:16, alignItems:'center', marginTop:8}}>
+                <div className="bars">
+                  {[1,2,3,4,5].map(i => <div key={i} className="bar"/>)}
+                </div>
+                <a href="https://www.youtube.com/@remaster-freddy" target="_blank" rel="noopener" className="music-link">
+                  {t.musicBtn} ↗
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BRANDS ── */}
+      <section id="brands" className="brands">
+        <div className="container">
+          <div className="section-label">{t.brandsLabel}</div>
+          <h2 className="section-title">{t.brandsTitle}</h2>
+          <div className="brands-grid">
+            {brands.map(b => (
+              <a key={b.name} href={b.href} target="_blank" rel="noopener" className="brand-card">
+                {b.img ? (
+                  <div className="brand-img-header">
+                    <img src={b.img} alt={b.name}/>
+                  </div>
+                ) : b.logo ? (
+                  <div className="brand-logo-header">
+                    <img src={b.logo} alt={b.name + ' logo'}/>
+                  </div>
+                ) : null}
+                <div className="brand-card-body">
+                  {!b.img && !b.logo && <div className="brand-icon">{b.icon}</div>}
+                  <div className="brand-name">{b.name}</div>
+                  <div className="brand-url">{b.url}</div>
+                  <div className="brand-desc">
+                    {lang === 'no' ? b.descNo : lang === 'es' ? b.descEs : b.descEn}
+                  </div>
+                  {b.products && (
+                    <div className="brand-products">
+                      {b.products.map((p, i) => <img key={i} src={p} alt="product"/>)}
+                    </div>
+                  )}
+                  <div className="brand-arrow">{t.brandsVisit} →</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── REAL ESTATE ── */}
+      <section id="realestate" className="realestate">
+        <div className="container">
+          <div className="re-grid">
+            <div className="re-visual">
+              <div className="re-img-wrap">
+                <img src={UP + 'Zen Eco Homes-img-1774725977187.png'} alt="Villa Costa Blanca"/>
+                <div className="re-img-overlay"/>
+                <div className="re-badge">{t.reForSale}</div>
+                <div className="re-title-block">
+                  <h3>{t.reVilla}</h3>
+                  <p>{t.reAlicante}</p>
+                </div>
+              </div>
+              <div className="re-features">
+                {[
+                  { icon:'🛏', val:'4', lbl: t.reBedrooms },
+                  { icon:'🏊', val:'1', lbl: t.rePool },
+                  { icon:'🌊', val:'∞', lbl: t.reView },
+                ].map(f => (
+                  <div key={f.lbl} className="re-feature">
+                    <div className="re-feature-icon">{f.icon}</div>
+                    <div className="re-feature-val">{f.val}</div>
+                    <div className="re-feature-lbl">{f.lbl}</div>
+                  </div>
+                ))}
+              </div>
+              <a href="https://zenecohomes.com/property.php?id=1708" target="_blank" rel="noopener" className="re-view-btn">
+                {t.reViewBtn}
+              </a>
+            </div>
+            <div className="re-content">
+              <div className="section-label">{t.reLabel}</div>
+              <h2 className="section-title">{t.reTitle}</h2>
+              <p>{t.reP1}</p>
+              <p>{t.reP2}</p>
+              <div className="re-links">
+                <a href="https://soleada.no" target="_blank" rel="noopener" className="re-link-card">
+                  <div className="re-link-icon">🏡</div>
+                  <div className="re-link-info">
+                    <h4>Soleada.no</h4>
+                    <p>{t.reSoleadaSub}</p>
+                  </div>
+                  <div className="re-link-arrow">→</div>
+                </a>
+                <a href="https://zenecohomes.com" target="_blank" rel="noopener" className="re-link-card">
+                  <div className="re-link-icon">🌿</div>
+                  <div className="re-link-info">
+                    <h4>Zeneco Homes</h4>
+                    <p>{t.reZenecoSub}</p>
+                  </div>
+                  <div className="re-link-arrow">→</div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TOURS ── */}
+      <section id="tours" className="tours">
+        <div className="container">
+          <div className="section-label">{t.toursLabel}</div>
+          <h2 className="section-title">{t.toursTitle}</h2>
+          <p style={{color:'var(--muted2)', fontSize:16}}>{t.toursSub}</p>
+          <div className="tours-grid">
+            {tours.map(tour => (
+              <div key={tour.icon} className="tour-card">
+                <div className="tour-icon">{tour.icon}</div>
+                <div className="tour-title">{tour[lang]?.title || tour.en.title}</div>
+                <div className="tour-desc">{tour[lang]?.desc || tour.en.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div className="tours-cta">
+            <a href="https://costablancatours.com" target="_blank" rel="noopener" className="hero-cta">
+              {t.toursCta} →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BOOKS ── */}
+      <section id="books" className="books">
+        <div className="container">
+          <div className="section-label">{t.booksLabel}</div>
+          <h2 className="section-title">{t.booksTitle}</h2>
+          <div className="books-tabs">
+            {t.bookTabs.map((tab, i) => (
+              <button key={tab} className={`books-tab ${bookTab === i ? 'active' : ''}`} onClick={() => setBookTab(i)}>
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div className="books-grid">
+            {filteredBooks.map(book => (
+              <a key={book.title} href={book.amazon} target="_blank" rel="noopener" className="book-card">
+                <div className="book-spine">{book.emoji}</div>
+                <div className="book-info">
+                  <div className="book-title">{book.title}</div>
+                  <div className="book-series">{book.series}</div>
+                  <span className="book-lang">
+                    {book.lang === 'NO' ? 'Norsk' : book.lang === 'ES' ? 'Español' : 'English'}
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+          <div style={{marginTop:48, textAlign:'center'}}>
+            <a href="https://www.amazon.com/s?k=Freddy+Bremseth" target="_blank" rel="noopener" className="music-link">
+              {t.booksAmazon} ↗
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BLOG ── */}
+      <section id="blog" className="blog">
+        <div className="container">
+          <div className="section-label">{t.blogLabel}</div>
+          <h2 className="section-title">{t.blogTitle}</h2>
+          <div className="blog-grid">
+            {blogPosts.map(post => (
+              <div key={post.titleEn} className="blog-card">
+                {post.img
+                  ? <img src={post.img} alt={post.titleEn} className="blog-img"/>
+                  : <div className="blog-img-placeholder">{post.emoji}</div>
+                }
+                <div className="blog-body">
+                  <div className="blog-tag">
+                    {lang === 'no' ? post.tagNo : lang === 'es' ? post.tagEs : post.tagEn}
+                  </div>
+                  <div className="blog-title">
+                    {lang === 'no' ? post.titleNo : lang === 'es' ? post.titleEs : post.titleEn}
+                  </div>
+                  <div className="blog-excerpt">
+                    {lang === 'no' ? post.excerptNo : lang === 'es' ? post.excerptEs : post.excerptEn}
+                  </div>
+                  <div className="blog-meta">{post.date}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CONTACT ── */}
+      <section id="contact" className="contact">
+        <div className="container">
+          <div className="contact-grid">
+            <div>
+              <div className="section-label">{t.contactLabel}</div>
+              <h2 className="section-title">{t.contactTitle}</h2>
+              <p style={{color:'var(--muted2)', fontSize:16, lineHeight:1.8, marginBottom:0}}>{t.contactP}</p>
+              <div className="contact-links">
+                <a href="https://wa.me/4796009965" target="_blank" rel="noopener" className="contact-link wa-link">
+                  <div className="contact-link-icon">💬</div>
+                  <div>
+                    <div className="wa-label">WhatsApp</div>
+                    <div style={{fontSize:13}}>+47 960 09 965</div>
+                  </div>
+                </a>
+                <a href="tel:+4796009965" className="contact-link">
+                  <div className="contact-link-icon">📞</div>
+                  +47 960 09 965
+                </a>
+                <a href="mailto:freddy.bremseth@gmail.com" className="contact-link">
+                  <div className="contact-link-icon">✉️</div>
+                  freddy.bremseth@gmail.com
+                </a>
+                <a href="https://www.youtube.com/@remaster-freddy" target="_blank" rel="noopener" className="contact-link">
+                  <div className="contact-link-icon">▶</div>
+                  YouTube: @remaster-freddy
+                </a>
+                <a href="https://soleada.no" target="_blank" rel="noopener" className="contact-link">
+                  <div className="contact-link-icon">🏡</div>
+                  soleada.no
+                </a>
+                <a href="https://zenecohomes.com" target="_blank" rel="noopener" className="contact-link">
+                  <div className="contact-link-icon">🌿</div>
+                  zenecohomes.com
+                </a>
+                <a href="https://donaanna.com" target="_blank" rel="noopener" className="contact-link">
+                  <div className="contact-link-icon">🫒</div>
+                  donaanna.com
+                </a>
+                <a href="https://chatgenius.com" target="_blank" rel="noopener" className="contact-link">
+                  <div className="contact-link-icon">🤖</div>
+                  chatgenius.com
+                </a>
+              </div>
+            </div>
+            <div>
+              {form.sent ? (
+                <div className="form-success">{t.formSuccess}</div>
+              ) : (
+                <form className="contact-form" onSubmit={e => { e.preventDefault(); setForm(f => ({...f, sent: true})); }}>
+                  <div className="form-field">
+                    <label className="form-label">{t.formName}</label>
+                    <input className="form-input" value={form.name}
+                      onChange={e => setForm(f => ({...f, name: e.target.value}))} required/>
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">{t.formEmail}</label>
+                    <input className="form-input" type="email" value={form.email}
+                      onChange={e => setForm(f => ({...f, email: e.target.value}))} required/>
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">{t.formMsg}</label>
+                    <textarea className="form-input" value={form.msg}
+                      onChange={e => setForm(f => ({...f, msg: e.target.value}))} required/>
+                  </div>
+                  <button type="submit" className="form-submit">{t.formSend}</button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer>
+        <div className="container">
+          <div className="footer-inner">
+            <div className="footer-logo">Freddy <span>Bremseth</span></div>
+            <div className="footer-links">
+              {['zenecohomes.com','donaanna.com','pinosoecolife.com','chatgenius.com','soleada.no','costablancatours.com'].map(l => (
+                <a key={l} href={`https://${l}`} target="_blank" rel="noopener">{l}</a>
+              ))}
+            </div>
+            <div className="footer-copy">© 2025 Freddy Bremseth</div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
