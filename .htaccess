@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Canonical domain and HTTPS
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} !^www\.freddybremseth\.com$ [NC]
+RewriteRule ^(.*)$ https://www.freddybremseth.com/$1 [R=301,L]
+
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
