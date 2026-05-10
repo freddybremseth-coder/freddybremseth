@@ -1,0 +1,10 @@
+{
+  "name": "Freddy Bremseth",
+  "short_name": "Freddy",
+  "description": "Freddy Bremseth - eiendomsrådgiver i Spania, entreprenør, AI-rådgiver, forfatter og musiker.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0b0a",
+  "theme_color": "#c9a96e",
+  "lang": "no"
+}
