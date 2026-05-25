@@ -1,0 +1,236 @@
+:root {
+  --bg: #0c0b0a;
+  --bg-soft: #171513;
+  --panel: #1f1c19;
+  --line: rgba(201, 169, 110, 0.18);
+  --gold: #c9a96e;
+  --gold-soft: rgba(201, 169, 110, 0.12);
+  --text: #f1ecdf;
+  --muted: #b5a992;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #0c0b0a 0%, #13110f 100%);
+  color: var(--text);
+  font-family: "DM Sans", sans-serif;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px clamp(18px, 4vw, 40px);
+  background: rgba(12, 11, 10, 0.88);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+}
+
+.brand, .site-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--gold-soft);
+  border: 1px solid var(--line);
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.site-nav a {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.site-nav a[aria-current="page"] { color: var(--gold); }
+
+.hero {
+  padding: clamp(56px, 9vw, 96px) 20px 28px;
+}
+
+.hero-inner,
+.content-shell {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--gold);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+h1, h2, h3 {
+  font-family: "Playfair Display", serif;
+  line-height: 1.05;
+}
+
+h1 {
+  margin: 0;
+  max-width: 720px;
+  font-size: clamp(2.6rem, 7vw, 5rem);
+}
+
+.hero-copy {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.8;
+}
+
+.content-shell {
+  padding: 8px 0 64px;
+}
+
+.loading-card,
+.empty-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 28px;
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.articles-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.article-list {
+  display: grid;
+  gap: 16px;
+}
+
+.article-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.article-card.is-active {
+  border-color: var(--gold);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+.article-card img,
+.article-cover {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: linear-gradient(135deg, #2b241c, #14110f);
+}
+
+.article-body {
+  padding: 18px;
+}
+
+.article-meta,
+.detail-meta {
+  color: var(--gold);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.article-body h3 {
+  margin: 8px 0 10px;
+  font-size: 1.5rem;
+}
+
+.article-body p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.detail-panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(26, 23, 19, 0.92);
+  overflow: hidden;
+}
+
+.detail-cover {
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  object-fit: cover;
+  background: linear-gradient(135deg, #2b241c, #14110f);
+}
+
+.detail-inner {
+  padding: clamp(20px, 4vw, 36px);
+}
+
+.back-link {
+  display: none;
+  margin-bottom: 18px;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.detail-inner h2 {
+  margin: 10px 0 14px;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.detail-summary {
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.markdown {
+  margin-top: 28px;
+  color: var(--text);
+}
+
+.markdown h1, .markdown h2, .markdown h3 {
+  margin: 34px 0 12px;
+}
+
+.markdown p,
+.markdown li {
+  color: #ded6c8;
+  line-height: 1.85;
+}
+
+.markdown ul {
+  padding-left: 20px;
+}
+
+@media (max-width: 900px) {
+  .articles-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .site-nav {
+    gap: 10px;
+  }
+
+  .detail-panel.is-detail-only .back-link {
+    display: inline-flex;
+  }
+}
