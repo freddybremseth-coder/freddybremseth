@@ -635,6 +635,7 @@ function App() {
           {t.nav.map((n, i) => (
             <a key={n} onClick={() => scrollTo(t.navIds[i])}>{n}</a>
           ))}
+          <a href="/artikler/">Artikler</a>
         </div>
         <div className="lang-toggle">
           {['no','en','es'].map(l => (
@@ -929,11 +930,16 @@ function App() {
       {/* ── BLOG ── */}
       <section id="blog" className="blog">
         <div className="container">
-          <div className="section-label">{t.blogLabel}</div>
-          <h2 className="section-title">{t.blogTitle}</h2>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'end', gap:20, flexWrap:'wrap', marginBottom:24}}>
+            <div>
+              <div className="section-label">{t.blogLabel}</div>
+              <h2 className="section-title" style={{marginBottom:0}}>{t.blogTitle}</h2>
+            </div>
+            <a href="/artikler/" className="music-link">Se alle artikler</a>
+          </div>
           <div className="blog-grid">
             {blogPosts.map(post => (
-              <div key={post.titleEn} className="blog-card">
+              <a key={post.titleEn} href="/artikler/" className="blog-card">
                 {post.img
                   ? <img src={post.img} alt={post.titleEn} className="blog-img"/>
                   : <div className="blog-img-placeholder">{post.emoji}</div>
@@ -950,7 +956,7 @@ function App() {
                   </div>
                   <div className="blog-meta">{post.date}</div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
