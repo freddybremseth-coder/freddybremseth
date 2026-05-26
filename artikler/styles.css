@@ -124,21 +124,12 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--panel);
-  overflow: hidden;
   cursor: pointer;
 }
 
 .article-card.is-active {
   border-color: var(--gold);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
-}
-
-.article-card img,
-.article-cover {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  background: linear-gradient(135deg, #2b241c, #14110f);
 }
 
 .article-body {

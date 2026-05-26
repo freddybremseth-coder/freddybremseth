@@ -16,6 +16,36 @@
     return new Intl.DateTimeFormat("nb-NO", { day: "numeric", month: "long", year: "numeric" }).format(new Date(value));
   }
 
+  function titleFromMarkdown(markdown, fallback) {
+    const lines = String(markdown || "").split(/\r?\n/);
+    for (var i = 0; i < lines.length; i += 1) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      if (line.startsWith("# ")) return line.slice(2).trim();
+      if (line.startsWith("## ")) return line.slice(3).trim();
+      if (line.startsWith("### ")) return line.slice(4).trim();
+      break;
+    }
+    return String(fallback || "").trim();
+  }
+
+  function stripLeadingHeading(markdown) {
+    const lines = String(markdown || "").split(/\r?\n/);
+    let skipped = false;
+    const output = [];
+    lines.forEach(function (rawLine) {
+      const line = rawLine.trim();
+      if (!skipped && !line) return;
+      if (!skipped && /^#{1,3}\s+/.test(line)) {
+        skipped = true;
+        return;
+      }
+      skipped = true;
+      output.push(rawLine);
+    });
+    return output.join("\n").trim();
+  }
+
   function renderMarkdown(markdown) {
     const lines = String(markdown || "").split(/\r?\n/);
     let html = "";
@@ -69,24 +99,28 @@
       return;
     }
 
+    const preparedItems = items.map(function (item) {
+      const displayTitle = titleFromMarkdown(item.markdown, item.title);
+      return Object.assign({}, item, {
+        displayTitle: displayTitle,
+        bodyMarkdown: stripLeadingHeading(item.markdown),
+      });
+    });
+
     const currentSlug = selectedSlug();
-    const active = items.find(function (item) { return item.slug === currentSlug; }) || items[0];
+    const active = preparedItems.find(function (item) { return item.slug === currentSlug; }) || preparedItems[0];
     const detailOnlyClass = currentSlug ? " is-detail-only" : "";
 
     mount.innerHTML =
       '<div class="articles-layout">' +
         '<aside class="article-list">' +
-          items.map(function (item) {
+          preparedItems.map(function (item) {
             const activeClass = item.slug === active.slug ? " is-active" : "";
-            const media = item.image_url
-              ? '<img src="' + escapeHtml(item.image_url) + '" alt="' + escapeHtml(item.title) + '">'
-              : '<div class="article-cover"></div>';
             return (
               '<article class="article-card' + activeClass + '" data-slug="' + escapeHtml(item.slug) + '">' +
-                media +
                 '<div class="article-body">' +
                   '<div class="article-meta">' + escapeHtml(formatDate(item.published_at || item.created_at)) + '</div>' +
-                  '<h3>' + escapeHtml(item.title) + '</h3>' +
+                  '<h3>' + escapeHtml(item.displayTitle) + '</h3>' +
                   '<p>' + escapeHtml(item.summary || "") + '</p>' +
                 '</div>' +
               '</article>'
@@ -98,9 +132,9 @@
           '<div class="detail-inner">' +
             '<a class="back-link" href="/artikler/">Tilbake til alle artikler</a>' +
             '<div class="detail-meta">' + escapeHtml(formatDate(active.published_at || active.created_at)) + '</div>' +
-            '<h2>' + escapeHtml(active.title) + '</h2>' +
+            '<h2>' + escapeHtml(active.displayTitle) + '</h2>' +
             '<p class="detail-summary">' + escapeHtml(active.summary || "") + '</p>' +
-            '<div class="markdown">' + renderMarkdown(active.markdown) + '</div>' +
+            '<div class="markdown">' + renderMarkdown(active.bodyMarkdown) + '</div>' +
           '</div>' +
         '</article>' +
       '</div>';
