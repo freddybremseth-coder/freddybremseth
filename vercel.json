@@ -5,7 +5,7 @@
       "dest": "/home.html"
     },
     {
-      "src": "/artikler/(.*)",
+      "src": "/artikler/([^./]+)",
       "dest": "/artikler/index.html"
     },
     {
