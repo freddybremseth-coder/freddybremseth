@@ -48,15 +48,19 @@
     return html;
   }
 
+  function pathSlug() {
+    var parts = window.location.pathname.replace(/\/+$/, "").split("/");
+    if (parts.length >= 3 && parts[1] === "artikler") return parts[2] || "";
+    return "";
+  }
+
   function setSlug(slug) {
-    const url = new URL(window.location.href);
-    if (slug) url.searchParams.set("slug", slug);
-    else url.searchParams.delete("slug");
-    history.replaceState({}, "", url.toString());
+    var nextPath = slug ? ("/artikler/" + slug) : "/artikler/";
+    history.replaceState({}, "", nextPath);
   }
 
   function selectedSlug() {
-    return new URL(window.location.href).searchParams.get("slug") || "";
+    return pathSlug() || new URL(window.location.href).searchParams.get("slug") || "";
   }
 
   function render(items) {

@@ -5,6 +5,10 @@
       "dest": "/home.html"
     },
     {
+      "src": "/artikler/(.*)",
+      "dest": "/artikler/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }
