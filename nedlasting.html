@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Last ned bøkene som PDF | Freddy Bremseth</title>
+  <meta name="description" content="Kjøp bøkene til Freddy Bremseth som PDF — 5 € per bok, eller 50 € for ubegrenset nedlasting av alle. Direkte nedlasting, ingen Amazon.">
+  <link rel="icon" href="/site.webmanifest">
+  <style>
+    :root { --ink: #14120e; --paper: #faf8f4; --gold: #b08d3f; --gold-border: #e4d7bb; --muted: #6f6a5f; --card: #ffffff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Georgia, 'Times New Roman', serif; background: var(--paper); color: var(--ink); line-height: 1.6; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 40px 20px 90px; }
+    header.site { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 26px; border-bottom: 1px solid var(--gold-border); }
+    header.site a.brand { font-size: 1.1rem; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: 0.02em; }
+    header.site nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-size: 0.92rem; }
+    header.site nav a:hover { color: var(--gold); }
+    .eyebrow { font-family: 'DM Sans', Helvetica, sans-serif; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; color: var(--gold); margin: 36px 0 8px; }
+    h1 { margin: 0 0 10px; font-size: clamp(1.8rem, 4.5vw, 2.6rem); line-height: 1.15; }
+    p.lead { color: var(--muted); max-width: 560px; margin: 0 0 26px; }
+    .all-offer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; background: linear-gradient(120deg, #fdf6e6, #f7ecd2); border: 1px solid var(--gold-border); border-radius: 16px; padding: 20px 22px; margin: 26px 0; }
+    .all-offer strong { font-size: 1.15rem; }
+    .all-offer .sub { color: var(--muted); font-size: 0.9rem; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 10px; background: var(--gold); color: #fff; font-family: 'DM Sans', Helvetica, sans-serif; font-weight: 700; font-size: 0.95rem; padding: 13px 22px; cursor: pointer; text-decoration: none; }
+    .btn:hover { filter: brightness(1.07); }
+    .btn[disabled] { opacity: 0.7; cursor: progress; }
+    .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--gold-border); }
+    .grid { display: grid; gap: 14px; margin-top: 10px; }
+    @media (min-width: 700px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .book { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--gold-border); border-radius: 14px; padding: 20px; }
+    .book h3 { margin: 0 0 4px; font-size: 1.08rem; }
+    .book p { margin: 0 0 14px; color: var(--muted); font-size: 0.9rem; flex: 1; }
+    .book .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .book .price { font-weight: 700; }
+    .note { color: var(--muted); font-size: 0.85rem; margin-top: 26px; }
+    .status { padding: 30px; text-align: center; color: var(--muted); }
+    .delivery { display: none; background: #eef7ef; border: 1px solid #cfe6d2; border-radius: 16px; padding: 22px; margin: 26px 0; }
+    .delivery h2 { margin: 0 0 6px; font-size: 1.25rem; }
+    .delivery p { margin: 0 0 14px; color: #3c5a41; font-size: 0.92rem; }
+    .delivery .dl { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fff; border: 1px solid #cfe6d2; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+    .error-box { display: none; background: #fdeceb; color: #b3261e; border-radius: 12px; padding: 14px 16px; margin: 20px 0; font-size: 0.92rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <a class="brand" href="/">Freddy Bremseth</a>
+      <nav>
+        <a href="/forfatter.html">Forfatter</a>
+        <a href="/nedlasting.html">Last ned PDF</a>
+      </nav>
+    </header>
+
+    <p class="eyebrow">Direkte fra forfatteren</p>
+    <h1>Bøkene som PDF — uten mellomledd.</h1>
+    <p class="lead">
+      Kjøp og last ned umiddelbart. 5&nbsp;€ per bok, eller sikre deg <strong>alle bøkene for 50&nbsp;€</strong> med
+      ubegrenset nedlasting — også av bøker som kommer senere.
+    </p>
+
+    <div class="error-box" id="error-box"></div>
+
+    <!-- Delivery view after purchase -->
+    <section class="delivery" id="delivery">
+      <h2>📚 Takk for kjøpet!</h2>
+      <p>Lenkene under er personlige og varer evig — vi har også sendt dem til e-posten din. Bokmerk denne siden.</p>
+      <div id="delivery-list"></div>
+    </section>
+
+    <!-- All-access offer -->
+    <div class="all-offer" id="all-offer" style="display:none">
+      <div>
+        <strong>Alle bøker — 50 €</strong>
+        <div class="sub">Ubegrenset nedlasting, inkludert fremtidige utgivelser. Én betaling.</div>
+      </div>
+      <button class="btn" id="buy-all">Kjøp alle for 50 €</button>
+    </div>
+
+    <div class="grid" id="books-grid">
+      <div class="status">Henter bøkene…</div>
+    </div>
+
+    <p class="note">
+      Sikker kortbetaling via Stripe. PDF-ene leveres umiddelbart og lenken sendes også på e-post.
+      Foretrekker du Kindle/pocket? <a href="/forfatter.html">Se bøkene på Amazon</a>.
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      var API = "https://realtyflow.chatgenius.pro/api/public/books";
+      var grid = document.getElementById("books-grid");
+      var errorBox = document.getElementById("error-box");
+      var delivery = document.getElementById("delivery");
+      var deliveryList = document.getElementById("delivery-list");
+
+      function esc(v) { var d = document.createElement("div"); d.textContent = String(v == null ? "" : v); return d.innerHTML; }
+      function showError(msg) { errorBox.textContent = msg; errorBox.style.display = "block"; }
+
+      function checkout(payload, button) {
+        button.disabled = true;
+        var original = button.textContent;
+        button.textContent = "Åpner betaling…";
+        fetch(API + "/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        })
+          .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+          .then(function (result) {
+            if (!result.ok || !result.body.url) throw new Error(result.body.error || "Kunne ikke starte betalingen.");
+            window.location.href = result.body.url;
+          })
+          .catch(function (err) {
+            button.disabled = false;
+            button.textContent = original;
+            showError(err && err.message ? err.message : "Kunne ikke starte betalingen.");
+          });
+      }
+
+      function renderBooks(data) {
+        var books = data.books || [];
+        var single = (data.pricing && data.pricing.single_eur) || 5;
+        if (!books.length) {
+          grid.innerHTML = '<div class="status">Ingen bøker er lagt ut for PDF-salg ennå — kom tilbake snart!</div>';
+          return;
+        }
+        document.getElementById("all-offer").style.display = "flex";
+        grid.innerHTML = books.map(function (book) {
+          return (
+            '<article class="book">' +
+              "<h3>" + esc(book.title) + "</h3>" +
+              "<p>" + esc(book.subtitle || book.series || "") + "</p>" +
+              '<div class="row"><span class="price">' + single + ' €</span>' +
+              '<button class="btn" data-book="' + esc(book.id) + '">Kjøp PDF</button></div>' +
+            "</article>"
+          );
+        }).join("");
+        grid.querySelectorAll("button[data-book]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            checkout({ book_id: button.getAttribute("data-book") }, button);
+          });
+        });
+      }
+
+      function renderDelivery(access) {
+        delivery.style.display = "block";
+        deliveryList.innerHTML = (access.books || []).map(function (book) {
+          var href = API + "/download?token=" + encodeURIComponent(access.token) + "&book_id=" + encodeURIComponent(book.id);
+          return (
+            '<div class="dl"><span>' + esc(book.title) + '</span>' +
+            '<a class="btn" href="' + href + '">Last ned PDF</a></div>'
+          );
+        }).join("") || '<p>Fant ingen bøker på kjøpet ditt — kontakt post@chatgenius.pro.</p>';
+        try { history.replaceState(null, "", "/nedlasting.html?token=" + encodeURIComponent(access.token)); } catch (e) {}
+        delivery.scrollIntoView({ behavior: "smooth" });
+      }
+
+      var params = new URLSearchParams(location.search);
+      var sessionId = params.get("session_id");
+      var token = params.get("token");
+      if (sessionId || token) {
+        fetch(API + "/access?" + (sessionId ? "session_id=" + encodeURIComponent(sessionId) : "token=" + encodeURIComponent(token)))
+          .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+          .then(function (result) {
+            if (!result.ok) throw new Error(result.body.error || "Fant ikke kjøpet.");
+            renderDelivery(result.body);
+          })
+          .catch(function (err) { showError(err && err.message ? err.message : "Fant ikke kjøpet."); });
+      }
+
+      document.getElementById("buy-all").addEventListener("click", function () {
+        checkout({ scope: "all" }, this);
+      });
+
+      fetch(API)
+        .then(function (res) { return res.json(); })
+        .then(renderBooks)
+        .catch(function () { grid.innerHTML = '<div class="status">Kunne ikke hente bøkene. Prøv igjen senere.</div>'; });
+    })();
+  </script>
+</body>
+</html>

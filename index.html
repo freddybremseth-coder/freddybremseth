@@ -323,6 +323,7 @@ const T = {
     toursSub: 'Unike turer og eventyr langs den spanske middelhavskysten',
     toursCta: 'Se alle turer',
     booksLabel: 'Mine bøker',
+    pdfCta: 'Kjøp bøkene som PDF — 5 € per bok, 50 € for alle',
     booksTitle: 'Kunnskap og inspirasjon',
     bookTabs: ['Alle','Mediterraneo Vital','The Balanced Life','Personlig utvikling'],
     booksAmazon: 'Se alle bøker på Amazon',
@@ -384,6 +385,7 @@ const T = {
     toursSub: 'Unique tours and adventures along the Spanish Mediterranean coast',
     toursCta: 'View all tours',
     booksLabel: 'My books',
+    pdfCta: 'Buy the books as PDF — €5 per book, €50 for all',
     booksTitle: 'Knowledge & Inspiration',
     bookTabs: ['All','Mediterraneo Vital','The Balanced Life','Personal Dev'],
     booksAmazon: 'View all books on Amazon',
@@ -898,6 +900,7 @@ function App() {
         <div className="container">
           <div className="section-label">{t.booksLabel}</div>
           <h2 className="section-title">{t.booksTitle}</h2>
+          <p style={{margin:'0 0 24px'}}><a href="/nedlasting.html" style={{color:'var(--gold)',fontFamily:"'DM Sans', sans-serif",fontWeight:600,textDecoration:'none'}}>{t.pdfCta} →</a></p>
           <div className="books-tabs">
             {t.bookTabs.map((tab, i) => (
               <button key={tab} className={`books-tab ${bookTab === i ? 'active' : ''}`} onClick={() => setBookTab(i)}>
