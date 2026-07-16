@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="no">
+<html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Last ned bøkene som PDF | Freddy Bremseth</title>
-  <meta name="description" content="Kjøp bøkene til Freddy Bremseth som PDF — 5 € per bok, eller 50 € for ubegrenset nedlasting av alle. Direkte nedlasting, ingen Amazon.">
+  <title>Die Bücher als PDF herunterladen | Freddy Bremseth</title>
+  <meta name="description" content="Kaufen Sie Freddy Bremseths Bücher als PDF — 5 € pro Buch oder 50 € für unbegrenzte Downloads aller Bücher. Sofortiger Download, ohne Amazon.">
   <link rel="icon" href="/site.webmanifest">
   <style>
     :root { --ink: #14120e; --paper: #faf8f4; --gold: #b08d3f; --gold-border: #e4d7bb; --muted: #6f6a5f; --card: #ffffff; }
@@ -42,7 +42,7 @@
     .error-box { display: none; background: #fdeceb; color: #b3261e; border-radius: 12px; padding: 14px 16px; margin: 20px 0; font-size: 0.92rem; }
   </style>
   <!-- i18n:hreflang -->
-  <link rel="canonical" href="https://www.freddybremseth.com/nedlasting.html">
+  <link rel="canonical" href="https://www.freddybremseth.com/de/nedlasting.html">
   <link rel="alternate" hreflang="no" href="https://www.freddybremseth.com/nedlasting.html">
   <link rel="alternate" hreflang="en" href="https://www.freddybremseth.com/en/nedlasting.html">
   <link rel="alternate" hreflang="fr" href="https://www.freddybremseth.com/fr/nedlasting.html">
@@ -55,47 +55,41 @@
 <body>
   <div class="wrap">
     <header class="site">
-      <a class="brand" href="/">Freddy Bremseth</a>
+      <a class="brand" href="/de/">Freddy Bremseth</a>
       <nav>
-        <a href="/forfatter.html" data-i18n="n_nav_author">Forfatter</a>
-        <a href="/nedlasting.html" data-i18n="n_nav_download">' + T("n_dl", "Last ned PDF") + '</a>
+        <a href="/forfatter.html" data-i18n="n_nav_author">Autor</a>
+        <a href="/de/nedlasting.html" data-i18n="n_nav_download">PDF herunterladen</a>
         <select class="lang-switch" aria-label="Språk / Language"></select>
       </nav>
     </header>
 
-    <p class="eyebrow" data-i18n="n_eyebrow">Direkte fra forfatteren</p>
-    <h1 data-i18n="n_h1">Bøkene som PDF — uten mellomledd.</h1>
-    <p class="lead" data-i18n="n_lead">
-      Kjøp og last ned umiddelbart. 5&nbsp;€ per bok, eller sikre deg <strong>alle bøkene for 50&nbsp;€</strong> med
-      ubegrenset nedlasting — også av bøker som kommer senere.
-    </p>
+    <p class="eyebrow" data-i18n="n_eyebrow">Direkt vom Autor</p>
+    <h1 data-i18n="n_h1">Die Bücher als PDF — ohne Zwischenhändler.</h1>
+    <p class="lead" data-i18n="n_lead">Sofort kaufen und herunterladen. 5 € pro Buch, oder sichern Sie sich <strong>alle Bücher für 50 €</strong> mit unbegrenzten Downloads — auch künftiger Titel.</p>
 
     <div class="error-box" id="error-box"></div>
 
     <!-- Delivery view after purchase -->
     <section class="delivery" id="delivery">
-      <h2 data-i18n="n_thanks_t">📚 Takk for kjøpet!</h2>
-      <p data-i18n="n_thanks_p">Lenkene under er personlige og varer evig — vi har også sendt dem til e-posten din. Bokmerk denne siden.</p>
+      <h2 data-i18n="n_thanks_t">📚 Danke für Ihren Kauf!</h2>
+      <p data-i18n="n_thanks_p">Die Links unten sind persönlich und gelten für immer — wir haben sie auch an Ihre E-Mail geschickt. Setzen Sie ein Lesezeichen.</p>
       <div id="delivery-list"></div>
     </section>
 
     <!-- All-access offer -->
     <div class="all-offer" id="all-offer" style="display:none">
       <div>
-        <strong data-i18n="n_all_t">Alle bøker — 50 €</strong>
-        <div class="sub" data-i18n="n_all_sub">Ubegrenset nedlasting, inkludert fremtidige utgivelser. Én betaling.</div>
+        <strong data-i18n="n_all_t">Alle Bücher — 50 €</strong>
+        <div class="sub" data-i18n="n_all_sub">Unbegrenzte Downloads, einschließlich künftiger Titel. Eine Zahlung.</div>
       </div>
-      <button class="btn" id="buy-all" data-i18n="n_all_btn">Kjøp alle for 50 €</button>
+      <button class="btn" id="buy-all" data-i18n="n_all_btn">Alle für 50 € kaufen</button>
     </div>
 
     <div class="grid" id="books-grid">
-      <div class="status" data-i18n="n_loading">Henter bøkene…</div>
+      <div class="status" data-i18n="n_loading">Bücher werden geladen…</div>
     </div>
 
-    <p class="note" data-i18n="n_note">
-      Sikker kortbetaling via Stripe. PDF-ene leveres umiddelbart og lenken sendes også på e-post.
-      Foretrekker du Kindle/pocket? <a href="/forfatter.html">Se bøkene på Amazon</a>.
-    </p>
+    <p class="note" data-i18n="n_note">Sichere Kartenzahlung über Stripe. Die PDFs kommen sofort, der Link auch per E-Mail. Lieber Kindle/Taschenbuch? <a href="/forfatter.html">Die Bücher auf Amazon ansehen</a>.</p>
   </div>
 
   <script src="/assets/i18n-dict.js"></script>
