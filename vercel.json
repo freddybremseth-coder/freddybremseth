@@ -9,6 +9,10 @@
       "dest": "/artikler/index.html"
     },
     {
+      "src": "/book",
+      "dest": "/book.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }
