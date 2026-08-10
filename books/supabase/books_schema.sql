@@ -146,6 +146,13 @@ alter table public.book_orders           enable row level security;
 alter table public.book_subscribers      enable row level security;
 alter table public.book_contact_messages enable row level security;
 
+drop policy if exists "book_series read" on public.book_series;
+drop policy if exists "book_titles read" on public.book_titles;
+drop policy if exists "book_leads insert"   on public.book_leads;
+drop policy if exists "book_orders insert"  on public.book_orders;
+drop policy if exists "book_subs insert"    on public.book_subscribers;
+drop policy if exists "book_contact insert" on public.book_contact_messages;
+
 create policy "book_series read" on public.book_series for select using (true);
 create policy "book_titles read" on public.book_titles for select using (true);
 
