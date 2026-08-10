@@ -1,0 +1,13 @@
+{
+  "name": "freddybremseth-books",
+  "version": "1.0.0",
+  "private": true,
+  "description": "books.freddybremseth.com — author site (static app + Vercel serverless API).",
+  "scripts": {
+    "build:sitemap": "node scripts/build-sitemap.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "stripe": "^16.8.0"
+  }
+}
