@@ -35,8 +35,9 @@ const handler = async (req, res) => {
           download_expires_at: new Date(Date.now() + 7 * 864e5).toISOString(),
         })
         .eq('provider_ref', s.id);
-      // TODO: deliver the ebook PDF (email a signed Storage URL) once the
-      // sellable PDFs are uploaded to Supabase Storage.
+      // Delivery is handled on the success page via GET /api/download (a signed
+      // URL to the private `book-ebooks` bucket); this webhook only records the
+      // order as paid for bookkeeping.
     }
   }
   return res.status(200).json({ received: true });

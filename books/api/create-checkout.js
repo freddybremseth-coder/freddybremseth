@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
         },
       }],
       metadata: { bookId, kind, locale, bookUuid: bookUuid || '' },
-      success_url: siteUrl + (locale === 'no' ? '' : '/' + locale) + '/book/' + bookId + '?purchase=success',
+      success_url: siteUrl + (locale === 'no' ? '' : '/' + locale) + '/book/' + bookId + '?purchase=success&session_id={CHECKOUT_SESSION_ID}',
       cancel_url: siteUrl + (locale === 'no' ? '' : '/' + locale) + '/book/' + bookId + '?purchase=cancel',
     });
 

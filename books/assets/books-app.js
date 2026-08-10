@@ -4,6 +4,12 @@
 (function () {
   var SERIES = window.BOOKS_SERIES || [];
   var L = window.BOOKS_L || {};
+  // Extra UI strings not in the design's L table (post-purchase download flow).
+  var LX = {
+    purchaseThanks:  { no: 'Takk for kjøpet!', en: 'Thank you for your purchase!', es: '¡Gracias por tu compra!' },
+    downloadEbook:   { no: 'Last ned e-bok (PDF)', en: 'Download the ebook (PDF)', es: 'Descargar el ebook (PDF)' },
+    downloadFailed:  { no: 'Kunne ikke hente nedlastingen. Kontakt oss hvis det vedvarer.', en: 'Could not fetch the download. Contact us if this persists.', es: 'No se pudo obtener la descarga. Contáctanos si persiste.' }
+  };
   // Works both mounted at site root (subdomain project rooted at books/) and
   // under /books (shared project). BASE prefixes both routes and asset URLs.
   var BASE = /^\/books(\/|$)/.test(location.pathname) ? '/books' : '';
@@ -43,6 +49,7 @@
     return v[LANG] || v.en || v.no || '';
   }
   function t(key) { return pick(L[key]); }
+  function tx(key) { return pick(LX[key]); }
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -233,8 +240,17 @@
         '<button class="btn btn-primary" type="submit">' + esc(t('leadSubmitLabel')) + '</button></form>' +
         '<div class="form-msg" data-msg></div></div>';
     }
+    var qs = new URLSearchParams(location.search);
+    var purchasePanel = '';
+    if (qs.get('purchase') === 'success') {
+      purchasePanel = '<div class="lead-panel" data-download data-session="' + esc(qs.get('session_id') || '') + '">' +
+        '<h3>' + esc(tx('purchaseThanks')) + '</h3>' +
+        '<button class="btn btn-primary" data-download-btn>' + esc(tx('downloadEbook')) + '</button>' +
+        '<div class="form-msg" data-msg></div></div>';
+    }
     return '<section><div class="container">' +
       '<p class="breadcrumb"><a href="' + href('series', s.id) + '">' + esc(t('backLabelSeries')) + '</a></p>' +
+      purchasePanel +
       '<div class="detail"><div class="cover">' + cover + '</div><div>' +
       '<p class="kicker">' + esc(pick(s.title)) + (b.subtitle ? ' · ' + esc(b.subtitle) : '') + '</p>' +
       '<h1>' + esc(b.title) + '</h1>' +
@@ -283,6 +299,21 @@
           // reveal the download (client-side gate, persistence is fire-and-forget)
           leadEl.innerHTML = '<h3>' + esc(t('leadTitle')) + '</h3><a class="btn btn-primary" href="' + esc(asset(sample)) + '" target="_blank" rel="noopener" download>' + esc(t('sampleButtonLabel')) + '</a>';
         }
+      });
+    });
+    root.querySelectorAll('[data-download-btn]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var panel = btn.closest('[data-download]');
+        var sid = panel.getAttribute('data-session');
+        var msg = panel.querySelector('[data-msg]');
+        btn.classList.add('is-disabled'); btn.textContent = '…';
+        fetch('/api/download?session_id=' + encodeURIComponent(sid))
+          .then(function (r) { return r.json(); })
+          .then(function (j) { if (j && j.url) location.href = j.url; else throw new Error('no url'); })
+          .catch(function () {
+            btn.classList.remove('is-disabled'); btn.textContent = tx('downloadEbook');
+            if (msg) msg.textContent = tx('downloadFailed');
+          });
       });
     });
     root.querySelectorAll('[data-buy]').forEach(function (btn) {
