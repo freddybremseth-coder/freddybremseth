@@ -23,12 +23,13 @@ module.exports = async (req, res) => {
   let name = bookId, amount = SINGLE_CENTS, bookUuid = null;
   if (sb) {
     const { data } = await sb.from('book_titles')
-      .select('id,title,price_ebook_eur').eq('slug', bookId).maybeSingle();
-    if (data) {
-      name = data.title || name;
-      bookUuid = data.id;
-      if (data.price_ebook_eur) amount = Math.round(Number(data.price_ebook_eur) * 100);
-    }
+      .select('id,title,price_ebook_eur,ebook_file_path').eq('slug', bookId).maybeSingle();
+    if (!data) return res.status(404).json({ error: 'book_not_found' });
+    // Don't sell what we can't deliver: require an uploaded ebook file.
+    if (!data.ebook_file_path) return res.status(409).json({ error: 'ebook_not_available' });
+    name = data.title || name;
+    bookUuid = data.id;
+    if (data.price_ebook_eur) amount = Math.round(Number(data.price_ebook_eur) * 100);
   }
 
   try {

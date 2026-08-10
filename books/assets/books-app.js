@@ -8,7 +8,9 @@
   var LX = {
     purchaseThanks:  { no: 'Takk for kjøpet!', en: 'Thank you for your purchase!', es: '¡Gracias por tu compra!' },
     downloadEbook:   { no: 'Last ned e-bok (PDF)', en: 'Download the ebook (PDF)', es: 'Descargar el ebook (PDF)' },
-    downloadFailed:  { no: 'Kunne ikke hente nedlastingen. Kontakt oss hvis det vedvarer.', en: 'Could not fetch the download. Contact us if this persists.', es: 'No se pudo obtener la descarga. Contáctanos si persiste.' }
+    downloadFailed:  { no: 'Kunne ikke hente nedlastingen. Kontakt oss hvis det vedvarer.', en: 'Could not fetch the download. Contact us if this persists.', es: 'No se pudo obtener la descarga. Contáctanos si persiste.' },
+    ebookNotReady:   { no: 'Denne e-boken er ikke klar for salg ennå. Last ned et gratis prøvekapittel i mellomtiden.', en: "This ebook isn't for sale yet. Grab a free sample chapter meanwhile.", es: 'Este ebook aún no está a la venta. Descarga un capítulo de muestra gratis mientras tanto.' },
+    checkoutSoon:    { no: 'Kjøp kommer snart.', en: 'Checkout coming soon.', es: 'Pago disponible pronto.' }
   };
   // Works both mounted at site root (subdomain project rooted at books/) and
   // under /books (shared project). BASE prefixes both routes and asset URLs.
@@ -321,9 +323,13 @@
         var id = btn.getAttribute('data-buy');
         btn.classList.add('is-disabled'); btn.textContent = '…';
         api('/api/create-checkout', { bookId: id, kind: 'single', locale: LANG })
-          .then(function (r) { return r.json(); })
-          .then(function (j) { if (j && j.url) location.href = j.url; else throw new Error('no url'); })
-          .catch(function () { btn.classList.remove('is-disabled'); btn.textContent = t('buyButtonLabel'); alert(t('checkoutSoon') || 'Checkout kommer snart.'); });
+          .then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
+          .then(function (x) {
+            if (x.j && x.j.url) { location.href = x.j.url; return; }
+            btn.classList.remove('is-disabled'); btn.textContent = t('buyButtonLabel');
+            alert(x.j && x.j.error === 'ebook_not_available' ? tx('ebookNotReady') : tx('checkoutSoon'));
+          })
+          .catch(function () { btn.classList.remove('is-disabled'); btn.textContent = t('buyButtonLabel'); alert(tx('checkoutSoon')); });
       });
     });
   }
