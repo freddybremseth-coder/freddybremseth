@@ -45,7 +45,7 @@ create table if not exists public.book_titles (
   language         text not null default 'no',   -- original language of the work
   description_short jsonb,                        -- card-level (2-3 sentences)
   description_full  jsonb,                        -- detail-page (long form)
-  excerpt          jsonb,                         -- pull-quote sample excerpt
+  excerpt          text,                          -- pull-quote sample excerpt (single string)
   cover_image_url  text,
   sample_pdf_path  text,                          -- gated sample chapter
   word_count       int,
