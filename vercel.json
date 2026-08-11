@@ -18,6 +18,11 @@
       "dest": "/avtale.html"
     },
     {
+      "src": "/forfatter(\\.html)?",
+      "status": 308,
+      "headers": { "Location": "https://books.freddybremseth.com/" }
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }
