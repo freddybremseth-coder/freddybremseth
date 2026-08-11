@@ -1,6 +1,22 @@
 {
   "routes": [
     {
+      "has": [{ "type": "host", "value": "books.freddybremseth.com" }],
+      "src": "/assets/(.*)",
+      "dest": "/books/assets/$1"
+    },
+    {
+      "has": [{ "type": "host", "value": "books.freddybremseth.com" }],
+      "src": "/(sitemap\\.xml|robots\\.txt)",
+      "dest": "/books/$1"
+    },
+    {
+      "has": [{ "type": "host", "value": "books.freddybremseth.com" }],
+      "src": "/(.*)",
+      "dest": "/books/index.html"
+    },
+
+    {
       "src": "/",
       "dest": "/home.html"
     },
