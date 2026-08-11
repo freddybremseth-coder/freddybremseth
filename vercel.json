@@ -10,7 +10,12 @@
     },
     {
       "src": "/book",
-      "dest": "/book.html"
+      "status": 308,
+      "headers": { "Location": "/avtale" }
+    },
+    {
+      "src": "/avtale",
+      "dest": "/avtale.html"
     },
     {
       "src": "/(.*)",

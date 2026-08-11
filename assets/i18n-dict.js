@@ -11,7 +11,7 @@ window.FB_DICT = {
     pg_home_desc: "Freddy Bremseth is a real estate advisor in Spain, entrepreneur, AI advisor, author and strategic sparring partner for companies and home buyers.",
     pg_dl_title: "Download the books as PDF | Freddy Bremseth",
     pg_dl_desc: "Buy Freddy Bremseth's books as PDF — €5 per book, or €50 for unlimited downloads of all. Instant download, no Amazon.",
-    nav_eiendom: "Real Estate", nav_ai: "AI & Sales", nav_strategi: "Strategy", nav_artikler: "Articles", nav_radgivning: "Advisory", nav_forfatter: "Author", nav_oversikt: "Overview", nav_kontakt: "Contact", nav_book: "Book",
+    nav_eiendom: "Real Estate", nav_ai: "AI & Sales", nav_strategi: "Strategy", nav_artikler: "Articles", nav_radgivning: "Advisory", nav_forfatter: "Author", nav_oversikt: "Overview", nav_kontakt: "Contact", nav_book: "Book a call",
     h_eyebrow: "Real estate in Spain · AI · Strategy · Entrepreneurship",
     h_h1: "I build projects that combine people, technology, real estate and good decisions.",
     h_lead: "I help Norwegians buy property in Spain, companies with AI and sales strategy, and founders with clearer structure, positioning and execution.",
