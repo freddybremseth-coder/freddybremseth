@@ -801,7 +801,8 @@ window.BOOKS_SERIES = [
           "no": "How Money Works er en klar og tilgjengelig innføring i penger, bank og finans — hvordan det finansielle systemet faktisk fungerer, forklart uten stammespråk. Del av serien Let Me Explain It to You: kompliserte temaer, tydelig forklart.",
           "es": "How Money Works es una guía clara y accesible para entender el dinero, la banca y las finanzas — cómo funciona realmente el sistema financiero, explicado sin tecnicismos. Parte de la serie Let Me Explain It to You: temas complejos, explicados con claridad."
         },
-        "subtitle": "Understanding Money, Banking and Finance"
+        "subtitle": "Understanding Money, Banking and Finance",
+        "cover": "assets/covers/how-money-works.png"
       },
       {
         "id": "hvordan-penger-fungerer",
@@ -816,7 +817,8 @@ window.BOOKS_SERIES = [
           "en": "The Norwegian edition of How Money Works — a clear, accessible introduction to money, banking and finance, explained without jargon. Part of the Let Me Explain It to You series.",
           "es": "La edición noruega de How Money Works — una introducción clara y accesible al dinero, la banca y las finanzas, explicada sin tecnicismos. Parte de la serie Let Me Explain It to You."
         },
-        "subtitle": "Forstå penger, bank og finans"
+        "subtitle": "Forstå penger, bank og finans",
+        "cover": "assets/covers/hvordan-penger-fungerer.png"
       },
       {
         "id": "the-economy-explained",
