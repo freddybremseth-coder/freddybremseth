@@ -897,6 +897,149 @@ window.BOOKS_SERIES = [
     "placeholderCount": 0,
     "books": [
       {
+        "id": "guide-costa-blanca",
+        "title": "Costa Blanca — North, South or Inland?",
+        "subtitle": "A Real-World Guide to Finding the Part of Spain That Fits the Life You Want",
+        "cover": "assets/covers/guide-costa-blanca.png",
+        "descShort": {
+          "en": "A real-world guide to finding the part of the Costa Blanca that fits the life you want — north, south or inland. What each area is actually like, and how to choose before you buy."
+        },
+        "descFull": {
+          "en": "Book 1 in the Let Me Guide You series. A practical, honest guide to the Costa Blanca — north, south or inland — helping you find the part of Spain that fits the life you actually want, with what each area is really like and how to choose well before you buy."
+        },
+        "words": 56158
+      },
+      {
+        "id": "guide-altea-en",
+        "title": "Altea",
+        "subtitle": "A local guide to living and buying property in Altea, Costa Blanca",
+        "cover": "assets/covers/guide-altea-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Altea on the Costa Blanca — what it is like to live there, the neighbourhoods, everyday life, and what to know before buying property."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical, local guide to Altea on the Costa Blanca — what it is really like to live there, the areas and everyday life, and the things worth knowing before you buy property."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-altea-no",
+        "title": "Altea",
+        "subtitle": "En lokal guide til å bo og kjøpe bolig i Altea, Costa Blanca",
+        "cover": "assets/covers/guide-altea-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Altea på Costa Blanca — hvordan det er å bo der, områdene, hverdagslivet, og hva du bør vite før du kjøper bolig."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk, lokal guide til Altea på Costa Blanca — hvordan det faktisk er å bo der, områdene og hverdagslivet, og det som er verdt å vite før du kjøper bolig."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-albir-en",
+        "title": "Albir",
+        "subtitle": "A local guide to living and buying property in Albir, Costa Blanca",
+        "cover": "assets/covers/guide-albir-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Albir on the Costa Blanca — what it is like to live there, the neighbourhoods, everyday life, and what to know before buying property."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical, local guide to Albir on the Costa Blanca — what it is really like to live there, the areas and everyday life, and the things worth knowing before you buy property."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-albir-no",
+        "title": "Albir",
+        "subtitle": "En lokal guide til å bo og kjøpe bolig i Albir, Costa Blanca",
+        "cover": "assets/covers/guide-albir-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Albir på Costa Blanca — hvordan det er å bo der, områdene, hverdagslivet, og hva du bør vite før du kjøper bolig."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk, lokal guide til Albir på Costa Blanca — hvordan det faktisk er å bo der, områdene og hverdagslivet, og det som er verdt å vite før du kjøper bolig."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-calpe-en",
+        "title": "Calpe",
+        "subtitle": "A local guide to living and buying property in Calpe, Costa Blanca",
+        "cover": "assets/covers/guide-calpe-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Calpe on the Costa Blanca — what it is like to live there, the neighbourhoods, everyday life, and what to know before buying property."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical, local guide to Calpe on the Costa Blanca — what it is really like to live there, the areas and everyday life, and the things worth knowing before you buy property."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-calpe-no",
+        "title": "Calpe",
+        "subtitle": "En lokal guide til å bo og kjøpe bolig i Calpe, Costa Blanca",
+        "cover": "assets/covers/guide-calpe-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Calpe på Costa Blanca — hvordan det er å bo der, områdene, hverdagslivet, og hva du bør vite før du kjøper bolig."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk, lokal guide til Calpe på Costa Blanca — hvordan det faktisk er å bo der, områdene og hverdagslivet, og det som er verdt å vite før du kjøper bolig."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-finestrat-en",
+        "title": "Finestrat",
+        "subtitle": "A local guide to living and buying property in Finestrat, Costa Blanca",
+        "cover": "assets/covers/guide-finestrat-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Finestrat on the Costa Blanca — what it is like to live there, the neighbourhoods, everyday life, and what to know before buying property."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical, local guide to Finestrat on the Costa Blanca — what it is really like to live there, the areas and everyday life, and the things worth knowing before you buy property."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-finestrat-no",
+        "title": "Finestrat",
+        "subtitle": "En lokal guide til å bo og kjøpe bolig i Finestrat, Costa Blanca",
+        "cover": "assets/covers/guide-finestrat-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Finestrat på Costa Blanca — hvordan det er å bo der, områdene, hverdagslivet, og hva du bør vite før du kjøper bolig."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk, lokal guide til Finestrat på Costa Blanca — hvordan det faktisk er å bo der, områdene og hverdagslivet, og det som er verdt å vite før du kjøper bolig."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-polop-en",
+        "title": "Polop",
+        "subtitle": "A local guide to living and buying property in Polop, Costa Blanca",
+        "cover": "assets/covers/guide-polop-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Polop on the Costa Blanca — what it is like to live there, the neighbourhoods, everyday life, and what to know before buying property."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical, local guide to Polop on the Costa Blanca — what it is really like to live there, the areas and everyday life, and the things worth knowing before you buy property."
+        },
+        "words": null
+      },
+      {
+        "id": "guide-polop-no",
+        "title": "Polop",
+        "subtitle": "En lokal guide til å bo og kjøpe bolig i Polop, Costa Blanca",
+        "cover": "assets/covers/guide-polop-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Polop på Costa Blanca — hvordan det er å bo der, områdene, hverdagslivet, og hva du bør vite før du kjøper bolig."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk, lokal guide til Polop på Costa Blanca — hvordan det faktisk er å bo der, områdene og hverdagslivet, og det som er verdt å vite før du kjøper bolig."
+        },
+        "words": null
+      },
+      {
         "id": "spania-2030",
         "title": "Spania 2030",
         "subtitle": "Alt du må vite om energikrav og smarte boligkjøp",
@@ -911,6 +1054,48 @@ window.BOOKS_SERIES = [
           "en": "Spain's housing market faces new requirements for energy, efficiency and modernization, which could have practical consequences for both buyers and owners. Spania 2030 explains what a homebuyer should check before purchase and how upcoming requirements may affect older and newer properties differently. The book also looks at the difference between new-build and resale, documentation, costs and long-term value. The goal is to make buyers better equipped to ask the right questions before signing the contract. A practical guide for Scandinavian and international buyers who want to make more informed property choices in Spain.",
           "es": "El mercado inmobiliario español se enfrenta a nuevos requisitos de energía, eficiencia y modernización, lo que puede tener consecuencias prácticas tanto para compradores como para propietarios. Spania 2030 explica qué debe revisar un comprador antes de adquirir una vivienda y cómo los futuros requisitos pueden afectar de forma distinta a viviendas antiguas y nuevas. El libro también analiza la diferencia entre obra nueva y segunda mano, la documentación, los costes y el valor a largo plazo. El objetivo es dejar al comprador mejor preparado para hacer las preguntas correctas antes de firmar el contrato. Una guía práctica para compradores escandinavos e internacionales que quieren tomar decisiones inmobiliarias más informadas en España."
         }
+      }
+    ]
+  },
+  {
+    "id": "anatomy-of-empires",
+    "title": {
+      "no": "The Anatomy of Empires",
+      "en": "The Anatomy of Empires",
+      "es": "The Anatomy of Empires"
+    },
+    "tag": {
+      "no": "Sakprosa · Historie og makt",
+      "en": "Nonfiction · History and power",
+      "es": "No ficción · Historia y poder"
+    },
+    "count": {
+      "no": "Bokserie",
+      "en": "Book series",
+      "es": "Serie de libros"
+    },
+    "desc": {
+      "no": "Makt, penger, krig og kreftene som formet historien — et strukturelt blikk på hvordan store imperier reiser seg, holder sammen og faller.",
+      "en": "Power, money, war and the forces that made history — a structural look at how great empires rise, hold together and fall.",
+      "es": "Poder, dinero, guerra y las fuerzas que hicieron la historia — una mirada estructural a cómo los grandes imperios se alzan, se sostienen y caen."
+    },
+    "cover": null,
+    "placeholderCount": 0,
+    "books": [
+      {
+        "id": "rome",
+        "title": "Rome",
+        "subtitle": "Why the World's Greatest Empire Fell",
+        "cover": "assets/covers/rome.png",
+        "descShort": {
+          "en": "Rome didn't fall because of one battle, one emperor or one invasion. This book follows the machinery behind Roman power — taxation, military finance, logistics and political cohesion — to explain why the Western Roman state lost the capacity to rebuild itself.",
+          "no": "Roma falt ikke på grunn av ett slag, én keiser eller én invasjon. Boken følger maskineriet bak romersk makt — skatt, militær finansiering, logistikk og politisk samhold — og forklarer hvorfor Vestromerriket mistet evnen til å bygge seg opp igjen.",
+          "es": "Roma no cayó por una batalla, un emperador o una invasión. Este libro sigue la maquinaria del poder romano — impuestos, finanzas militares, logística y cohesión política — para explicar por qué el Estado romano de Occidente perdió la capacidad de reconstruirse."
+        },
+        "descFull": {
+          "en": "Rome survived disasters that should have destroyed a weaker state: civil wars, epidemics, monetary disruption, frontier invasions, captured emperors and the fragmentation of the third century. Again and again, it rebuilt. So why did the Western Roman Empire fail to recover in the fifth century while the Eastern Empire survived?\n\nROME: Why the World's Greatest Empire Fell examines the Roman Empire as a power system — following the conversion of agricultural surplus into taxation, taxation into armies, armies into security, and security back into revenue — and then traces what happens when those circuits begin to break. It compares the crises of AD 260, 410, 439, 455, 468 and 476 to ask which events actually damaged Rome's capacity to recover. The result is a structural autopsy of the Western Empire, and a framework for understanding how complex states survive pressure — and when they stop being able to. Book One in The Anatomy of Empires."
+        },
+        "words": 66719
       }
     ]
   }
