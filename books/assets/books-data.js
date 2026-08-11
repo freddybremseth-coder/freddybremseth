@@ -789,6 +789,68 @@ window.BOOKS_SERIES = [
     "placeholderCount": 0,
     "books": [
       {
+        "id": "how-money-works",
+        "title": "How Money Works",
+        "descShort": {
+          "en": "A clear, jargon-free guide to how money, banking and finance actually work.",
+          "no": "En klar og forståelig innføring i hvordan penger, bank og finans faktisk fungerer.",
+          "es": "Una guía clara y sin tecnicismos sobre cómo funcionan realmente el dinero, la banca y las finanzas."
+        },
+        "descFull": {
+          "en": "How Money Works is a clear, accessible guide to understanding money, banking and finance — how the financial system actually works, explained without jargon. Part of the Let Me Explain It to You series: complex topics, clearly explained.",
+          "no": "How Money Works er en klar og tilgjengelig innføring i penger, bank og finans — hvordan det finansielle systemet faktisk fungerer, forklart uten stammespråk. Del av serien Let Me Explain It to You: kompliserte temaer, tydelig forklart.",
+          "es": "How Money Works es una guía clara y accesible para entender el dinero, la banca y las finanzas — cómo funciona realmente el sistema financiero, explicado sin tecnicismos. Parte de la serie Let Me Explain It to You: temas complejos, explicados con claridad."
+        },
+        "subtitle": "Understanding Money, Banking and Finance"
+      },
+      {
+        "id": "hvordan-penger-fungerer",
+        "title": "Hvordan penger fungerer",
+        "descShort": {
+          "no": "En klar og forståelig innføring i penger, bank og finans.",
+          "en": "A clear, accessible introduction to money, banking and finance (Norwegian edition).",
+          "es": "Una introducción clara y accesible al dinero, la banca y las finanzas (edición noruega)."
+        },
+        "descFull": {
+          "no": "Hvordan penger fungerer er en klar og forståelig innføring i penger, bank og finans — hvordan det finansielle systemet faktisk fungerer, forklart uten stammespråk. Del av serien Let Me Explain It to You: kompliserte temaer, tydelig forklart.",
+          "en": "The Norwegian edition of How Money Works — a clear, accessible introduction to money, banking and finance, explained without jargon. Part of the Let Me Explain It to You series.",
+          "es": "La edición noruega de How Money Works — una introducción clara y accesible al dinero, la banca y las finanzas, explicada sin tecnicismos. Parte de la serie Let Me Explain It to You."
+        },
+        "subtitle": "Forstå penger, bank og finans"
+      },
+      {
+        "id": "the-economy-explained",
+        "title": "The Economy Explained",
+        "subtitle": "From Markets to Policies",
+        "cover": "assets/covers/the-economy-explained.png",
+        "descShort": {
+          "en": "From markets to policies — growth, jobs, markets, government, trade, crises and inequality, explained clearly.",
+          "no": "Fra markeder til økonomisk politikk — vekst, jobber, markeder, stat, handel, kriser og ulikhet, klart forklart.",
+          "es": "De los mercados a las políticas — crecimiento, empleo, mercados, Estado, comercio, crisis y desigualdad, explicado con claridad."
+        },
+        "descFull": {
+          "en": "The Economy Explained is Book 2 in the Let Me Explain It to You series. It takes you from markets to policies — how growth, jobs, markets, government, trade, crises and inequality fit together — turning complex economics into something anyone can follow. Complex topics, clearly explained.",
+          "no": "The Economy Explained er bok 2 i serien Let Me Explain It to You. Den tar deg fra markeder til økonomisk politikk — hvordan vekst, jobber, markeder, stat, handel, kriser og ulikhet henger sammen — og gjør komplisert økonomi forståelig. Komplekse temaer, klart forklart.",
+          "es": "The Economy Explained es el libro 2 de la serie Let Me Explain It to You. Te lleva de los mercados a las políticas — cómo encajan el crecimiento, el empleo, los mercados, el Estado, el comercio, las crisis y la desigualdad — haciendo comprensible la economía compleja. Temas complejos, explicados con claridad."
+        }
+      },
+      {
+        "id": "okonomien-forklart",
+        "title": "Økonomien forklart",
+        "subtitle": "Fra markeder til økonomisk politikk",
+        "cover": "assets/covers/okonomien-forklart.png",
+        "descShort": {
+          "no": "Fra markeder til økonomisk politikk — vekst, jobber, markeder, stat, handel, kriser og ulikhet, klart forklart.",
+          "en": "From markets to economic policy — growth, jobs, markets, government, trade, crises and inequality (Norwegian edition).",
+          "es": "De los mercados a la política económica — crecimiento, empleo, mercados, Estado, comercio, crisis y desigualdad (edición noruega)."
+        },
+        "descFull": {
+          "no": "Økonomien forklart er bok 2 i serien Let Me Explain It to You. Den tar deg fra markeder til økonomisk politikk — hvordan vekst, jobber, markeder, stat, handel, kriser og ulikhet henger sammen — og gjør komplisert økonomi forståelig. Komplekse temaer, klart forklart.",
+          "en": "The Norwegian edition of The Economy Explained — Book 2 in the Let Me Explain It to You series, taking you from markets to economic policy, explained clearly.",
+          "es": "La edición noruega de The Economy Explained — el libro 2 de la serie Let Me Explain It to You, de los mercados a la política económica, explicado con claridad."
+        }
+      },
+      {
         "id": "let-me-explain-you",
         "title": "Let me Explain you: Skatt og Staten",
         "subtitle": "Hvordan økonomien virkelig fungerer – og hvorfor den ikke gjør det",
