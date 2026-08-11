@@ -913,7 +913,7 @@ window.BOOKS_SERIES = [
         "id": "guide-altea-en",
         "title": "Altea",
         "subtitle": "A local guide to living and buying property in Altea, Costa Blanca",
-        "cover": "assets/covers/guide-altea-en.png",
+        "cover": null,
         "descShort": {
           "en": "A practical, on-the-ground guide to Altea on the Costa Blanca — what it is like to live there, the neighbourhoods, everyday life, and what to know before buying property."
         },
@@ -926,7 +926,7 @@ window.BOOKS_SERIES = [
         "id": "guide-altea-no",
         "title": "Altea",
         "subtitle": "En lokal guide til å bo og kjøpe bolig i Altea, Costa Blanca",
-        "cover": "assets/covers/guide-altea-no.png",
+        "cover": null,
         "descShort": {
           "no": "En praktisk, lokal guide til Altea på Costa Blanca — hvordan det er å bo der, områdene, hverdagslivet, og hva du bør vite før du kjøper bolig."
         },
