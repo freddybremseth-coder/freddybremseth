@@ -44,6 +44,7 @@ h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.2;margin:0 0 .5
 /* Hero */
 .hero{background:linear-gradient(160deg,var(--navy),var(--navy2));color:var(--bg);text-align:center;padding:110px 24px}
 .hero-inner{max-width:780px;margin:0 auto}
+.hero-logo{display:block;margin:0 auto 26px;width:min(340px,74%);height:auto;mix-blend-mode:screen}
 .hero h1{color:#fff;font-size:48px}
 .hero p{font-size:18px;color:#d8d4c8;margin:18px auto 30px;max-width:680px}
 .hero .btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}

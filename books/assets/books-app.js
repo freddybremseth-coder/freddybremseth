@@ -131,6 +131,7 @@
 
     return '' +
       '<section class="hero"><div class="hero-inner">' +
+      '<img class="hero-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier">' +
       '<p class="kicker">' + esc(t('heroKicker')) + '</p>' +
       '<h1>' + esc(t('heroTitle')) + '</h1>' +
       '<p>' + esc(t('heroSubtitle')) + '</p>' +
