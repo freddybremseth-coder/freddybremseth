@@ -78,7 +78,7 @@
   function header() {
     return '' +
       '<header class="site-header"><div class="container">' +
-      '<a class="brand" href="' + href('home') + '">Freddy Bremseth</a>' +
+      '<a class="brand" href="' + href('home') + '"><img class="brand-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier"></a>' +
       '<nav class="nav">' +
       '<a href="' + href('about') + '"' + (R.view === 'about' ? ' class="active"' : '') + '>' + esc(t('navAbout')) + '</a>' +
       '<a href="' + href('library') + '"' + (R.view === 'library' || R.view === 'series' || R.view === 'book' ? ' class="active"' : '') + '>' + esc(t('navSeries')) + '</a>' +
@@ -131,7 +131,6 @@
 
     return '' +
       '<section class="hero"><div class="hero-inner">' +
-      '<img class="hero-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier">' +
       '<p class="kicker">' + esc(t('heroKicker')) + '</p>' +
       '<h1>' + esc(t('heroTitle')) + '</h1>' +
       '<p>' + esc(t('heroSubtitle')) + '</p>' +

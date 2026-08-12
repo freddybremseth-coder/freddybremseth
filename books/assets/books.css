@@ -30,8 +30,9 @@ h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.2;margin:0 0 .5
 /* Header / nav */
 .site-header{position:sticky;top:0;z-index:50;background:var(--navy);color:var(--bg)}
 .site-header .container{display:flex;align-items:center;gap:20px;height:64px}
-.brand{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--bg)}
+.brand{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--bg);display:flex;align-items:center}
 .brand:hover{color:#fff;text-decoration:none}
+.brand-logo{height:46px;width:auto;display:block;mix-blend-mode:screen}
 .nav{display:flex;gap:22px;margin-left:auto;align-items:center;flex-wrap:wrap}
 .nav a{color:#cfd0d6;font-size:14px;font-weight:500}
 .nav a:hover,.nav a.active{color:var(--gold);text-decoration:none}
