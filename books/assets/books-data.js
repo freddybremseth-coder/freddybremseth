@@ -867,6 +867,18 @@ window.BOOKS_SERIES = [
         }
       },
       {
+        "id": "understanding-artificial-intelligence",
+        "title": "Understanding Artificial Intelligence",
+        "subtitle": "Understand How Machines Learn, Generate and Solve Problems",
+        "cover": null,
+        "descShort": {
+          "en": "A clear introduction to artificial intelligence — how machines learn, generate and solve problems — for anyone who wants to understand AI without the jargon."
+        },
+        "descFull": {
+          "en": "Understanding Artificial Intelligence is Book 5 in the Let Me Explain It to You series. It explains how machines actually learn, generate and solve problems — the basics behind the future — for readers who want real understanding without the jargon. Complex topics, clearly explained."
+        }
+      },
+      {
         "id": "let-me-explain-you",
         "title": "Let me Explain you: Skatt og Staten",
         "subtitle": "Hvordan økonomien virkelig fungerer – og hvorfor den ikke gjør det",
@@ -1099,6 +1111,18 @@ window.BOOKS_SERIES = [
         },
         "descFull": {
           "no": "Del av serien Let Me Guide You. En praktisk guide til L'Alfàs del Pi & Albir — to sentre, ett smart valg — et godt liv mellom fjellet og Middelhavet på Costa Blanca."
+        }
+      },
+      {
+        "id": "guide-benidorm-en",
+        "title": "Benidorm",
+        "subtitle": "Beyond the High-Rises — the real city behind the holiday image",
+        "cover": "assets/covers/guide-benidorm-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Benidorm — beyond the high-rises: the beaches, neighbourhoods and the real city behind the holiday image, for living, not just visiting."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical guide to Benidorm beyond the high-rises — the beaches, neighbourhoods and the real city behind the holiday image — covering where to live, transport, climate, costs and everyday life for living there, not just visiting."
         }
       },
       {
