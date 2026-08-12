@@ -853,6 +853,20 @@ window.BOOKS_SERIES = [
         }
       },
       {
+        "id": "teknologi-enkelt-forklart",
+        "title": "Teknologi enkelt forklart",
+        "subtitle": "Forstå den digitale verden",
+        "cover": "assets/covers/teknologi-enkelt-forklart.png",
+        "descShort": {
+          "no": "Teknologi er overalt, men det betyr ikke at vi forstår hvordan den virker. Fra biter og prosessorer til internett, skyen, databaser, cybersikkerhet, personvern og kunstig intelligens — forklart uten å gjøre stoffet kunstig enkelt.",
+          "en": "Technology is everywhere, but that doesn’t mean we understand how it works. From bits and processors to the internet, the cloud, databases, cybersecurity, privacy and AI — explained without dumbing it down. (Norwegian edition.)"
+        },
+        "descFull": {
+          "no": "Teknologi er overalt, men det betyr ikke at vi forstår hvordan den virker. I Teknologi enkelt forklart tar Freddy Bremseth leseren fra biter, prosessorer og operativsystemer til internett, skyen, databaser, cybersikkerhet, personvern, halvledere, automatisering og kvantedatabehandling. Boken forklarer mekanismene bak den digitale hverdagen uten å gjøre stoffet kunstig enkelt. Målet er ikke at leseren skal bli ingeniør, men at teknologien skal slutte å føles som magi. Bok 3 i serien Let Me Explain It to You.",
+          "en": "The Norwegian edition of Technology Explained — Book 3 in the Let Me Explain It to You series. From bits, processors and operating systems to the internet, cloud, databases, cybersecurity, privacy, semiconductors, automation and quantum computing, it explains the mechanisms behind everyday digital life without making them artificially simple."
+        }
+      },
+      {
         "id": "let-me-explain-you",
         "title": "Let me Explain you: Skatt og Staten",
         "subtitle": "Hvordan økonomien virkelig fungerer – og hvorfor den ikke gjør det",
@@ -913,7 +927,7 @@ window.BOOKS_SERIES = [
         "id": "guide-altea-en",
         "title": "Altea",
         "subtitle": "A local guide to living and buying property in Altea, Costa Blanca",
-        "cover": null,
+        "cover": "assets/covers/guide-altea-en.png",
         "descShort": {
           "en": "A practical, on-the-ground guide to Altea on the Costa Blanca — what it is like to live there, the neighbourhoods, everyday life, and what to know before buying property."
         },
@@ -926,7 +940,7 @@ window.BOOKS_SERIES = [
         "id": "guide-altea-no",
         "title": "Altea",
         "subtitle": "En lokal guide til å bo og kjøpe bolig i Altea, Costa Blanca",
-        "cover": null,
+        "cover": "assets/covers/guide-altea-no.png",
         "descShort": {
           "no": "En praktisk, lokal guide til Altea på Costa Blanca — hvordan det er å bo der, områdene, hverdagslivet, og hva du bør vite før du kjøper bolig."
         },
