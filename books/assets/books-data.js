@@ -1054,6 +1054,54 @@ window.BOOKS_SERIES = [
         "words": null
       },
       {
+        "id": "guide-la-nucia-en",
+        "title": "La Nucía",
+        "subtitle": "The Sports City, the Hills — and the Life Between Coast and Mountain",
+        "cover": "assets/covers/guide-la-nucia-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to La Nucía — the Costa Blanca sports city between coast and mountain: what it is like to live there, and what to know before buying property."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical local guide to La Nucía — the Costa Blanca sports city between the coast and the mountains — covering everyday life, the areas, and what is worth knowing before you buy property."
+        }
+      },
+      {
+        "id": "guide-la-nucia-no",
+        "title": "La Nucía",
+        "subtitle": "Sportsbyen, høydene – og livet mellom kyst og fjell",
+        "cover": "assets/covers/guide-la-nucia-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til La Nucía — sportsbyen på Costa Blanca mellom kyst og fjell: hvordan det er å bo der, og hva du bør vite før du kjøper bolig."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk lokal guide til La Nucía — sportsbyen på Costa Blanca mellom kysten og fjellet — om hverdagsliv, områdene og hva som er verdt å vite før du kjøper bolig."
+        }
+      },
+      {
+        "id": "guide-lalfas-albir-en",
+        "title": "L'Alfàs del Pi & Albir",
+        "subtitle": "The Town, the Promenade — and the Life Between Them",
+        "cover": null,
+        "descShort": {
+          "en": "A practical guide to L'Alfàs del Pi & Albir — the town and the promenade, and the life between the mountains and the Mediterranean."
+        },
+        "descFull": {
+          "en": "Part of the Let Me Guide You series. A practical guide to L'Alfàs del Pi & Albir — two centres, one smart choice — living well between the mountains and the Mediterranean on the Costa Blanca."
+        }
+      },
+      {
+        "id": "guide-lalfas-albir-no",
+        "title": "L'Alfàs del Pi & Albir",
+        "subtitle": "Byen, promenaden – og livet mellom dem",
+        "cover": null,
+        "descShort": {
+          "no": "En praktisk guide til L'Alfàs del Pi & Albir — byen og promenaden, og livet mellom fjellet og Middelhavet."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk guide til L'Alfàs del Pi & Albir — to sentre, ett smart valg — et godt liv mellom fjellet og Middelhavet på Costa Blanca."
+        }
+      },
+      {
         "id": "spania-2030",
         "title": "Spania 2030",
         "subtitle": "Alt du må vite om energikrav og smarte boligkjøp",
