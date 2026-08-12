@@ -89,8 +89,8 @@
   }
   function footer() {
     return '<footer class="site-footer"><div class="container">' +
-      '<span class="brand">Freddy Bremseth</span>' +
-      '<span>' + esc(t('footerLine')) + '</span>' +
+      '<img class="footer-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier">' +
+      '<span class="footer-line">' + esc(t('footerLine')) + '</span>' +
       '</div></footer>';
   }
 

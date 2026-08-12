@@ -1126,6 +1126,18 @@ window.BOOKS_SERIES = [
         }
       },
       {
+        "id": "guide-benidorm-no",
+        "title": "Benidorm",
+        "subtitle": "Bak høyhusene — den virkelige byen bak feriebildet",
+        "cover": "assets/covers/guide-benidorm-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Benidorm — bak høyhusene: strendene, bydelene og den virkelige byen bak feriebildet, for å bo, ikke bare besøke."
+        },
+        "descFull": {
+          "no": "Del av serien Let Me Guide You. En praktisk guide til Benidorm bak høyhusene — strendene, bydelene og den virkelige byen bak feriebildet — om hvor du bør bo, transport, klima, kostnader og hverdagsliv for å bo der, ikke bare besøke."
+        }
+      },
+      {
         "id": "spania-2030",
         "title": "Spania 2030",
         "subtitle": "Alt du må vite om energikrav og smarte boligkjøp",
