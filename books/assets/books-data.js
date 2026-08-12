@@ -899,7 +899,9 @@ window.BOOKS_SERIES = [
         },
         "amazon": "https://www.amazon.com/dp/B0H32C7W8S"
       }
-    ]
+    ],
+    "coverFit": "contain",
+    "coverBg": "dark"
   },
   {
     "id": "let-me-guide-you",
@@ -1153,7 +1155,9 @@ window.BOOKS_SERIES = [
           "es": "El mercado inmobiliario español se enfrenta a nuevos requisitos de energía, eficiencia y modernización, lo que puede tener consecuencias prácticas tanto para compradores como para propietarios. Spania 2030 explica qué debe revisar un comprador antes de adquirir una vivienda y cómo los futuros requisitos pueden afectar de forma distinta a viviendas antiguas y nuevas. El libro también analiza la diferencia entre obra nueva y segunda mano, la documentación, los costes y el valor a largo plazo. El objetivo es dejar al comprador mejor preparado para hacer las preguntas correctas antes de firmar el contrato. Una guía práctica para compradores escandinavos e internacionales que quieren tomar decisiones inmobiliarias más informadas en España."
         }
       }
-    ]
+    ],
+    "coverFit": "contain",
+    "coverBg": "light"
   },
   {
     "id": "anatomy-of-empires",
@@ -1177,7 +1181,7 @@ window.BOOKS_SERIES = [
       "en": "Power, money, war and the forces that made history — a structural look at how great empires rise, hold together and fall.",
       "es": "Poder, dinero, guerra y las fuerzas que hicieron la historia — una mirada estructural a cómo los grandes imperios se alzan, se sostienen y caen."
     },
-    "cover": null,
+    "cover": "assets/covers/anatomy-of-empires-series.png",
     "placeholderCount": 0,
     "books": [
       {
@@ -1195,6 +1199,8 @@ window.BOOKS_SERIES = [
         },
         "words": 66719
       }
-    ]
+    ],
+    "coverFit": "contain",
+    "coverBg": "light"
   }
 ];

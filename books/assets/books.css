@@ -89,6 +89,10 @@ textarea{min-height:150px;resize:vertical}
 .series-card{background:var(--card);border-radius:4px;overflow:hidden;box-shadow:0 6px 20px rgba(18,26,46,.08);display:flex;flex-direction:column}
 .series-card .top{height:200px;overflow:hidden}
 .series-card .top img{width:100%;height:200px;object-fit:cover}
+.series-card .top.fit-contain{display:flex;align-items:center;justify-content:center;padding:14px}
+.series-card .top.fit-contain img{width:100%;height:100%;object-fit:contain}
+.series-card .top.bg-light{background:#fff}
+.series-card .top.bg-dark{background:var(--navy)}
 .series-card .top.placeholder{background:linear-gradient(150deg,var(--navy),var(--navy2));display:flex;align-items:center;justify-content:center;padding:20px;text-align:center}
 .series-card .top.placeholder span{font-family:var(--serif);color:var(--gold);font-size:20px}
 .series-card .body{padding:22px;display:flex;flex-direction:column;gap:8px}

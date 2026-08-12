@@ -175,7 +175,8 @@
       return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy"><span>' + esc(o.b.title) + '</span></a>';
     }).join('');
     var cards = SERIES.map(function (s) {
-      var top = s.cover ? '<div class="top"><img src="' + esc(asset(s.cover)) + '" alt=""></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
+      var topCls = 'top' + (s.coverFit === 'contain' ? ' fit-contain' : '') + (s.coverBg ? ' bg-' + s.coverBg : '');
+      var top = s.cover ? '<div class="' + topCls + '"><img src="' + esc(asset(s.cover)) + '" alt=""></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
       return '<a class="series-card" href="' + href('series', s.id) + '">' + top +
         '<div class="body"><span class="tag">' + esc(pick(s.tag)) + '</span>' +
         '<h3>' + esc(pick(s.title)) + '</h3>' +
