@@ -870,7 +870,7 @@ window.BOOKS_SERIES = [
         "id": "understanding-artificial-intelligence",
         "title": "Understanding Artificial Intelligence",
         "subtitle": "Understand How Machines Learn, Generate and Solve Problems",
-        "cover": null,
+        "cover": "assets/covers/understanding-artificial-intelligence.png",
         "descShort": {
           "en": "A clear introduction to artificial intelligence — how machines learn, generate and solve problems — for anyone who wants to understand AI without the jargon."
         },
