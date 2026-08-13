@@ -891,6 +891,30 @@ window.BOOKS_SERIES = [
         }
       },
       {
+        "id": "the-psychology-of-you",
+        "title": "The Psychology of You",
+        "subtitle": "Understand Why You Think, Feel and Act the Way You Do",
+        "cover": "assets/covers/the-psychology-of-you.jpg",
+        "descShort": {
+          "en": "A clear, jargon-free guide to why you think, feel and act the way you do — the psychology behind everyday behaviour."
+        },
+        "descFull": {
+          "en": "Book 4 in the Let Me Explain It to You series. A clear, jargon-free guide to the psychology of everyday life — why you think, feel and act the way you do — explained simply and understood deeply."
+        }
+      },
+      {
+        "id": "psykologien-i-deg",
+        "title": "Psykologien i deg",
+        "subtitle": "Forstå hvorfor du tenker, føler og handler som du gjør",
+        "cover": "assets/covers/psykologien-i-deg.jpg",
+        "descShort": {
+          "no": "En klar og forståelig innføring i hvorfor du tenker, føler og handler som du gjør — psykologien bak hverdagen."
+        },
+        "descFull": {
+          "no": "Bok 4 i serien Let Me Explain It to You. En klar og forståelig innføring i hverdagspsykologien — hvorfor du tenker, føler og handler som du gjør. Komplekse temaer, klart forklart."
+        }
+      },
+      {
         "id": "let-me-explain-you",
         "title": "Let me Explain you: Skatt og Staten",
         "subtitle": "Hvordan økonomien virkelig fungerer – og hvorfor den ikke gjør det",
@@ -1212,6 +1236,42 @@ window.BOOKS_SERIES = [
         }
       },
       {
+        "id": "guide-el-campello-en",
+        "title": "El Campello",
+        "subtitle": "The Beaches, the Marina — and the Coastal Town that Connects Alicante with the North",
+        "cover": "assets/covers/guide-el-campello-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to El Campello — the beaches, the marina and the coastal town that connects Alicante with the north. For living, buying and building a life there."
+        },
+        "descFull": {
+          "en": "A practical, on-the-ground guide to El Campello — the beaches, the marina and the coastal town that connects Alicante with the north. For living, buying and building a life there."
+        }
+      },
+      {
+        "id": "guide-el-campello-no",
+        "title": "El Campello",
+        "subtitle": "Strendene, marinaen – og kystbyen som kobler Alicante med nord",
+        "cover": null,
+        "descShort": {
+          "no": "En praktisk, lokal guide til El Campello — strendene, marinaen og kystbyen som kobler Alicante med nord. For å bo, kjøpe og skape et liv, ikke bare besøke."
+        },
+        "descFull": {
+          "no": "En praktisk, lokal guide til El Campello — strendene, marinaen og kystbyen som kobler Alicante med nord. For å bo, kjøpe og skape et liv, ikke bare besøke."
+        }
+      },
+      {
+        "id": "guide-sant-joan-en",
+        "title": "Sant Joan d'Alacant",
+        "subtitle": "The Huerta Town, the Hospital — and the Residential Life Between Alicante and San Juan Beach",
+        "cover": "assets/covers/guide-sant-joan-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Sant Joan d'Alacant — the huerta town, the hospital and the residential life between Alicante and San Juan beach."
+        },
+        "descFull": {
+          "en": "A practical, on-the-ground guide to Sant Joan d'Alacant — the huerta town, the hospital and the residential life between Alicante and San Juan beach."
+        }
+      },
+      {
         "id": "spania-2030",
         "title": "Spania 2030",
         "subtitle": "Alt du må vite om energikrav og smarte boligkjøp",
@@ -1298,5 +1358,44 @@ window.BOOKS_SERIES = [
     ],
     "coverFit": "contain",
     "coverBg": "light"
+  },
+  {
+    "id": "hidden-systems-of-power",
+    "title": {
+      "no": "The Hidden Systems of Power",
+      "en": "The Hidden Systems of Power",
+      "es": "The Hidden Systems of Power"
+    },
+    "tag": {
+      "no": "Sakprosa · Makt og ressurser",
+      "en": "Nonfiction · Power and resources",
+      "es": "No ficción · Poder y recursos"
+    },
+    "count": {
+      "no": "Bokserie",
+      "en": "Book series",
+      "es": "Serie de libros"
+    },
+    "desc": {
+      "no": "De skjulte systemene — ressurser, mineraler og strukturer — som styrer den moderne verden.",
+      "en": "The hidden systems — resources, minerals and structures — that quietly control the modern world.",
+      "es": "Los sistemas ocultos — recursos, minerales y estructuras — que controlan el mundo moderno."
+    },
+    "cover": null,
+    "placeholderCount": 0,
+    "books": [
+      {
+        "id": "the-minerals-of-power",
+        "title": "The Minerals of Power",
+        "subtitle": "How Rare Earths, Copper, Lithium and Tiny Metals Control the Modern World",
+        "cover": "assets/covers/the-minerals-of-power.jpg",
+        "descShort": {
+          "en": "How rare earths, copper, lithium and other small metals quietly control the modern world — from green energy and chips to weapons and supply chains."
+        },
+        "descFull": {
+          "en": "Book One in The Hidden Systems of Power. A structural look at how rare earths, copper, lithium and other critical minerals control the modern world — the raw materials behind green energy, semiconductors, weapons and global supply chains — and what happens when access to them becomes leverage."
+        }
+      }
+    ]
   }
 ];
