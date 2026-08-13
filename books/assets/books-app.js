@@ -79,6 +79,7 @@
     return '' +
       '<header class="site-header"><div class="container">' +
       '<a class="brand" href="' + href('home') + '"><img class="brand-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier"></a>' +
+      '<button class="nav-toggle" aria-label="' + (LANG === 'no' ? 'Meny' : LANG === 'es' ? 'Menú' : 'Menu') + '" aria-expanded="false"><span></span><span></span><span></span></button>' +
       '<nav class="nav">' +
       '<a href="' + href('about') + '"' + (R.view === 'about' ? ' class="active"' : '') + '>' + esc(t('navAbout')) + '</a>' +
       '<a href="' + href('library') + '"' + (R.view === 'library' || R.view === 'series' || R.view === 'book' ? ' class="active"' : '') + '>' + esc(t('navSeries')) + '</a>' +
@@ -101,21 +102,23 @@
       '<h3>' + esc(b.title) + '</h3></a>';
   }
 
+  function seriesCard(s) {
+    var topCls = 'top' + (s.coverFit === 'contain' ? ' fit-contain' : '') + (s.coverBg ? ' bg-' + s.coverBg : '');
+    var top = s.cover ? '<div class="' + topCls + '"><img src="' + esc(asset(s.cover)) + '" alt="" loading="lazy"></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
+    return '<a class="series-card" href="' + href('series', s.id) + '">' + top +
+      '<div class="body"><span class="tag">' + esc(pick(s.tag)) + '</span>' +
+      '<h3>' + esc(pick(s.title)) + '</h3>' +
+      '<p>' + esc(pick(s.desc)) + '</p>' +
+      '<span class="count">' + esc(pick(s.count)) + '</span></div></a>';
+  }
+
   /* ---------- views ---------- */
   function viewHome() {
     var featured = findBook('hvem-eier-virkeligheten');
     var gallery = booksWithCovers().map(function (o) {
       return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy"><span>' + esc(o.b.title) + '</span></a>';
     }).join('');
-    var pillars = [
-      ['pillar1Title', 'pillar1Text', 'michael-thorne'],
-      ['pillar2Title', 'pillar2Text', 'power-behind-curtain'],
-      ['pillar3Title', 'pillar3Text', 'mediterraneo-vital']
-    ].map(function (p) {
-      var s = seriesById(p[2]);
-      var img = s && s.cover ? '<img src="' + esc(asset(s.cover)) + '" alt="">' : '';
-      return '<div class="pillar">' + img + '<h3>' + esc(t(p[0])) + '</h3><p>' + esc(t(p[1])) + '</p></div>';
-    }).join('');
+    var allSeriesCards = SERIES.map(seriesCard).join('');
 
     var feat = '';
     if (featured) {
@@ -140,9 +143,9 @@
       feat +
       '<section><div class="container"><h2 class="serif" style="font-size:26px">' + esc(t('galleryTitle')) + '</h2>' +
       '<div class="gallery">' + gallery + '</div></div></section>' +
-      '<section class="section-tint"><div class="container center">' +
-      '<h2 class="serif" style="font-size:30px">' + esc(t('pillarsTitle')) + '</h2>' +
-      '<div class="pillars">' + pillars + '</div></div></section>' +
+      '<section class="section-tint"><div class="container">' +
+      '<h2 class="serif center" style="font-size:30px">' + esc(t('pillarsTitle')) + '</h2>' +
+      '<div class="series-grid">' + allSeriesCards + '</div></div></section>' +
       '<section><div class="container narrow">' +
       '<h2 class="serif" style="font-size:28px">' + esc(t('newsletterTitle')) + '</h2>' +
       '<p>' + esc(t('newsletterText')) + '</p>' +
@@ -174,15 +177,7 @@
     var carousel = shuffle(booksWithCovers()).map(function (o) {
       return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy"><span>' + esc(o.b.title) + '</span></a>';
     }).join('');
-    var cards = SERIES.map(function (s) {
-      var topCls = 'top' + (s.coverFit === 'contain' ? ' fit-contain' : '') + (s.coverBg ? ' bg-' + s.coverBg : '');
-      var top = s.cover ? '<div class="' + topCls + '"><img src="' + esc(asset(s.cover)) + '" alt=""></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
-      return '<a class="series-card" href="' + href('series', s.id) + '">' + top +
-        '<div class="body"><span class="tag">' + esc(pick(s.tag)) + '</span>' +
-        '<h3>' + esc(pick(s.title)) + '</h3>' +
-        '<p>' + esc(pick(s.desc)) + '</p>' +
-        '<span class="count">' + esc(pick(s.count)) + '</span></div></a>';
-    }).join('');
+    var cards = SERIES.map(seriesCard).join('');
     return '<section><div class="container">' +
       '<p class="kicker">' + esc(t('seriesKicker')) + '</p>' +
       '<h1>' + esc(t('seriesPageTitle')) + '</h1>' +
@@ -363,6 +358,12 @@
     app.innerHTML = header() + '<main>' + body + '</main>' + footer();
     setMeta();
     wire(app);
+    var navToggle = app.querySelector('.nav-toggle');
+    if (navToggle) navToggle.addEventListener('click', function () {
+      var h = app.querySelector('.site-header');
+      var open = h.classList.toggle('nav-open');
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
     window.scrollTo(0, 0);
   }
 

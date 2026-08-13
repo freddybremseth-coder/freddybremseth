@@ -41,6 +41,12 @@ h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.2;margin:0 0 .5
 .langs a.active{background:var(--gold);color:var(--navy)}
 .langs a:hover{text-decoration:none;color:#fff}
 .langs a.active:hover{color:var(--navy)}
+/* Hamburger (mobile only) */
+.nav-toggle{display:none;width:46px;height:46px;margin-left:auto;border:0;background:transparent;cursor:pointer;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:10px}
+.nav-toggle span{display:block;width:24px;height:2px;background:#fff;border-radius:2px;transition:transform .22s,opacity .22s}
+.site-header.nav-open .nav-toggle span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.site-header.nav-open .nav-toggle span:nth-child(2){opacity:0}
+.site-header.nav-open .nav-toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
 /* Hero */
 .hero{background:linear-gradient(160deg,var(--navy),var(--navy2));color:var(--bg);text-align:center;padding:110px 24px}
@@ -145,13 +151,28 @@ textarea{min-height:150px;resize:vertical}
 @media(max-width:900px){
   .featured,.detail{grid-template-columns:1fr}
   .featured img,.detail .cover{max-width:260px;width:260px;margin:0 auto}
-  .pillars,.series-grid{grid-template-columns:1fr}
+  .pillars,.series-grid{grid-template-columns:repeat(2,1fr)}
   .book-grid{grid-template-columns:repeat(2,1fr)}
   .hero h1{font-size:36px}
   .divider-list .row{grid-template-columns:1fr}
 }
+/* Mobile nav: hamburger dropdown */
+@media(max-width:768px){
+  .nav-toggle{display:flex}
+  .site-header .container{gap:12px}
+  .nav{position:absolute;top:64px;left:0;right:0;margin:0;padding:0 24px;background:var(--navy);flex-direction:column;align-items:stretch;gap:0;max-height:0;overflow:hidden;transition:max-height .25s ease;box-shadow:0 14px 26px rgba(0,0,0,.35)}
+  .site-header.nav-open .nav{max-height:70vh;padding:6px 24px 18px;overflow:auto}
+  .nav a{padding:13px 2px;font-size:16px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .nav a.active{color:var(--gold)}
+  .langs{margin:14px 0 0;align-self:flex-start}
+}
 @media(max-width:560px){
   section{padding:52px 0}
   .inline-form{flex-direction:column}
-  .nav{gap:14px}
+  .pillars,.series-grid,.book-grid{grid-template-columns:1fr}
+  .hero{padding:72px 20px}
+  .hero h1{font-size:30px}
+  .featured{gap:28px}
+  .footer-logo{height:118px}
+  .container{padding:0 18px}
 }
