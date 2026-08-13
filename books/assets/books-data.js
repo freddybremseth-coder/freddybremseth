@@ -1140,6 +1140,66 @@ window.BOOKS_SERIES = [
         }
       },
       {
+        "id": "guide-denia-no",
+        "title": "Dénia",
+        "subtitle": "Havnen, strandene – og byen som lever hele året",
+        "cover": "assets/covers/guide-denia-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Dénia — havnen, strandene og byen som lever hele året, mellom Montgó og havet. For å bo, kjøpe og skape et liv, ikke bare besøke."
+        },
+        "descFull": {
+          "no": "En praktisk, lokal guide til Dénia — havnen, strandene og byen som lever hele året, mellom Montgó og havet. For å bo, kjøpe og skape et liv, ikke bare besøke."
+        }
+      },
+      {
+        "id": "guide-denia-en",
+        "title": "Dénia",
+        "subtitle": "The Port, the Beaches — and the Year-Round City",
+        "cover": "assets/covers/guide-denia-en.png",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Dénia — the port, the beaches and the year-round city between Montgó and the sea. A real-world guide to living, buying and building a life there."
+        },
+        "descFull": {
+          "en": "A practical, on-the-ground guide to Dénia — the port, the beaches and the year-round city between Montgó and the sea. A real-world guide to living, buying and building a life there."
+        }
+      },
+      {
+        "id": "guide-moraira-no",
+        "title": "Moraira",
+        "subtitle": "Mer enn en idyll",
+        "cover": "assets/covers/guide-moraira-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Moraira — områder, livsstil og det virkelige hverdagslivet bak postkortet. For å bo, ikke bare besøke."
+        },
+        "descFull": {
+          "no": "En praktisk, lokal guide til Moraira — områder, livsstil og det virkelige hverdagslivet bak postkortet. For å bo, ikke bare besøke."
+        }
+      },
+      {
+        "id": "guide-mutxamel-no",
+        "title": "Mutxamel",
+        "subtitle": "Den gamle byen, appelsinlundene – og villalivet mellom Alicante og havet",
+        "cover": "assets/covers/guide-mutxamel-no.png",
+        "descShort": {
+          "no": "En praktisk, lokal guide til Mutxamel — den gamle byen, appelsinlundene og villalivet mellom Alicante og havet. For å bo, kjøpe og skape et liv, ikke bare besøke."
+        },
+        "descFull": {
+          "no": "En praktisk, lokal guide til Mutxamel — den gamle byen, appelsinlundene og villalivet mellom Alicante og havet. For å bo, kjøpe og skape et liv, ikke bare besøke."
+        }
+      },
+      {
+        "id": "guide-mutxamel-en",
+        "title": "Mutxamel",
+        "subtitle": "The Old Town, the Orchards — and the Villa Life Between Alicante and the Sea",
+        "cover": "assets/covers/guide-mutxamel-en.jpg",
+        "descShort": {
+          "en": "A practical, on-the-ground guide to Mutxamel — the old town, the orchards and villa life between Alicante and the sea. A real-world guide to living, buying and building a life there."
+        },
+        "descFull": {
+          "en": "A practical, on-the-ground guide to Mutxamel — the old town, the orchards and villa life between Alicante and the sea. A real-world guide to living, buying and building a life there."
+        }
+      },
+      {
         "id": "spania-2030",
         "title": "Spania 2030",
         "subtitle": "Alt du må vite om energikrav og smarte boligkjøp",
