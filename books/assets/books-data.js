@@ -879,6 +879,18 @@ window.BOOKS_SERIES = [
         }
       },
       {
+        "id": "crypto-explained",
+        "title": "Crypto Explained",
+        "subtitle": "Bitcoin, Blockchain, Ethereum, Stablecoins, CBDCs, DeFi and the Future of Money",
+        "cover": "assets/covers/crypto-explained.png",
+        "descShort": {
+          "en": "A clear, jargon-free guide to crypto — Bitcoin, blockchain, Ethereum, stablecoins, CBDCs and DeFi — and what it all means for the future of money."
+        },
+        "descFull": {
+          "en": "Book 6 in the Let Me Explain It to You series. A clear, jargon-free guide to cryptocurrency and the future of money — Bitcoin, blockchain, Ethereum, stablecoins, CBDCs and DeFi — explained simply and understood deeply, for anyone who wants to actually understand how it works."
+        }
+      },
+      {
         "id": "let-me-explain-you",
         "title": "Let me Explain you: Skatt og Staten",
         "subtitle": "Hvordan økonomien virkelig fungerer – og hvorfor den ikke gjør det",
