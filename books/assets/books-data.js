@@ -1258,6 +1258,30 @@ window.BOOKS_SERIES = [
           "en": "Rome survived disasters that should have destroyed a weaker state: civil wars, epidemics, monetary disruption, frontier invasions, captured emperors and the fragmentation of the third century. Again and again, it rebuilt. So why did the Western Roman Empire fail to recover in the fifth century while the Eastern Empire survived?\n\nROME: Why the World's Greatest Empire Fell examines the Roman Empire as a power system — following the conversion of agricultural surplus into taxation, taxation into armies, armies into security, and security back into revenue — and then traces what happens when those circuits begin to break. It compares the crises of AD 260, 410, 439, 455, 468 and 476 to ask which events actually damaged Rome's capacity to recover. The result is a structural autopsy of the Western Empire, and a framework for understanding how complex states survive pressure — and when they stop being able to. Book One in The Anatomy of Empires."
         },
         "words": 66719
+      },
+      {
+        "id": "the-chokepoints-of-power",
+        "title": "The Chokepoints of Power",
+        "subtitle": "How Geography Controls Trade, Energy and the Fate of Nations",
+        "cover": "assets/covers/the-chokepoints-of-power.png",
+        "descShort": {
+          "en": "A structural analysis of the strategic waterways and canals that move global trade and energy — Hormuz, Suez, Panama, Malacca and more — and what happens when states, conflict, markets or nature disrupt them."
+        },
+        "descFull": {
+          "en": "A companion volume in The Anatomy of Empires. A structural analysis of the strategic waterways, canals and maritime corridors that move global trade and energy — from Hormuz, Suez and Bab el-Mandeb to Malacca, Panama, the Cape of Good Hope and Taiwan — and of what happens when they are disrupted. It examines how geography becomes leverage, why alternatives are rarely equivalent substitutes, and why major powers invest so heavily in keeping trade routes open."
+        }
+      },
+      {
+        "id": "maktens-flaskehalser",
+        "title": "Maktens flaskehalser",
+        "subtitle": "Suezkanalen, Hormuzstredet og Panamakanalen",
+        "cover": "assets/covers/maktens-flaskehalser.jpg",
+        "descShort": {
+          "no": "En strukturell analyse av verdens strategiske vannveier og kanaler — Suez, Hormuz, Panama og flere: hvordan tre små steder bestemmer over verden, og hva som skjer når de stenges."
+        },
+        "descFull": {
+          "no": "Et følgebind i The Anatomy of Empires. En strukturell analyse av de strategiske vannveiene, kanalene og maritime korridorene som flytter global handel og energi — fra Hormuz, Suez og Bab el-Mandeb til Malacca, Panama, Kapp det gode håp og Taiwan — og hva som skjer når stater, konflikt, markeder eller natur stenger dem. Verden er større enn land. Den går gjennom steder."
+        }
       }
     ],
     "coverFit": "contain",
