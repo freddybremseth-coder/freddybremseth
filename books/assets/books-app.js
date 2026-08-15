@@ -102,6 +102,14 @@
       '<h3>' + esc(b.title) + '</h3></a>';
   }
 
+  function galleryBlock(itemsHtml) {
+    return '<div class="gallery-wrap">' +
+      '<button class="gallery-nav prev" aria-label="' + (LANG === 'no' ? 'Forrige' : LANG === 'es' ? 'Anterior' : 'Previous') + '" type="button">‹</button>' +
+      '<div class="gallery">' + itemsHtml + '</div>' +
+      '<button class="gallery-nav next" aria-label="' + (LANG === 'no' ? 'Neste' : LANG === 'es' ? 'Siguiente' : 'Next') + '" type="button">›</button>' +
+      '</div>';
+  }
+
   function seriesCard(s) {
     var topCls = 'top' + (s.coverFit === 'contain' ? ' fit-contain' : '') + (s.coverBg ? ' bg-' + s.coverBg : '');
     var top = s.cover ? '<div class="' + topCls + '"><img src="' + esc(asset(s.cover)) + '" alt="" loading="lazy"></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
@@ -115,7 +123,7 @@
   /* ---------- views ---------- */
   function viewHome() {
     var featured = findBook('hvem-eier-virkeligheten');
-    var gallery = booksWithCovers().map(function (o) {
+    var gallery = shuffle(booksWithCovers()).map(function (o) {
       return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy"><span>' + esc(o.b.title) + '</span></a>';
     }).join('');
     var allSeriesCards = SERIES.map(seriesCard).join('');
@@ -142,7 +150,7 @@
       '</div></section>' +
       feat +
       '<section><div class="container"><h2 class="serif" style="font-size:26px">' + esc(t('galleryTitle')) + '</h2>' +
-      '<div class="gallery">' + gallery + '</div></div></section>' +
+      galleryBlock(gallery) + '</div></section>' +
       '<section class="section-tint"><div class="container">' +
       '<h2 class="serif center" style="font-size:30px">' + esc(t('pillarsTitle')) + '</h2>' +
       '<div class="series-grid">' + allSeriesCards + '</div></div></section>' +
@@ -183,7 +191,7 @@
       '<h1>' + esc(t('seriesPageTitle')) + '</h1>' +
       '<p class="pill">' + esc(t('bundleAllNote')) + '</p>' +
       '<p style="max-width:720px;margin-top:16px">' + esc(t('discountNote')) + '</p>' +
-      '<div class="gallery" style="margin-top:24px">' + carousel + '</div>' +
+      galleryBlock(carousel) +
       '<div class="series-grid">' + cards + '</div>' +
       '</div></section>';
   }
@@ -363,6 +371,21 @@
       var h = app.querySelector('.site-header');
       var open = h.classList.toggle('nav-open');
       navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    app.querySelectorAll('.gallery-wrap').forEach(function (wrap) {
+      var g = wrap.querySelector('.gallery');
+      var prev = wrap.querySelector('.gallery-nav.prev');
+      var next = wrap.querySelector('.gallery-nav.next');
+      function update() {
+        var max = g.scrollWidth - g.clientWidth - 2;
+        prev.disabled = g.scrollLeft <= 2;
+        next.disabled = g.scrollLeft >= max;
+      }
+      function step(dir) { g.scrollBy({ left: dir * Math.max(320, Math.round(g.clientWidth * 0.85)), behavior: 'smooth' }); }
+      prev.addEventListener('click', function () { step(-1); });
+      next.addEventListener('click', function () { step(1); });
+      g.addEventListener('scroll', update, { passive: true });
+      update();
     });
     window.scrollTo(0, 0);
   }

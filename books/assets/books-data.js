@@ -1397,5 +1397,177 @@ window.BOOKS_SERIES = [
         }
       }
     ]
+  },
+  {
+    "id": "victoria-andreas",
+    "title": {
+      "no": "Victoria & Andreas",
+      "en": "Victoria & Andreas",
+      "es": "Victoria & Andreas"
+    },
+    "tag": {
+      "no": "Barnebøker · Se, pek & lær",
+      "en": "Children's books · Look & Learn",
+      "es": "Libros infantiles"
+    },
+    "count": {
+      "no": "Bokserie",
+      "en": "Book series",
+      "es": "Serie de libros"
+    },
+    "desc": {
+      "no": "Se, pek og lær med Victoria og Andreas og fuglevennen Pip. Små eventyr. Store oppdagelser.",
+      "en": "Look, point and learn with Victoria and Andreas and their bird friend Pip. Little adventures. Big discoveries.",
+      "es": "Mira, señala y aprende con Victoria y Andreas. Pequeñas aventuras. Grandes descubrimientos."
+    },
+    "category": "children",
+    "cover": null,
+    "placeholderCount": 0,
+    "books": [
+      {
+        "id": "va-beach-en",
+        "title": "At the Beach",
+        "subtitle": "Look & Learn",
+        "cover": "assets/covers/va-beach-en.jpg",
+        "descShort": {
+          "en": "Join Victoria and Andreas at the beach — shells, waves, sandcastles and their little bird friend Pip. Look, point, count and learn. Little adventures. Big discoveries."
+        },
+        "descFull": {
+          "en": "Join Victoria and Andreas at the beach — shells, waves, sandcastles and their little bird friend Pip. Look, point, count and learn. Little adventures. Big discoveries."
+        }
+      },
+      {
+        "id": "va-beach-no",
+        "title": "På stranden",
+        "subtitle": "Se, pek & lær",
+        "cover": "assets/covers/va-beach-no.jpg",
+        "descShort": {
+          "no": "Bli med Victoria og Andreas på stranden — skjell, bølger, sandslott og den lille fuglevennen Pip. Se, pek, tell og lær. Små eventyr. Store oppdagelser."
+        },
+        "descFull": {
+          "no": "Bli med Victoria og Andreas på stranden — skjell, bølger, sandslott og den lille fuglevennen Pip. Se, pek, tell og lær. Små eventyr. Store oppdagelser."
+        }
+      },
+      {
+        "id": "va-farm-en",
+        "title": "At the Farm",
+        "subtitle": "Look & Learn",
+        "cover": "assets/covers/va-farm-en.jpg",
+        "descShort": {
+          "en": "Join Victoria and Andreas at the farm — cows, chickens, a friendly dog and apple trees. Look, point, count and learn. Little adventures. Big discoveries."
+        },
+        "descFull": {
+          "en": "Join Victoria and Andreas at the farm — cows, chickens, a friendly dog and apple trees. Look, point, count and learn. Little adventures. Big discoveries."
+        }
+      },
+      {
+        "id": "va-farm-no",
+        "title": "På gården",
+        "subtitle": "Se, pek & lær",
+        "cover": "assets/covers/va-farm-no.jpg",
+        "descShort": {
+          "no": "Bli med Victoria og Andreas på gården — kuer, høner, en snill hund og epletrær. Se, pek, tell og lær. Små eventyr. Store oppdagelser."
+        },
+        "descFull": {
+          "no": "Bli med Victoria og Andreas på gården — kuer, høner, en snill hund og epletrær. Se, pek, tell og lær. Små eventyr. Store oppdagelser."
+        }
+      },
+      {
+        "id": "va-animals-en",
+        "title": "Animals Around Us",
+        "subtitle": "Look & Learn",
+        "cover": "assets/covers/va-animals-en.jpg",
+        "descShort": {
+          "en": "Animals are everywhere — if you know where to look! Join Victoria and Andreas as they explore gardens, parks and ponds and discover butterflies, birds, rabbits, ducks, frogs and more. Look, find Pip and count. Little adventures. Big discoveries."
+        },
+        "descFull": {
+          "en": "Animals are everywhere — if you know where to look! Join Victoria and Andreas as they explore gardens, parks and ponds and discover butterflies, birds, rabbits, ducks, frogs and more. Look, find Pip and count. Little adventures. Big discoveries."
+        }
+      },
+      {
+        "id": "va-animals-no",
+        "title": "Dyrene rundt oss",
+        "subtitle": "Se, pek & lær",
+        "cover": "assets/covers/va-animals-no.jpg",
+        "descShort": {
+          "no": "Det finnes dyr overalt — hvis du vet hvor du skal se! Bli med Victoria og Andreas når de utforsker hager, parker og dammer og oppdager sommerfugler, fugler, kaniner, ender og frosker. Se godt etter, finn Pip og tell. Små eventyr. Store oppdagelser."
+        },
+        "descFull": {
+          "no": "Det finnes dyr overalt — hvis du vet hvor du skal se! Bli med Victoria og Andreas når de utforsker hager, parker og dammer og oppdager sommerfugler, fugler, kaniner, ender og frosker. Se godt etter, finn Pip og tell. Små eventyr. Store oppdagelser."
+        }
+      },
+      {
+        "id": "va-things-en",
+        "title": "Things That Go",
+        "subtitle": "Look & Learn",
+        "cover": "assets/covers/va-things-en.jpg",
+        "descShort": {
+          "en": "Vroom, ring-ring, whoosh — things are moving everywhere! Join Victoria and Andreas as they discover vehicles on land, water and in the air. Find Pip, count, sort and learn about safe movement. Little adventures. Big discoveries."
+        },
+        "descFull": {
+          "en": "Vroom, ring-ring, whoosh — things are moving everywhere! Join Victoria and Andreas as they discover vehicles on land, water and in the air. Find Pip, count, sort and learn about safe movement. Little adventures. Big discoveries."
+        }
+      },
+      {
+        "id": "va-things-no",
+        "title": "Ting som beveger seg",
+        "subtitle": "Se, pek & lær",
+        "cover": "assets/covers/va-things-no.jpg",
+        "descShort": {
+          "no": "Vroom, ring-ring og suuush — det er ting i bevegelse overalt! Bli med Victoria og Andreas og oppdag kjøretøy på land, på vann og i luften. Finn Pip, tell, sorter og lær om trygg ferdsel. Små eventyr. Store oppdagelser."
+        },
+        "descFull": {
+          "no": "Vroom, ring-ring og suuush — det er ting i bevegelse overalt! Bli med Victoria og Andreas og oppdag kjøretøy på land, på vann og i luften. Finn Pip, tell, sorter og lær om trygg ferdsel. Små eventyr. Store oppdagelser."
+        }
+      },
+      {
+        "id": "va-colours-en",
+        "title": "Colours Everywhere",
+        "subtitle": "Look & Learn",
+        "cover": "assets/covers/va-colours-en.jpg",
+        "descShort": {
+          "en": "Colours are everywhere! Join Victoria and Andreas as they spot and name colours all around them. Look, point and learn. Little adventures. Big discoveries."
+        },
+        "descFull": {
+          "en": "Colours are everywhere! Join Victoria and Andreas as they spot and name colours all around them. Look, point and learn. Little adventures. Big discoveries."
+        }
+      },
+      {
+        "id": "va-colours-no",
+        "title": "Farger overalt",
+        "subtitle": "Se, pek & lær",
+        "cover": "assets/covers/va-colours-no.jpg",
+        "descShort": {
+          "no": "Farger overalt! Bli med Victoria og Andreas når de finner og navngir farger rundt seg. Se, pek og lær. Små eventyr. Store oppdagelser."
+        },
+        "descFull": {
+          "no": "Farger overalt! Bli med Victoria og Andreas når de finner og navngir farger rundt seg. Se, pek og lær. Små eventyr. Store oppdagelser."
+        }
+      },
+      {
+        "id": "va-numbers-en",
+        "title": "Numbers Everywhere",
+        "subtitle": "Look & Learn",
+        "cover": "assets/covers/va-numbers-en.jpg",
+        "descShort": {
+          "en": "Learning is an adventure! Join Victoria and Andreas as they count from 1 to 10 and discover numbers everywhere. Find Pip, compare more and less, spot the same number and enjoy playful counting activities."
+        },
+        "descFull": {
+          "en": "Learning is an adventure! Join Victoria and Andreas as they count from 1 to 10 and discover numbers everywhere. Find Pip, compare more and less, spot the same number and enjoy playful counting activities."
+        }
+      },
+      {
+        "id": "va-numbers-no",
+        "title": "Tall overalt",
+        "subtitle": "Se, pek & lær",
+        "cover": "assets/covers/va-numbers-no.jpg",
+        "descShort": {
+          "no": "Læring er et eventyr! Bli med Victoria og Andreas når de teller fra 1 til 10 og oppdager tall overalt. Finn Pip, sammenlign flere og færre, finn like mange og kos dere med morsomme telleoppgaver."
+        },
+        "descFull": {
+          "no": "Læring er et eventyr! Bli med Victoria og Andreas når de teller fra 1 til 10 og oppdager tall overalt. Finn Pip, sammenlign flere og færre, finn like mange og kos dere med morsomme telleoppgaver."
+        }
+      }
+    ]
   }
 ];
