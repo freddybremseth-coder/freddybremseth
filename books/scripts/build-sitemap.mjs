@@ -13,7 +13,12 @@ const dataJs = fs.readFileSync(path.join(root, 'assets/books-data.js'), 'utf8');
 const json = dataJs.slice(dataJs.indexOf('['), dataJs.lastIndexOf(']') + 1);
 const series = JSON.parse(json);
 
-const routes = ['', 'about', 'library', 'contact'];
+const routes = [
+  '', 'about', 'library', 'contact',
+  'topics/geopolitics-power',
+  'topics/psychological-thrillers',
+  'topics/money-economics',
+];
 series.forEach(s => {
   routes.push('series/' + s.id);
   (s.books || []).forEach(b => routes.push('book/' + b.id));
