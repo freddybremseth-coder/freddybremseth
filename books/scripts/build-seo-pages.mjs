@@ -59,6 +59,7 @@ function chrome(lang, title, description, route, body, schema, image) {
   <script src="/assets/books-data.js"></script>
   <script src="/assets/books-i18n.js"></script>
   <script src="/assets/books-app.js"></script>
+  <script src="/assets/books-growth.js"></script>
 </body>
 </html>\n`;
 }
@@ -91,7 +92,7 @@ function seriesPage(s, lang) {
   const desc = pick(s.desc, lang) || pick(s.tag, lang);
   const route = `series/${s.id}`;
   const title = `${name} — Freddy Bremseth`;
-  const books = (s.books || []).map((b, i) => `<article><h2><a href="${prefixFor(lang)}/book/${esc(b.id)}">${esc(b.title)}</a></h2><p>${esc(pick(b.descShort, lang))}</p>${b.cover ? `<img src="/${esc(b.cover)}" alt="${esc(b.title)} book cover" loading="lazy" width="220" />` : ''}</article>`).join('');
+  const books = (s.books || []).map((b) => `<article><h2><a href="${prefixFor(lang)}/book/${esc(b.id)}">${esc(b.title)}</a></h2><p>${esc(pick(b.descShort, lang))}</p>${b.cover ? `<img src="/${esc(b.cover)}" alt="${esc(b.title)} book cover" loading="lazy" width="220" />` : ''}</article>`).join('');
   const body = `<main style="max-width:1000px;margin:40px auto;padding:0 24px">${nav(lang)}<p><a href="${prefixFor(lang) || '/'}">← ${lang === 'en' ? 'All books' : lang === 'es' ? 'Todos los libros' : 'Alle bøker'}</a></p><h1>${esc(name)}</h1><p>${esc(desc)}</p>${books}</main>`;
   const schema = { '@context': 'https://schema.org', '@type': 'CreativeWorkSeries', name, description: desc, url: absolute(lang, route), author: { '@type': 'Person', name: 'Freddy Bremseth' }, hasPart: (s.books || []).map((b, i) => ({ '@type': 'Book', name: b.title, position: i + 1, url: absolute(lang, `book/${b.id}`) })) };
   return chrome(lang, title, desc, route, body, schema, s.cover);
