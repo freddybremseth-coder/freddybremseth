@@ -4,9 +4,10 @@
   "private": true,
   "description": "books.freddybremseth.com — author site (static app + Vercel serverless API).",
   "scripts": {
-    "build": "node scripts/build-seo-pages.mjs && node scripts/build-topic-pages.mjs && node scripts/build-sitemap.mjs && node scripts/audit-catalog.mjs",
+    "build": "node scripts/build-seo-pages.mjs && node scripts/build-topic-pages.mjs && node scripts/build-amazon-map.mjs && node scripts/build-sitemap.mjs && node scripts/audit-catalog.mjs",
     "build:seo": "node scripts/build-seo-pages.mjs && node scripts/build-topic-pages.mjs",
     "build:sitemap": "node scripts/build-sitemap.mjs",
+    "build:amazon-map": "node scripts/build-amazon-map.mjs",
     "audit:catalog": "node scripts/audit-catalog.mjs"
   },
   "dependencies": {
