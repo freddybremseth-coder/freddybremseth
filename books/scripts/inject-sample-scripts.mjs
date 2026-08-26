@@ -20,6 +20,13 @@ let changed = 0;
 for (const file of walk(root)) {
   let html = fs.readFileSync(file, 'utf8');
   const before = html;
+
+  if (html.includes('/assets/books-data.js') && !html.includes('/assets/books-extra.js')) {
+    html = html.replace(
+      '<script src="/assets/books-data.js"></script>',
+      '<script src="/assets/books-data.js"></script>\n  <script src="/assets/books-extra.js"></script>\n  <script src="/assets/books-catalog-fixes.js"></script>',
+    );
+  }
   if (html.includes('/assets/books-data.js') && !html.includes('/assets/sample-overrides.js')) {
     html = html.replace(
       '<script src="/assets/books-data.js"></script>',
@@ -32,10 +39,17 @@ for (const file of walk(root)) {
       '<script src="/assets/books-app.js"></script>\n  <script src="/assets/books-sample-links.js"></script>',
     );
   }
+  if (html.includes('/assets/books-app.js') && !html.includes('/assets/books-latest.js')) {
+    html = html.replace(
+      '<script src="/assets/books-app.js"></script>',
+      '<script src="/assets/books-app.js"></script>\n  <script src="/assets/books-latest.js"></script>',
+    );
+  }
+
   if (html !== before) {
     fs.writeFileSync(file, html);
     changed += 1;
   }
 }
 
-console.log(`Sample scripts verified/injected in generated HTML (${changed} files changed).`);
+console.log(`Book helper scripts verified/injected in generated HTML (${changed} files changed).`);
