@@ -536,7 +536,6 @@ const brands = [
   },
   {
     icon: '📚', name: 'Freddy Publishing', url: 'books.freddybremseth.com', href: 'https://books.freddybremseth.com',
-    img: UP + 'brand-freddypublishing.jpg',
     descNo: 'Bøker og serier innen psykologisk thriller, krim, økonomi, geopolitikk, eiendom og praktisk kunnskap.',
     descEn: 'Books and series spanning psychological thrillers, crime, economics, geopolitics, property and practical knowledge.',
     descEs: 'Libros y series de thriller psicológico, crimen, economía, geopolítica, inmobiliaria y conocimiento práctico.',
@@ -935,7 +934,10 @@ function App() {
         <div className="container">
           <div className="section-label">{t.booksLabel}</div>
           <h2 className="section-title">{t.booksTitle}</h2>
-          <p style={{margin:'0 0 24px'}}><a href="/nedlasting.html" style={{color:'var(--gold)',fontFamily:"'DM Sans', sans-serif",fontWeight:600,textDecoration:'none'}}>{t.pdfCta} →</a></p>
+          <p style={{margin:'0 0 24px',display:'flex',gap:18,flexWrap:'wrap',justifyContent:'center'}}>
+            <a href="https://books.freddybremseth.com/" style={{color:'var(--gold)',fontFamily:"'DM Sans', sans-serif",fontWeight:600,textDecoration:'none'}}>Åpne hele bokkatalogen →</a>
+            <a href="/nedlasting.html" style={{color:'var(--gold)',fontFamily:"'DM Sans', sans-serif",fontWeight:600,textDecoration:'none'}}>{t.pdfCta} →</a>
+          </p>
           <div className="books-tabs">
             {t.bookTabs.map((tab, i) => (
               <button key={tab} className={`books-tab ${bookTab === i ? 'active' : ''}`} onClick={() => setBookTab(i)}>
