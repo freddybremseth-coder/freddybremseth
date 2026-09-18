@@ -71,7 +71,7 @@ function nav(lang) {
     : lang === 'en'
       ? { home: 'Books', library: 'Library', about: 'About the author' }
       : { home: 'Bøker', library: 'Bibliotek', about: 'Om forfatteren' };
-  return `<nav aria-label="Primary"><a href="${p || '/'}">${labels.home}</a> · <a href="${p}/library">${labels.library}</a> · <a href="${p}/about">${labels.about}</a> · <a href="https://www.freddybremseth.com/forfatter.html">Freddy Bremseth</a></nav>`;
+  return `<nav aria-label="Primary"><a href="${p || '/'}">${labels.home}</a> · <a href="${p}/library">${labels.library}</a> · <a href="${p}/about">${labels.about}</a> · <a href="https://www.freddybremseth.com/">Freddy Bremseth</a></nav>`;
 }
 
 function homePage(lang) {
