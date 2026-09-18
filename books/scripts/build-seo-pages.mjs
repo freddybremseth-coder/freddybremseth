@@ -71,7 +71,7 @@ function nav(lang) {
     : lang === 'en'
       ? { home: 'Books', library: 'Library', about: 'About the author' }
       : { home: 'Bøker', library: 'Bibliotek', about: 'Om forfatteren' };
-  return `<nav aria-label="Primary"><a href="${p || '/'}">${labels.home}</a> · <a href="${p}/library">${labels.library}</a> · <a href="${p}/about">${labels.about}</a></nav>`;
+  return `<nav aria-label="Primary"><a href="${p || '/'}">${labels.home}</a> · <a href="${p}/library">${labels.library}</a> · <a href="${p}/about">${labels.about}</a> · <a href="https://www.freddybremseth.com/forfatter.html">Freddy Bremseth</a></nav>`;
 }
 
 function homePage(lang) {
@@ -83,7 +83,7 @@ function homePage(lang) {
       : 'Psykologiske thrillere og sakprosa om økonomi, makt, geopolitikk, helse, oliven, jordbruk og livet i Spania.';
   const cards = series.map(s => `<article><h2><a href="${prefixFor(lang)}/series/${esc(s.id)}">${esc(pick(s.title, lang))}</a></h2><p>${esc(pick(s.desc, lang))}</p><ul>${(s.books || []).map(b => `<li><a href="${prefixFor(lang)}/book/${esc(b.id)}">${esc(b.title)}</a></li>`).join('')}</ul></article>`).join('');
   const body = `<main style="max-width:1100px;margin:40px auto;padding:0 24px">${nav(lang)}<h1>${esc(title)}</h1><p>${esc(desc)}</p>${cards}</main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'ProfilePage', mainEntity: { '@type': 'Person', name: 'Freddy Bremseth', url: ORIGIN, jobTitle: lang === 'en' ? 'Author' : lang === 'es' ? 'Autor' : 'Forfatter' } };
+  const schema = { '@context': 'https://schema.org', '@type': 'ProfilePage', mainEntity: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/', jobTitle: lang === 'en' ? 'Author' : lang === 'es' ? 'Autor' : 'Forfatter' } };
   return chrome(lang, title, desc, '', body, schema);
 }
 
@@ -94,7 +94,7 @@ function seriesPage(s, lang) {
   const title = `${name} — Freddy Bremseth`;
   const books = (s.books || []).map((b) => `<article><h2><a href="${prefixFor(lang)}/book/${esc(b.id)}">${esc(b.title)}</a></h2><p>${esc(pick(b.descShort, lang))}</p>${b.cover ? `<img src="/${esc(b.cover)}" alt="${esc(b.title)} book cover" loading="lazy" width="220" />` : ''}</article>`).join('');
   const body = `<main style="max-width:1000px;margin:40px auto;padding:0 24px">${nav(lang)}<p><a href="${prefixFor(lang) || '/'}">← ${lang === 'en' ? 'All books' : lang === 'es' ? 'Todos los libros' : 'Alle bøker'}</a></p><h1>${esc(name)}</h1><p>${esc(desc)}</p>${books}</main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'CreativeWorkSeries', name, description: desc, url: absolute(lang, route), author: { '@type': 'Person', name: 'Freddy Bremseth' }, hasPart: (s.books || []).map((b, i) => ({ '@type': 'Book', name: b.title, position: i + 1, url: absolute(lang, `book/${b.id}`) })) };
+  const schema = { '@context': 'https://schema.org', '@type': 'CreativeWorkSeries', name, description: desc, url: absolute(lang, route), author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, hasPart: (s.books || []).map((b, i) => ({ '@type': 'Book', name: b.title, position: i + 1, url: absolute(lang, `book/${b.id}`) })) };
   return chrome(lang, title, desc, route, body, schema, s.cover);
 }
 
@@ -106,7 +106,7 @@ function bookPage(s, b, lang) {
   const buy = b.amazon ? `<p><a href="${esc(b.amazon)}" rel="nofollow sponsored noopener">Amazon</a></p>` : '';
   const sample = b.samplePath ? `<p><a href="/${esc(b.samplePath)}">${lang === 'en' ? 'Read a free sample' : lang === 'es' ? 'Leer una muestra gratis' : 'Les gratis prøvekapittel'}</a></p>` : '';
   const body = `<main style="max-width:920px;margin:40px auto;padding:0 24px">${nav(lang)}<p><a href="${prefixFor(lang)}/series/${esc(s.id)}">← ${esc(pick(s.title, lang))}</a></p><article><h1>${esc(b.title)}</h1>${b.subtitle ? `<p>${esc(b.subtitle)}</p>` : ''}${b.cover ? `<img src="/${esc(b.cover)}" alt="${esc(b.title)} book cover by Freddy Bremseth" width="320" />` : ''}<p>${esc(desc)}</p>${b.words ? `<p>${Number(b.words).toLocaleString('en-US')} words${b.pages ? ` · ${b.pages} pages` : ''}</p>` : ''}${sample}${buy}</article></main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'Book', name: b.title, description: desc, url: absolute(lang, route), image: b.cover ? coverUrl(b.cover) : undefined, author: { '@type': 'Person', name: 'Freddy Bremseth' }, isPartOf: { '@type': 'CreativeWorkSeries', name: pick(s.title, lang), url: absolute(lang, `series/${s.id}`) }, inLanguage: lang, numberOfPages: b.pages || undefined, offers: b.amazon ? { '@type': 'Offer', url: b.amazon, availability: 'https://schema.org/InStock' } : undefined };
+  const schema = { '@context': 'https://schema.org', '@type': 'Book', name: b.title, description: desc, url: absolute(lang, route), image: b.cover ? coverUrl(b.cover) : undefined, author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, isPartOf: { '@type': 'CreativeWorkSeries', name: pick(s.title, lang), url: absolute(lang, `series/${s.id}`) }, inLanguage: lang, numberOfPages: b.pages || undefined, offers: b.amazon ? { '@type': 'Offer', url: b.amazon, availability: 'https://schema.org/InStock' } : undefined };
   return chrome(lang, title, short, route, body, schema, b.cover);
 }
 
@@ -130,7 +130,7 @@ function simplePage(route, lang) {
   };
   const [heading, desc] = map[route][lang];
   const body = `<main style="max-width:900px;margin:40px auto;padding:0 24px">${nav(lang)}<h1>${esc(heading)}</h1><p>${esc(desc)}</p>${route === 'library' ? series.map(s => `<h2><a href="${prefixFor(lang)}/series/${esc(s.id)}">${esc(pick(s.title, lang))}</a></h2>`).join('') : ''}</main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'WebPage', name: heading, description: desc, url: absolute(lang, route), about: { '@type': 'Person', name: 'Freddy Bremseth' } };
+  const schema = { '@context': 'https://schema.org', '@type': 'WebPage', name: heading, description: desc, url: absolute(lang, route), about: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' } };
   return chrome(lang, `${heading} — Freddy Bremseth`, desc, route, body, schema);
 }
 
