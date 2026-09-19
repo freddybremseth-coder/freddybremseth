@@ -47,6 +47,6 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.s
 fs.writeFileSync(path.join(root, 'sitemap.xml'), xml);
 
 fs.writeFileSync(path.join(root, 'robots.txt'),
-  `User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`);
+  `User-agent: *\nAllow: /\n\nUser-agent: OAI-SearchBot\nAllow: /\n\nSitemap: ${ORIGIN}/sitemap.xml\n`);
 
 console.log(`sitemap.xml: ${urls.length} urls (${routes.length} routes × ${langs.length} langs)`);

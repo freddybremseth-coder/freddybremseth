@@ -3,8 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Freddy Bremseth</title>
-  <meta name="description" content="Freddy Bremseth — Eiendomsrådgiver, Entreprenør, Musiker og Forfatter. Costa Blanca, AI, Olivenfarming.">
+  <title>Freddy Bremseth | Eiendom, AI, bøker, musikk og entreprenørskap</title>
+  <meta name="description" content="Freddy Bremseth — norsk eiendomsrådgiver, entreprenør, forfatter og musikkprodusent bosatt i Spania. Eiendom, AI, bøker, oliven, teknologi og Re-Master Freddy.">
+  <link rel="canonical" href="https://www.freddybremseth.com/">
+  <meta property="og:type" content="profile">
+  <meta property="og:url" content="https://www.freddybremseth.com/">
+  <meta property="og:title" content="Freddy Bremseth | Eiendom, AI, bøker og prosjekter">
+  <meta property="og:description" content="Samlet profil for Freddy Bremseth: eiendom i Spania, AI og teknologi, bøker, Doña Anna og Re-Master Freddy.">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"ProfilePage",
+    "@id":"https://www.freddybremseth.com/#profile",
+    "url":"https://www.freddybremseth.com/",
+    "name":"Freddy Bremseth",
+    "mainEntity":{
+      "@type":"Person",
+      "@id":"https://www.freddybremseth.com/#person",
+      "name":"Freddy Bremseth",
+      "url":"https://www.freddybremseth.com/",
+      "jobTitle":["Eiendomsrådgiver","Forfatter","Entreprenør","Musikkprodusent"],
+      "knowsLanguage":["no","en","es"],
+      "knowsAbout":["Eiendom i Spania","Costa Blanca","AI og digitale systemer","Forfatterskap","Elektronisk musikk","Oliven og landbruk"],
+      "sameAs":[
+        "https://www.zenecohomes.com/om-freddy",
+        "https://www.pinosoecolife.com/om-freddy"
+      ]
+    }
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -507,6 +535,12 @@ const brands = [
     descEs: 'Música electrónica generada por IA — EDM, Techno, House, Lo-Fi y más. Lanzamientos diarios.',
   },
   {
+    icon: '📚', name: 'Freddy Publishing', url: 'books.freddybremseth.com', href: 'https://books.freddybremseth.com',
+    descNo: 'Bøker og serier innen psykologisk thriller, krim, økonomi, geopolitikk, eiendom og praktisk kunnskap.',
+    descEn: 'Books and series spanning psychological thrillers, crime, economics, geopolitics, property and practical knowledge.',
+    descEs: 'Libros y series de thriller psicológico, crimen, economía, geopolítica, inmobiliaria y conocimiento práctico.',
+  },
+  {
     icon: '🌊', name: 'Costa Blanca Tours', url: 'costablancatours.pro', href: 'https://costablancatours.com',
     img: UP + 'brand-costablancatours.jpg',
     logo: UP + 'logo-costablancatours.jpg',
@@ -900,7 +934,10 @@ function App() {
         <div className="container">
           <div className="section-label">{t.booksLabel}</div>
           <h2 className="section-title">{t.booksTitle}</h2>
-          <p style={{margin:'0 0 24px'}}><a href="/nedlasting.html" style={{color:'var(--gold)',fontFamily:"'DM Sans', sans-serif",fontWeight:600,textDecoration:'none'}}>{t.pdfCta} →</a></p>
+          <p style={{margin:'0 0 24px',display:'flex',gap:18,flexWrap:'wrap',justifyContent:'center'}}>
+            <a href="https://books.freddybremseth.com/" style={{color:'var(--gold)',fontFamily:"'DM Sans', sans-serif",fontWeight:600,textDecoration:'none'}}>Åpne hele bokkatalogen →</a>
+            <a href="/nedlasting.html" style={{color:'var(--gold)',fontFamily:"'DM Sans', sans-serif",fontWeight:600,textDecoration:'none'}}>{t.pdfCta} →</a>
+          </p>
           <div className="books-tabs">
             {t.bookTabs.map((tab, i) => (
               <button key={tab} className={`books-tab ${bookTab === i ? 'active' : ''}`} onClick={() => setBookTab(i)}>
@@ -1060,5 +1097,6 @@ function App() {
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 <script src="https://appointment.chatgenius.pro/embed.js" data-brand="freddy" data-config-url="https://realtyflow.chatgenius.pro/api/public/booking-config?brand_id=freddyb" async></script>
+  <script src="assets/search-discovery.js" defer></script>
 </body>
 </html>
