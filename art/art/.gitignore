@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+!.env.example
+private-archives/
+private-originals/
+*.log
+.DS_Store
+.vercel/

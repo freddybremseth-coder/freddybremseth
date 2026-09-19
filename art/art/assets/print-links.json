@@ -1,0 +1,5 @@
+{
+  "defaultPrintUrl": "",
+  "byArtworkId": {},
+  "_instructions": "Add a direct provider product URL in byArtworkId keyed by the artwork slug. Keep defaultPrintUrl empty until a real, relevant storefront is set up."
+}
