@@ -39,8 +39,9 @@ setid('symbolic-realism','''botanisk-drm-i-gull-og-grnt dd-og-liv-ved-tidens-tim
 actual={a['id'] for a in catalog}
 missing=actual-set(assign)
 extra=set(assign)-actual
-if missing or extra:
- raise ValueError(f'Curated style ID mismatch: missing={sorted(missing)} extra={sorted(extra)}')
+if missing:
+ raise ValueError(f'Curated style ID mismatch: missing={sorted(missing)}')
+# Historical style assignments for excluded variants are retained for traceability.
 for a in catalog:
  style=byid[assign[a['id']]]
  a['style_id']=style['id'];a['category']=style['name'];a['style_description']=style['description']

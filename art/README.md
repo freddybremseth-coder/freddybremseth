@@ -1,13 +1,13 @@
 # Freddy Bremseth Art — art.freddybremseth.com
 
-A complete **100-artwork gallery application** prepared as an isolated **Vercel project with root directory `art/`**, matching the deployment architecture of `books/` in the connected `freddybremseth-coder/freddybremseth` GitHub repository. Nothing in this bundle changes the existing main or books websites.
+A complete **63-unique-artwork gallery application** prepared as an isolated **Vercel project with root directory `art/`**, matching the deployment architecture of `books/` in the connected `freddybremseth-coder/freddybremseth` GitHub repository. Nothing in this bundle changes the existing main or books websites.
 
-**Status:** The public gallery, artwork pages, responsive layouts, filters, search, print-link support, €50 server-authoritative Stripe Checkout and verified private-file download code are implemented. **It is not deployed, and live payments are OFF** until you configure the art project, private storage, Stripe, and merchant details. No working live domain or payment is claimed.
+**Status:** The public gallery, artwork pages, responsive layouts, filters, search, print-link support, €50 server-authoritative Stripe Checkout and verified private-file download code are implemented. **Live payment must remain OFF until private files, merchant details and Stripe are configured** until you configure the art project, private storage, Stripe, and merchant details. No working live domain or payment is claimed.
 
 ## What's in the bundle
 
-- **100 artwork entries** from the individual pieces available in this conversation, including the 15 separate legacy gallery studies.
-- **200 public WebP previews** (thumbnail + enlarged gallery view for each image), deliberately not the purchaser's full digital file.
+- **63 unique artwork entries** from the individual pieces available in this conversation, including the 15 separate legacy gallery studies.
+- **126 public WebP previews** (thumbnail + enlarged gallery view for each image), deliberately not the purchaser's full digital file.
 - A static, search-friendly `/verk/<slug>/` page with artwork-specific title, description, canonical URL, Open Graph preview and CreativeWork structured data for **every work**, plus `sitemap.xml`, `robots.txt` and footer pages.
 - Functional interactive gallery: style filters, title search, A–Z sorting, load-more, deep-linkable artwork modal, mobile layout and reduced-motion support.
 - Digital edition: **€50 per image**; secret price comes from server code and cannot be changed from the browser. Stripe Checkout creates the session; confirmation verifies paid status, expected artwork, currency and total before issuing a five-minute signed private URL from Supabase Storage.
@@ -17,7 +17,7 @@ A complete **100-artwork gallery application** prepared as an isolated **Vercel 
 
 ## Deploy alongside books.freddybremseth.com
 
-The connected repository `freddybremseth-coder/freddybremseth` already contains `books/`, deployed as its own Vercel project. Add **the contents of this folder** as a sibling folder `art/` in the SAME repository (or use a dedicated repository if you prefer). In Vercel create a NEW project importing that repo with **Root Directory = `art`**. Use the default Vercel Framework Preset = Other; Install Command = `npm install`; Build Command = `npm run build`; Output Directory = leave empty (source static website plus API functions). The app uses Vercel's `/api/*.js` Node functions.
+The connected repository `freddybremseth-coder/freddybremseth` already contains `books/`, deployed as its own Vercel project. Add **the contents of this folder** as a sibling folder `art/` in the SAME repository (or use a dedicated repository if you prefer). In Vercel create a NEW project importing that repo with **Root Directory = `art`**. Use the default Vercel Framework Preset = Other; Install Command = `npm install`; Build Command = `npm run build`; Output Directory = `public` (generated during the build; API functions remain at project root). The app uses Vercel's `/api/*.js` Node functions.
 
 Then add the custom domain `art.freddybremseth.com` to this NEW Vercel project and create the DNS record displayed by Vercel. Do **not** replace the main domain A/CNAME or the existing `books` record. It will not appear automatically without this deployment and DNS step.
 
@@ -31,7 +31,7 @@ npm run preview
 
 Local preview keeps digital purchases disabled. Do not use a basic file:// URL: fetch() needs an HTTP server.
 
-## Configure the 100 PRIVATE digital masters before activating Stripe
+## Configure the 63 PRIVATE digital masters before activating Stripe
 
 1. Use an existing Supabase project if you choose, but create a **dedicated private Storage bucket** named `art-originals` (`public=false`). Do not put print masters in `assets/`, a GitHub public repository, or a public Supabase bucket. The checkout code uses only the service key on the Vercel server.
 2. Collect the six print ZIP files already delivered in this conversation in **one local folder** (see the exact filenames below). Also put `gater_håp_og_kronede_drømmer.png` in the same folder; it was the single composition not present in the print archives. If needed, retrieve it from this conversation or the separate `Freddy_Bremseth_Art_ekstra_original.zip` alongside this site package.
@@ -44,7 +44,7 @@ python3 scripts/upload-private.py --archive-dir "/path/to/your/print-zips" --dry
 python3 scripts/upload-private.py --archive-dir "/path/to/your/print-zips"
 ```
 
-The script validates all 100 sources and **refuses to upload to a public bucket**. `--limit 1` is available for a single test upload. Existing files are skipped rather than overwritten; if you intentionally replace a master, inspect the storage object manually. Master upload can take time according to your network connection. Storage costs and limits depend on your own Supabase account.
+The script validates all 63 sources and **refuses to upload to a public bucket**. `--limit 1` is available for a single test upload. Existing files are skipped rather than overwritten; if you intentionally replace a master, inspect the storage object manually. Master upload can take time according to your network connection. Storage costs and limits depend on your own Supabase account.
 
 **The six exact archives:**
 
@@ -109,3 +109,7 @@ Run `npm test` and `npm run build`. In Vercel verify `/api/status` reports `sale
 The 100 entries are **curated into 11 visual styles**, rather than grouped by subject matter: Renaissance & Baroque; Impressionism & Post-Impressionism; Art Nouveau; Cubism & Geometric Art; Abstract & Minimalist; Expressionism; Street Art & Pop; Surrealism & Dreamscapes; Symbolic Realism; Contemporary Conceptual; Atmospheric Landscapes. These are editorial descriptions of the visual approach, not assertions that the digitally created works were painted using historical materials. Counts and short descriptions live in `assets/styles.json`; every artwork stores its stable `style_id`, display `category`, and `style_description` in `assets/catalog.json`.
 
 On the homepage, **By artistic style** is the default: every style has its own heading, description, four-artwork preview (or fewer for small groups) and a button to view the complete style. Style chips show exact counts. Searching retains the style groups and shows all matching results. Selecting Title A–Z or Z–A switches to a flat alphabetical list; selecting a style switches back to its curated order. Individual artwork URLs, payment price and private-file mappings were not changed. Style assignment is explicit in `scripts/curate-styles.py` and validated in `npm test` and `npm run build`. When new works are imported, the curator will fail on any uncategorized new ID rather than silently filing it in an incorrect style.
+
+## Gallery deduplication
+
+The public catalog has 63 distinct compositions. 37 overlapping variants, lower-quality previews or duplicate editions were removed from the catalog and public artwork pages. The retained artwork slugs are stable. The removal list is recorded in `assets/duplicate-exclusions.json`. Only the 63 retained masters are eligible for new sales. If a removed artwork was previously sold, handle that purchase separately rather than deleting a customer's private master.

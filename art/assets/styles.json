@@ -3,71 +3,71 @@
     "id": "renaissance-baroque",
     "name": "Renaissance & Baroque",
     "description": "Chiaroscuro, layered glazes, historical interiors and carefully composed figurative scenes.",
-    "count": 6,
+    "count": 4,
     "cover": "/assets/art/barokk-kabinett-med-lesende-kvinne-thumb.webp"
   },
   {
     "id": "impressionism",
     "name": "Impressionism & Post-Impressionism",
     "description": "Visible brushwork, luminous atmosphere and painterly interpretations of landscape and light.",
-    "count": 6,
+    "count": 4,
     "cover": "/assets/art/impresjonistisk-hagefest-ved-elven-thumb.webp"
   },
   {
     "id": "art-nouveau",
     "name": "Art Nouveau",
     "description": "Flowing line, botanical ornament and decorative compositions inspired by turn-of-the-century design.",
-    "count": 2,
+    "count": 1,
     "cover": "/assets/art/art-nouveau-dronning-med-iris-og-svaner-thumb.webp"
   },
   {
     "id": "cubism",
     "name": "Cubism & Geometric Art",
     "description": "Fragmented viewpoints, interlocking planes and expressive geometric structure.",
-    "count": 4,
-    "cover": "/assets/art/kafe-i-kubistiske-minner-thumb.webp"
+    "count": 2,
+    "cover": "/assets/art/kubistisk-kafe-med-drmmende-utsikt-thumb.webp"
   },
   {
     "id": "abstract",
     "name": "Abstract & Minimalist",
     "description": "Colour fields, material texture and distilled forms that create space for personal interpretation.",
-    "count": 6,
+    "count": 5,
     "cover": "/assets/art/abstrakt-portal-i-jordtoner-thumb.webp"
   },
   {
     "id": "expressionism",
     "name": "Expressionism",
     "description": "Gesture, vivid contrast and energetic marks used to heighten emotional intensity.",
-    "count": 3,
+    "count": 2,
     "cover": "/assets/art/abstrakt-maleri-med-ansikter-og-ravner-thumb.webp"
   },
   {
     "id": "street-art",
     "name": "Street Art & Pop",
     "description": "Layered paint, urban imagery and graphic collage with contemporary social references.",
-    "count": 8,
+    "count": 5,
     "cover": "/assets/art/fargerikt-portrett-av-motstandskraft-thumb.webp"
   },
   {
     "id": "surrealism",
     "name": "Surrealism & Dreamscapes",
     "description": "Impossible architecture, thresholds and otherworldly scenes that follow the logic of dreams.",
-    "count": 21,
-    "cover": "/assets/art/den-himmelske-trappen-til-manen-thumb.webp"
+    "count": 12,
+    "cover": "/assets/art/drmmenes-apne-drer-thumb.webp"
   },
   {
     "id": "symbolic-realism",
     "name": "Symbolic Realism",
     "description": "Detailed figurative imagery where objects, gestures and contrasts suggest meanings beyond the visible.",
-    "count": 30,
+    "count": 19,
     "cover": "/assets/art/botanisk-drm-i-gull-og-grnt-thumb.webp"
   },
   {
     "id": "conceptual",
     "name": "Contemporary Conceptual",
     "description": "Digital-era imagery that explores identity, technology, consumerism and modern social pressures.",
-    "count": 11,
-    "cover": "/assets/art/applausens-tomme-fest-thumb.webp"
+    "count": 6,
+    "cover": "/assets/art/barn-av-algoritmen-drmmer-i-gull-thumb.webp"
   },
   {
     "id": "landscape",

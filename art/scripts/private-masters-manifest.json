@@ -18,24 +18,6 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "abstrakt-solnedgang-over-mykt-hav",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/003_abstrakt_solnedgang_over_mykt_hav_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "abstrakt-solnedgang-over-mykt-hav.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "applausens-tomme-fest",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/004_applausens_tomme_fest_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "applausens-tomme-fest.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "art-nouveau-dronning-med-iris-og-svaner",
     "archive": "Freddy_Bremseth_10_kunstverk_PRINT_6000x7500.zip",
     "entry": "09_Art_Nouveau_svaner_Freddy_Bremseth_PRINT_6000x7500.jpg",
@@ -45,28 +27,10 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "art-nouveau-med-svaner-og-iris",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/006_art_nouveau_med_svaner_og_iris_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "art-nouveau-med-svaner-og-iris.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "barn-av-algoritmen-drmmer-i-gull",
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
     "entry": "kunstverk/007_barn_av_algoritmen_drmmer_i_gull_Freddy_Bremseth_PRINT.jpg",
     "storage_path": "barn-av-algoritmen-drmmer-i-gull.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "barn-av-algoritmen-i-neonbyen",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/008_barn_av_algoritmen_i_neonbyen_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "barn-av-algoritmen-i-neonbyen.jpg",
     "width": 6002,
     "height": 7632,
     "kind": "signed-print-master"
@@ -90,37 +54,10 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "barokkstudie-med-violin-og-vanitas",
-    "archive": "Freddy_Bremseth_10_kunstverk_PRINT_6000x7500.zip",
-    "entry": "02_Barokk_musiker_og_stilleben_Freddy_Bremseth_PRINT_6000x7500.jpg",
-    "storage_path": "barokkstudie-med-violin-og-vanitas.jpg",
-    "width": 6000,
-    "height": 7500,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "botanisk-drm-i-gull-og-grnt",
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
     "entry": "kunstverk/012_botanisk_drm_i_gull_og_grnt_Freddy_Bremseth_PRINT.jpg",
     "storage_path": "botanisk-drm-i-gull-og-grnt.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "den-himmelske-trappen-til-manen",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/013_den_himmelske_trappen_til_manen_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "den-himmelske-trappen-til-manen.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "drmmenes-landskap-med-flytende-drer",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/014_drmmenes_landskap_med_flytende_drer_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "drmmenes-landskap-med-flytende-drer.jpg",
     "width": 6002,
     "height": 7632,
     "kind": "signed-print-master"
@@ -132,33 +69,6 @@
     "storage_path": "drmmenes-apne-drer.jpg",
     "width": 6000,
     "height": 7500,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "drmmestigen-mot-manens-portal",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/016_drmmestigen_mot_manens_portal_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "drmmestigen-mot-manens-portal.jpg",
-    "width": 7500,
-    "height": 3836,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "drmmestigen-til-maneportalen",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/017_drmmestigen_til_maneportalen_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "drmmestigen-til-maneportalen.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "drmmetrappen-mot-manen",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_1_PRINT.zip",
-    "entry": "kunstverk/018_drmmetrappen_mot_manen_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "drmmetrappen-mot-manen.jpg",
-    "width": 3750,
-    "height": 7586,
     "kind": "signed-print-master"
   },
   {
@@ -243,15 +153,6 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "fortsatt-nok-i-det-gylne-tempelet",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_2_PRINT.zip",
-    "entry": "kunstverk/028_fortsatt_nok_i_det_gylne_tempelet_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "fortsatt-nok-i-det-gylne-tempelet.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "frihet-over-lenker-under-vann",
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_2_PRINT.zip",
     "entry": "kunstverk/029_frihet_over_lenker_under_vann_Freddy_Bremseth_PRINT.jpg",
@@ -259,15 +160,6 @@
     "width": 4221,
     "height": 7593,
     "kind": "signed-print-master"
-  },
-  {
-    "id": "gater-hap-og-kronede-drmmer",
-    "archive": null,
-    "entry": "gater_håp_og_kronede_drømmer.png",
-    "storage_path": "gater-hap-og-kronede-drmmer.png",
-    "width": 1122,
-    "height": 1402,
-    "kind": "png-original-no-print-master"
   },
   {
     "id": "graffitikvinne-med-byens-drmmer",
@@ -283,15 +175,6 @@
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_2_PRINT.zip",
     "entry": "kunstverk/031_gudinne_mellom_paradis_og_forurenset_hav_Freddy_Bremseth_PRINT.jpg",
     "storage_path": "gudinne-mellom-paradis-og-forurenset-hav.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "gull-ravner-og-gyldne-kartveier",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_2_PRINT.zip",
-    "entry": "kunstverk/032_gull_ravner_og_gyldne_kartveier_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "gull-ravner-og-gyldne-kartveier.jpg",
     "width": 6002,
     "height": 7632,
     "kind": "signed-print-master"
@@ -337,24 +220,6 @@
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_2_PRINT.zip",
     "entry": "kunstverk/037_impresjonistisk_hagefest_ved_elven_Freddy_Bremseth_PRINT.jpg",
     "storage_path": "impresjonistisk-hagefest-ved-elven.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "kafe-i-kubistiske-minner",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_2_PRINT.zip",
-    "entry": "kunstverk/038_kafe_i_kubistiske_minner_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "kafe-i-kubistiske-minner.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "kaotisk-graffitiportrett-med-kroner-og-hap",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_2_PRINT.zip",
-    "entry": "kunstverk/039_kaotisk_graffitiportrett_med_kroner_og_hap_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "kaotisk-graffitiportrett-med-kroner-og-hap.jpg",
     "width": 6002,
     "height": 7632,
     "kind": "signed-print-master"
@@ -432,15 +297,6 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "kronet-graffitihelt-i-byens-hap",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_3_PRINT.zip",
-    "entry": "kunstverk/048_kronet_graffitihelt_i_byens_hap_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "kronet-graffitihelt-i-byens-hap.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "kubistisk-kafe-med-drmmende-utsikt",
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_3_PRINT.zip",
     "entry": "kunstverk/049_kubistisk_kafe_med_drmmende_utsikt_Freddy_Bremseth_PRINT.jpg",
@@ -456,15 +312,6 @@
     "storage_path": "kubistisk-kafescene-med-gitar-og-stilleben.jpg",
     "width": 6000,
     "height": 7500,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "kubistisk-kvinne-i-byens-stille-rom",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_3_PRINT.zip",
-    "entry": "kunstverk/051_kubistisk_kvinne_i_byens_stille_rom_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "kubistisk-kvinne-i-byens-stille-rom.jpg",
-    "width": 6002,
-    "height": 7632,
     "kind": "signed-print-master"
   },
   {
@@ -549,24 +396,6 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "manetrappen-til-en-lysere-deg",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_3_PRINT.zip",
-    "entry": "kunstverk/061_manetrappen_til_en_lysere_deg_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "manetrappen-til-en-lysere-deg.jpg",
-    "width": 6295,
-    "height": 7638,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "paradis-med-plastens-skjulte-spor",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_3_PRINT.zip",
-    "entry": "kunstverk/062_paradis_med_plastens_skjulte_spor_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "paradis-med-plastens-skjulte-spor.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "paradis-over-plast-freddys-dystre-vannlinje",
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_3_PRINT.zip",
     "entry": "kunstverk/063_paradis_over_plast_freddys_dystre_vannlinje_Freddy_Bremseth_PRINT.jpg",
@@ -603,15 +432,6 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "renessanse-ved-vinduet-med-pomegranate",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
-    "entry": "kunstverk/067_renessanse_ved_vinduet_med_pomegranate_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "renessanse-ved-vinduet-med-pomegranate.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "renessansestudie-med-symbolske-skatter",
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
     "entry": "kunstverk/068_renessansestudie_med_symbolske_skatter_Freddy_Bremseth_PRINT.jpg",
@@ -625,15 +445,6 @@
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
     "entry": "kunstverk/069_skulpturelt_landskap_i_gulltoner_Freddy_Bremseth_PRINT.jpg",
     "storage_path": "skulpturelt-landskap-i-gulltoner.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "soloppgang-pa-den-blomstrende-terrassen",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
-    "entry": "kunstverk/070_soloppgang_pa_den_blomstrende_terrassen_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "soloppgang-pa-den-blomstrende-terrassen.jpg",
     "width": 6002,
     "height": 7632,
     "kind": "signed-print-master"
@@ -666,39 +477,12 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "stillhetens-gyldne-sannhet",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
-    "entry": "kunstverk/074_stillhetens_gyldne_sannhet_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "stillhetens-gyldne-sannhet.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "stjernekveld-over-kystlandsbyen",
     "archive": "Freddy_Bremseth_10_kunstverk_PRINT_6000x7500.zip",
     "entry": "04_Stjernekveld_ved_kystlandsbyen_Freddy_Bremseth_PRINT_6000x7500.jpg",
     "storage_path": "stjernekveld-over-kystlandsbyen.jpg",
     "width": 6000,
     "height": 7500,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "stjernekveld-over-landsbyen-ved-vannet",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
-    "entry": "kunstverk/076_stjernekveld_over_landsbyen_ved_vannet_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "stjernekveld-over-landsbyen-ved-vannet.jpg",
-    "width": 6002,
-    "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "stormfylt-abstrakt-skikkelse",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
-    "entry": "kunstverk/077_stormfylt_abstrakt_skikkelse_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "stormfylt-abstrakt-skikkelse.jpg",
-    "width": 6002,
-    "height": 7632,
     "kind": "signed-print-master"
   },
   {
@@ -747,111 +531,12 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "trappen-mot-manens-dr",
-    "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
-    "entry": "kunstverk/083_trappen_mot_manens_dr_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "trappen-mot-manens-dr.jpg",
-    "width": 7500,
-    "height": 3836,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "vandreren-ved-det-stormfulle-fjordlandskapet",
     "archive": "Freddy_Bremseth_HELE_SAMLINGEN_del_4_PRINT.zip",
     "entry": "kunstverk/084_vandreren_ved_det_stormfulle_fjordlandskapet_Freddy_Bremseth_PRINT.jpg",
     "storage_path": "vandreren-ved-det-stormfulle-fjordlandskapet.jpg",
     "width": 6002,
     "height": 7632,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-01-to-ansikter-en-skjebne",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "01_To_ansikter_en_skjebne_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-01-to-ansikter-en-skjebne.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-02-maneporten",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "02_Maneporten_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-02-maneporten.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-03-lyset-i-brystet",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "03_Lyset_i_brystet_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-03-lyset-i-brystet.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-04-doden-og-livet",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "04_Doden_og_livet_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-04-doden-og-livet.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-05-to-sider-av-verden",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "05_To_sider_av_verden_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-05-to-sider-av-verden.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-06-to-sider-av-meg",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "06_To_sider_av_meg_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-06-to-sider-av-meg.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-07-under-overflaten",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "07_Under_overflaten_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-07-under-overflaten.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-08-hjertet-som-gror",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "08_Hjertet_som_gror_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-08-hjertet-som-gror.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-09-doren-til-frihet",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "09_Doren_til_frihet_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-09-doren-til-frihet.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-10-sommerfuglens-forvandling",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "10_Sommerfuglens_forvandling_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-10-sommerfuglens-forvandling.jpg",
-    "width": null,
-    "height": null,
     "kind": "signed-print-master"
   },
   {
@@ -864,28 +549,10 @@
     "kind": "signed-print-master"
   },
   {
-    "id": "edition-12-frihet-under-overflaten",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "12_Frihet_under_overflaten_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-12-frihet-under-overflaten.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
     "id": "edition-13-et-hjerte-med-hap",
     "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
     "entry": "13_Et_hjerte_med_hap_Freddy_Bremseth_PRINT.jpg",
     "storage_path": "edition-13-et-hjerte-med-hap.jpg",
-    "width": null,
-    "height": null,
-    "kind": "signed-print-master"
-  },
-  {
-    "id": "edition-14-mot-og-instinkt",
-    "archive": "Freddy_Bremseth_15_verk_signert_oppskalert.zip",
-    "entry": "14_Mot_og_instinkt_Freddy_Bremseth_PRINT.jpg",
-    "storage_path": "edition-14-mot-og-instinkt.jpg",
     "width": null,
     "height": null,
     "kind": "signed-print-master"

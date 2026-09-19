@@ -10,9 +10,10 @@ const totals=new Map(styles.map(s=>[s.id,0]));
 for(const item of art){if(!allowed.has(item.style_id))throw Error('Unclassified art '+item.id);const entry=styles.find(s=>s.id===item.style_id);if(item.category!==entry.name)throw Error('Wrong style label '+item.id);totals.set(item.style_id,totals.get(item.style_id)+1)}
 for(const entry of styles)if(totals.get(entry.id)!==entry.count)throw Error('Style count mismatch '+entry.id);
 
+const excluded=new Set(JSON.parse(fs.readFileSync(path.join(root,'assets/duplicate-exclusions.json'),'utf8')).removed_ids);
 const ids=new Set();
 for(const a of art){
- if(ids.has(a.id))throw Error('Duplicate artwork '+a.id);ids.add(a.id);
+ if(ids.has(a.id)||excluded.has(a.id))throw Error('Duplicate or excluded artwork '+a.id);ids.add(a.id);
  for(const variant of ['image','thumb']){const p=path.join(root,a[variant].replace(/^\//,''));if(!fs.existsSync(p)||fs.statSync(p).size<1000)throw Error('Missing public preview '+p)}
  const page=path.join(root,'verk',a.id,'index.html');if(!fs.existsSync(page))throw Error('Missing artwork page '+a.id);
  if(a.price_cents!==5000||a.currency!=='eur')throw Error('Invalid price '+a.id);
