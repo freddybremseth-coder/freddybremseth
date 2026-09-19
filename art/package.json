@@ -4,7 +4,7 @@
   "private": true,
   "description": "art.freddybremseth.com — 100-work art gallery and verified €50 Stripe digital downloads",
   "scripts": {
-    "build": "python3 scripts/curate-styles.py && node scripts/build-pages.mjs && node scripts/test-site.mjs",
+    "build": "python3 scripts/curate-styles.py && node scripts/build-pages.mjs && node scripts/test-site.mjs && node scripts/build-public.mjs",
     "test": "node --test tests/*.test.cjs",
     "preview": "node scripts/preview.mjs"
   },
