@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Freddy Bremseth | Eiendom, AI, bøker, musikk og entreprenørskap</title>
-  <meta name="description" content="Freddy Bremseth — norsk eiendomsrådgiver, entreprenør, forfatter og musikkprodusent bosatt i Spania. Eiendom, AI, bøker, oliven, teknologi og Re-Master Freddy.">
+  <meta name="description" content="Freddy Bremseth — norsk eiendomsrådgiver, entreprenør, forfatter og musikkprodusent bosatt i Spania. Eiendom, AI, bøker, kunst, oliven, teknologi og Re-Master Freddy.">
   <link rel="canonical" href="https://www.freddybremseth.com/">
   <meta property="og:type" content="profile">
   <meta property="og:url" content="https://www.freddybremseth.com/">
@@ -298,7 +298,17 @@
   </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <main aria-label="Freddy Bremseth – kort introduksjon" style="max-width:900px;margin:5rem auto;padding:2rem;color:#f4f0e9">
+    <h1>Freddy Bremseth</h1>
+    <p>Eiendomsrådgivning i Spania, forfatterskap, digitale kunstverk og entreprenørskap.</p>
+    <nav aria-label="Freddy Bremseths nettsteder">
+      <a style="color:inherit" href="https://books.freddybremseth.com/">Bøker og bokserier</a>
+      <span aria-hidden="true"> · </span>
+      <a style="color:inherit" href="https://art.freddybremseth.com/">Kunstgalleri</a>
+    </nav>
+  </main>
+</div>
 <script type="text/babel">
 const { useState, useEffect } = React;
 const UP = 'project/uploads/';
@@ -539,6 +549,12 @@ const brands = [
     descNo: 'Bøker og serier innen psykologisk thriller, krim, økonomi, geopolitikk, eiendom og praktisk kunnskap.',
     descEn: 'Books and series spanning psychological thrillers, crime, economics, geopolitics, property and practical knowledge.',
     descEs: 'Libros y series de thriller psicológico, crimen, economía, geopolítica, inmobiliaria y conocimiento práctico.',
+  },
+  {
+    icon: '🎨', name: 'Freddy Bremseth Art', url: 'art.freddybremseth.com', href: 'https://art.freddybremseth.com/',
+    descNo: 'Kunstgalleri med symbolske digitale kunstverk, kuraterte samlinger og tilgjengelige digitale utgaver.',
+    descEn: 'Art gallery featuring symbolic digital artworks, curated collections and available digital editions.',
+    descEs: 'Galería de arte digital simbólico con colecciones seleccionadas y ediciones digitales disponibles.',
   },
   {
     icon: '🌊', name: 'Costa Blanca Tours', url: 'costablancatours.pro', href: 'https://costablancatours.com',
