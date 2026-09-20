@@ -20,6 +20,31 @@ for(const a of art){
  if(a.digital_available!==false){if(a.price_cents!==5000||a.currency!=='eur')throw Error('Invalid active digital price '+a.id)}
  else if(a.price_cents!==null)throw Error('Preview-only work must not advertise a purchasable price '+a.id);
 }
+
+// Generated per-artwork search pages must describe the ACTUAL catalog item,
+// not accidentally inherit the gallery's homepage title or canonical URL.
+const htmlEscape=value=>String(value).replace(/[&<>"']/g,char=>({
+ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[char]));
+const sitemap=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
+for(const item of art){
+ const page=fs.readFileSync(path.join(root,'verk',item.id,'index.html'),'utf8');
+ const canonical='https://art.freddybremseth.com/verk/'+item.id+'/';
+ const expectedTitle=htmlEscape(item.title+' — Freddy Bremseth Art');
+ if(!page.includes('<title>'+expectedTitle+'</title>'))throw Error('Wrong generated artwork HTML title '+item.id);
+ if(!page.includes('<meta property="og:title" content="'+expectedTitle+'">'))throw Error('Wrong artwork OG title '+item.id);
+ if(!page.includes('<link rel="canonical" href="'+canonical+'">'))throw Error('Wrong artwork canonical '+item.id);
+ if(!page.includes('<meta property="og:image" content="https://art.freddybremseth.com'+item.image+'">'))throw Error('Wrong artwork preview image metadata '+item.id);
+ const structured=[...page.matchAll(/<script type="application\\/ld\\+json">([^<]+)<\\/script>/g)]
+  .map(match=>{try{return JSON.parse(match[1])}catch{return null}});
+ if(!structured.some(schema=>schema?.['@type']==='VisualArtwork'&&
+   schema.name===item.title&&schema.url===canonical&&
+   schema.image==='https://art.freddybremseth.com'+item.image))throw Error('Wrong artwork structured data '+item.id);
+ if(!sitemap.includes('<loc>'+canonical+'</loc>'))throw Error('Artwork missing from sitemap '+item.id);
+}
+if(art.find(item=>item.id==='marmorbyste-med-gullsprekker-og-sommerfugl')?.title!=='Marble Bust with Golden Cracks and Butterfly')
+ throw Error('English artwork title mapping was not applied before page generation');
+
 for(const m of masters){if(!ids.has(m.id)||!/^[a-z0-9-]+\.(jpg|png)$/.test(m.storage_path))throw Error('Invalid protected master '+m.id);if(art.find(item=>item.id===m.id)?.digital_available===false)throw Error('Preview-only artwork should not have an authorized digital product '+m.id)}
 const publicFiles=fs.readdirSync(path.join(root,'assets','art'));if(publicFiles.some(name=>!name.endsWith('.webp')))throw Error('A high-resolution master was accidentally placed in public art assets');
 console.log('PASS: '+art.length+' works sorted into '+styles.length+' curated artistic styles, '+publicFiles.length+' public previews, canonical artwork pages, protected source mapping, verified active digital prices and preview-only availability');
