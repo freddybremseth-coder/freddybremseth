@@ -35,8 +35,10 @@ for(const item of art){
  if(!page.includes('<meta property="og:title" content="'+expectedTitle+'">'))throw Error('Wrong artwork OG title '+item.id);
  if(!page.includes('<link rel="canonical" href="'+canonical+'">'))throw Error('Wrong artwork canonical '+item.id);
  if(!page.includes('<meta property="og:image" content="https://art.freddybremseth.com'+item.image+'">'))throw Error('Wrong artwork preview image metadata '+item.id);
- const structured=[...page.matchAll(/<script type="application\\/ld\\+json">([^<]+)<\\/script>/g)]
-  .map(match=>{try{return JSON.parse(match[1])}catch{return null}});
+ const structured=page.split('<script type="application/ld+json">').slice(1)
+  .map(section=>section.split('</script>')[0])
+  .map(json=>{try{return JSON.parse(json)}catch{return null}});
+
  if(!structured.some(schema=>schema?.['@type']==='VisualArtwork'&&
    schema.name===item.title&&schema.url===canonical&&
    schema.image==='https://art.freddybremseth.com'+item.image))throw Error('Wrong artwork structured data '+item.id);
