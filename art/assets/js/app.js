@@ -93,8 +93,8 @@
    const sorted=[...state.filtered];
    if(state.sort==='az')sorted.sort((a,b)=>a.title.localeCompare(b.title));
    else if(state.sort==='za')sorted.sort((a,b)=>b.title.localeCompare(a.title));
-   else if(state.sort==='price-low')sorted.sort((a,b)=>a.price_cents-b.price_cents||byCollection(a,b));
-   else if(state.sort==='price-high')sorted.sort((a,b)=>b.price_cents-a.price_cents||byCollection(a,b));
+   else if(state.sort==='price-low')sorted.sort((a,b)=>(a.price_cents===null)-(b.price_cents===null)||(a.price_cents??Infinity)-(b.price_cents??Infinity)||byCollection(a,b));
+   else if(state.sort==='price-high')sorted.sort((a,b)=>(a.price_cents===null)-(b.price_cents===null)||(b.price_cents??-Infinity)-(a.price_cents??-Infinity)||byCollection(a,b));
    else sorted.sort(byCollection);
    const segment=document.createElement('div');segment.className='gallery-grid';segment.appendChild(cards(sorted.slice(0,state.count)));grid.appendChild(segment);
    $('load-more').hidden=state.count>=sorted.length;
