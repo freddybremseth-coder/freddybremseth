@@ -4,6 +4,10 @@ on:
     paths:
       - 'books/**'
       - '.github/workflows/books-seo-validation.yml'
+  schedule:
+    # Read-only build validation on the default branch; no deployment or SEO publishing.
+    - cron: '17 4 * * *'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
