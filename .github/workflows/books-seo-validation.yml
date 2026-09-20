@@ -1,0 +1,23 @@
+name: Books SEO generated-page validation
+on:
+  pull_request:
+    paths:
+      - 'books/**'
+      - '.github/workflows/books-seo-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'books/**'
+      - '.github/workflows/books-seo-validation.yml'
+jobs:
+  books-generated-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build entire books catalogue and verify generated SEO pages
+        working-directory: books
+        run: npm run build
