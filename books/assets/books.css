@@ -184,3 +184,38 @@ textarea{min-height:150px;resize:vertical}
   .footer-logo{height:118px}
   .container{padding:0 18px}
 }
+
+
+/* Book cover failure placeholders. Use the book's own title, never another cover. */
+.gallery-item.has-cover-fallback .book-cover-fallback {
+  width: 150px;
+  height: 225px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 4px;
+  background: linear-gradient(150deg, var(--navy), var(--navy2));
+  color: var(--gold);
+  font: 600 17px/1.3 var(--serif);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-wrap: anywhere;
+  box-shadow: 0 8px 22px rgba(18,26,46,.14);
+}
+.featured .featured-cover-fallback {
+  width: 320px;
+  max-width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: 4px;
+  padding: 24px;
+  background: linear-gradient(150deg, var(--navy), var(--navy2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.featured .featured-cover-fallback .book-cover-fallback {
+  font: 600 24px/1.3 var(--serif);
+  color: var(--gold);
+  overflow-wrap: anywhere;
+}
