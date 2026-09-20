@@ -39,9 +39,9 @@ test('four featured collections and the separate studio archive cover every exis
 });
 test('existing artwork URLs, protected masters and actual €50 digital price are preserved',()=>{
  const privateMasters=read('scripts/private-masters-manifest.json');
- assert.deepEqual(artworks.map(a=>a.id).sort(),privateMasters.map(a=>a.id).sort());
+ assert.deepEqual(artworks.filter(a=>a.digital_available!==false).map(a=>a.id).sort(),privateMasters.map(a=>a.id).sort());
  for(const art of artworks){
-  assert.equal(art.price_cents,5000);assert.equal(art.currency,'eur');
+  if(art.digital_available!==false){assert.equal(art.price_cents,5000);assert.equal(art.currency,'eur')}else{assert.equal(art.price_cents,null)}
   assert.ok(fs.existsSync(path.join(root,'verk',art.id,'index.html')));
  }
 });
@@ -56,4 +56,16 @@ test('gallery controls use curated collections without inventing physical checko
  assert.match(app,/state\.filtered\.filter\(a=>a\.collection_id===entry\.id\)/);
  assert.match(html,/Physical prints and unique hand-finished works are not yet on sale/);
  assert.ok(!html.includes('€5,000 original'));
+});
+
+test('new gallery previews have no advertised price or enabled paid checkout',()=>{
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const checkout=fs.readFileSync(path.join(root,'api/create-checkout.js'),'utf8');
+ assert.match(html,/id="dialog-price-label"/);
+ assert.match(app,/digital_available===false/);
+ assert.match(app,/Edition not yet available/);
+ assert.match(checkout,/art\.digital_available===false/);
+ const previewOnly=artworks.filter(a=>a.digital_available===false);
+ for(const art of previewOnly)assert.equal(art.price_cents,null);
 });

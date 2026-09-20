@@ -45,3 +45,6 @@
  #style-filter{max-width:none}.clear-filters{justify-self:start}
 }
 @media(max-width:420px){.collection-tile-copy{padding:13px}.collection-tile-copy strong{font-size:24px}.collection-tile-copy>span{font-size:11px}.collection-tile-copy small{font-size:9px}}
+
+/* A preview-only edition must never expose the paid-download consent control. */
+[hidden]{display:none!important}

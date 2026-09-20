@@ -36,6 +36,15 @@ setid('conceptual','''applausens-tomme-fest barn-av-algoritmen-drmmer-i-gull bar
 setid('landscape','''melankolsk-solnedgang-ved-havet maneportalen-ved-fjordvannet vandreren-ved-det-stormfulle-fjordlandskapet''')
 # All remaining entries are primarily detailed, symbol-driven figurative compositions.
 setid('symbolic-realism','''botanisk-drm-i-gull-og-grnt dd-og-liv-ved-tidens-timeglass forgylt-glasshjerte-med-blomster frihet-over-lenker-under-vann gudinne-mellom-paradis-og-forurenset-hav gull-ravner-og-gyldne-kartveier gullforgylt-nestenkyss-ved-hvite-blomster gylden-pakt-mellom-kvinne-og-leopard gyllenblomstrende-naturgudinne kart-over-minner-og-ruiner kintsugi-delt-kvinneportrett-i-gull-og-svart kintsugi-kyss-i-gull-og-marmor kjeder-under-solnedgangen knust-glasshjerte-med-gyldne-blomster marmorbyste-med-gullsprekker-og-sommerfugl stillhetens-blomstrende-opprr stillhetens-gyldne-sannhet strre-ting-samme-horisonter tidens-timeglass-ved-solnedgang edition-01-to-ansikter-en-skjebne edition-03-lyset-i-brystet edition-04-doden-og-livet edition-05-to-sider-av-verden edition-06-to-sider-av-meg edition-07-under-overflaten edition-08-hjertet-som-gror edition-10-sommerfuglens-forvandling edition-12-frihet-under-overflaten edition-13-et-hjerte-med-hap edition-15-tiden-vi-har''')
+# Approved new artwork mappings are available only after all four public preview packs are imported.
+# They do not replace the hand-curated assignments of the original 63 artworks.
+new_import_path=root/'assets/new-import-manifest.json'
+if new_import_path.exists():
+ for entry in json.loads(new_import_path.read_text(encoding='utf8')):
+  new_id=entry['id'];new_style=entry['style_id']
+  if new_id in {a['id'] for a in catalog} and new_id not in assign:
+   if new_style not in byid:raise ValueError('Unknown approved new style: '+new_style)
+   assign[new_id]=new_style
 actual={a['id'] for a in catalog}
 missing=actual-set(assign)
 extra=set(assign)-actual

@@ -12,7 +12,7 @@ module.exports=async(req,res)=>{
  if(Number(req.headers['content-length']||0)>2048)return res.status(413).json({error:'Request is too large'});
  const data=(req.body&&typeof req.body==='object')?req.body:JSON.parse(req.body||'{}');
  const art=findArtwork(data.artwork_id);const master=findMaster(data.artwork_id);
- if(!art||!master)return res.status(400).json({error:'Unknown artwork'});
+ if(!art||art.digital_available===false||!master)return res.status(400).json({error:'This artwork is not available for digital purchase'});
  if(data.digital_consent!==true)return res.status(400).json({error:'Digital delivery consent is required'});
  try{
   // Fail closed: never charge for an artwork whose purchased master is missing.
