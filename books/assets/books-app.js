@@ -92,6 +92,10 @@
     return '<footer class="site-footer"><div class="container">' +
       '<img class="footer-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier">' +
       '<span class="footer-line">' + esc(t('footerLine')) + '</span>' +
+      '<nav aria-label="Freddy Bremseth websites">' +
+      '<a href="https://www.freddybremseth.com/">Freddy Bremseth</a> · ' +
+      '<a href="https://art.freddybremseth.com/">Freddy Bremseth Art</a>' +
+      '</nav>' +
       '</div></footer>';
   }
 
