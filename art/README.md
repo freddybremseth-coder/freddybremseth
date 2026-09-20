@@ -32,6 +32,12 @@ npm run preview
 Local preview keeps digital purchases disabled. Do not use a basic file:// URL: fetch() needs an HTTP server.
 
 
+## Artwork title and duplicate review (20 September 2026)
+
+Artwork titles use sentence-style capitalization: the first word is capitalized, subsequent words are lowercase unless they are proper names (for example Freddy/Freddys and the English geographical adjective Mediterranean). The original work **Barokk studie med musiker og vanitas stilleben** is retained. **Barokk studie med musikk og måneskinn**, a renamed copy of the same image, is expressly excluded from the new import manifest and the gallery exclusion list. Existing artwork IDs, paid download mappings and URLs remain unchanged.
+
+The corrected four-pack gallery import contains **55 new artworks**, not the superseded 56. Use only `Freddy_Art_55_nye_kunstverk_korrigert.zip` (its four inner ZIP parts). The importer intentionally rejects the earlier 56-piece pack, so the duplicate cannot accidentally be republished. This documentation does not imply the four ZIP binaries have already been uploaded to GitHub; import occurs only once all four corrected parts are present under `art/import-packs/`.
+
 ## Curated collections and product availability
 
 The customer-facing gallery features **The Human Condition** (33 works), **Words That Matter** (7), **Mediterranean Soul** (5), and **Earth & Emotion** (5). The other 13 works remain discoverable in a separate **Studio Archive** so historical studies and fjord/lake landscapes are not falsely presented as Mediterranean imagery. Collection curation is stored in `assets/collections.json`; the existing artistic style mapping and artwork IDs are preserved. The entire current catalogue has exactly one primary thematic collection.
