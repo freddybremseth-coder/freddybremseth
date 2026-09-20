@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import 55 approved public-only WebP previews from four small GitHub ZIP packs.
+"""Import 55 unique works safely from the original or corrected four public-preview ZIP packs.
 
 Place all four gallery_web_part_N_of_4.zip archives in art/import-packs/.
 If none or only some exist, the existing gallery is left unchanged.
@@ -46,25 +46,52 @@ for n,pack in enumerate(PACKS):
             if binary[:4]!=b'RIFF' or binary[8:12]!=b'WEBP':
                 raise ValueError('Invalid WebP '+name)
             previews[name]=binary
-if not isinstance(manifest,list) or len(manifest)!=55:
-    raise ValueError('Expected 55 artworks; the earlier 56-work package includes a duplicate baroque image')
-ids=[a['id'] for a in manifest]
-# This image duplicates the existing paid work 'barokk-studie-med-musiker-og-vanitas-stilleben'.
+# Accept either the original 56-work source ZIPs already in GitHub or the corrected 55-work ZIPs.
+# Publish the same curated 55 works in both cases; the original duplicate never reaches public output.
+if not isinstance(manifest,list) or len(manifest) not in (55,56):
+    raise ValueError('Expected a 55- or 56-work source manifest')
 duplicate_baroque='barokk-studie-med-musikk-og-maneskinn'
-if duplicate_baroque in ids or any(duplicate_baroque in name for name in previews):
-    raise ValueError('Duplicate baroque artwork: use the corrected 55-artwork ZIP packs')
-def expected_title_casing(title):
-    # Titles follow Norwegian sentence capitalization; preserve geographical proper names.
-    if not isinstance(title,str) or not title.strip() or title!=title.strip():
-        return False
-    for token in title.split()[1:]:
-        plain=token.strip('.,:;!?–—()[]')
-        if plain and plain[0].isupper() and plain not in {'Mediterranean'}:
-            return False
-    return True
+matching=[item for item in manifest if item.get('id')==duplicate_baroque]
+if len(manifest)==56 and len(matching)!=1:
+    raise ValueError('A 56-work pack must contain exactly the known baroque duplicate')
+if len(matching)>1:
+    raise ValueError('Unexpected repeated baroque duplicate')
+if matching:
+    manifest=[item for item in manifest if item.get('id')!=duplicate_baroque]
+    for variant in ('thumb','view'):
+        preview_key='assets/art/'+duplicate_baroque+'-'+variant+'.webp'
+        if preview_key not in previews:
+            raise ValueError('Duplicate baroque preview missing: '+preview_key)
+        del previews[preview_key]
+if len(manifest)!=55 or len(previews)!=110:
+    raise ValueError('Expected 55 artworks and 110 previews after removing the baroque duplicate')
+if duplicate_baroque in {item.get('id') for item in manifest} or any(duplicate_baroque in name for name in previews):
+    raise ValueError('The duplicate baroque image must not be published')
+# Most imported titles were written in English-style title case. Normalize to
+# Norwegian sentence-style capitalization; do not lower-case proper names.
+manual_titles={
+    'middelhavscollage-med-olivengreiner-og-terrakottav':'Middelhavscollage med olivengreiner og terrakotta',
+    'kintsugi-maskens-gyldne-hemmelighet':'Kintsugi-maskens gyldne hemmelighet',
+    'signert-botanisk-art-deco-collage':'Signert botanisk art deco-collage',
+    'wabi-sabi-moon':'Wabi-sabi moon',
+    'manen-treet-og-den-gylne-reden':'Månen, treet og den gylne reden',
+    'maneskinn-flammer-og-frigjorte-fugler':'Måneskinn, flammer og frigjorte fugler',
+}
+proper_names={'Mediterranean'}
 for item in manifest:
-    if not expected_title_casing(item.get('title')):
-        raise ValueError('Artwork title must use sentence capitalization: '+str(item.get('id')))
+    title=item.get('title')
+    if not isinstance(title,str) or not title.strip():
+        raise ValueError('Missing artwork title '+str(item.get('id')))
+    if item['id'] in manual_titles:
+        item['title']=manual_titles[item['id']]
+    else:
+        parts=title.strip().split()
+        item['title']=' '.join([parts[0]]+[word if word in proper_names else word[0].lower()+word[1:] for word in parts[1:]])
+    for word in item['title'].split()[1:]:
+        plain=word.strip('.,:;!?–—()[]')
+        if plain and plain[0].isupper() and plain not in proper_names:
+            raise ValueError('Unexpected uppercase in title '+str(item['title']))
+ids=[a['id'] for a in manifest]
 if len(set(ids))!=len(ids):raise ValueError('Duplicate artwork IDs')
 expected=set()
 for item in manifest:
