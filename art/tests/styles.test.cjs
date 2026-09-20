@@ -101,7 +101,7 @@ test('five dedicated collections have complete indexable, mobile-friendly static
   const html=fs.readFileSync(path.join(root,'collections',collection.id,'index.html'),'utf8');
   assert.match(html,new RegExp('<link rel="canonical" href="https://art\\.freddybremseth\\.com'+url+'">'));
   assert.match(sitemap,new RegExp('<loc>https://art\\.freddybremseth\\.com'+url+'</loc>'));
-  assert.ok(html.includes('href="'+url+'"')||homepage.includes('href="'+url+'"'));
+  assert.ok(homepage.includes('href="'+url+'"')||curation.collections.some(other=>other.id!==collection.id&&fs.readFileSync(path.join(root,'collections',other.id,'index.html'),'utf8').includes('href="'+url+'"')),'Collection is not linked from any gallery page: '+collection.id);
   assert.ok(html.includes('name="'+collection.name.replaceAll('&','&amp;')+'"')||html.includes('<h1>'+collection.name.replaceAll('&','&amp;')+'</h1>'));
   const works=artworks.filter(item=>collectionFor(item)===collection.id);
   assert.ok(works.length>0);
