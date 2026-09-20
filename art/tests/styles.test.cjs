@@ -48,7 +48,7 @@ test('existing artwork URLs, protected masters and actual €50 digital price ar
 test('gallery controls use curated collections without inventing physical checkout',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
- for(const id of ['collection-cards','categories','style-filter','orientation-filter','price-filter','art-sort','clear-filters','active-style-description']){
+ for(const id of ['collection-cards','categories','style-filter','orientation-filter','motif-filter','colour-filter','price-filter','art-sort','clear-filters','active-style-description']){
   assert.ok(html.includes('id="'+id+'"'),id);
  }
  assert.match(app,/collection_id/);
