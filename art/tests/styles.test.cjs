@@ -149,6 +149,10 @@ test('five repeated images are removed while original gallery artwork IDs remain
   assert.ok(pageIds.has(kept),'Established artwork must remain: '+kept);
   assert.ok(masterIds.has(kept),'Existing protected original must remain: '+kept);
   assert.ok(!pageIds.has(removed),'Repeated new preview must not be published: '+removed);
+  const redirect=read('vercel.json').redirects.find(rule=>rule.source==='/verk/'+removed+'/');
+  assert.ok(redirect,'Previously published duplicate artwork URL must redirect: '+removed);
+  assert.equal(redirect.destination,'/verk/'+kept+'/');
+  assert.equal(redirect.permanent,true);
   assert.ok(!fs.existsSync(path.join(root,'assets/art',removed+'-view.webp')),'Excluded view must not exist: '+removed);
   assert.ok(!fs.existsSync(path.join(root,'assets/art',removed+'-thumb.webp')),'Excluded thumbnail must not exist: '+removed);
  }
