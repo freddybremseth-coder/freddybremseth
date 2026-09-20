@@ -36,6 +36,18 @@
   moveBook('the-chokepoints-of-power', 'anatomy-of-empires', 'hidden-systems-of-power');
   moveBook('maktens-flaskehalser', 'anatomy-of-empires', 'hidden-systems-of-power');
 
+  // These two original covers are already committed in assets/covers.
+  // Restore their catalog links without changing any book titles or editions.
+  var recoveredCovers = {
+    'arms-power': 'assets/covers/arms-power.png',
+    'lev-100-ar': 'assets/covers/lev-100-ar.jpg'
+  };
+  series.forEach(function (s) {
+    (s.books || []).forEach(function (b) {
+      if (recoveredCovers[b.id]) b.cover = recoveredCovers[b.id];
+    });
+  });
+
   var latest = {
     'hvordan-makt-fungerer': '2026-08-26T17:58:22Z',
     'the-cables-beneath-the-world': '2026-08-26T17:55:01Z',
