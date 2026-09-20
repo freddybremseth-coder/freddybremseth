@@ -1,0 +1,66 @@
+{
+  "collections": [
+    {
+      "id": "human-condition",
+      "name": "The Human Condition",
+      "description": "Love, fragility, identity, resilience and the choices that shape us. Figurative symbolism and dreamlike stories with a human heart.",
+      "cover": "/assets/art/kintsugi-kyss-i-gull-og-marmor-thumb.webp",
+      "featured": true
+    },
+    {
+      "id": "words-that-matter",
+      "name": "Words That Matter",
+      "description": "Urban energy, expressive faces and artworks with something to say. Some communicate through imagery rather than literal lettering.",
+      "cover": "/assets/art/kongelig-gatekunst-hap-smerte-og-kjrlighet-thumb.webp",
+      "featured": true
+    },
+    {
+      "id": "mediterranean-soul",
+      "name": "Mediterranean Soul",
+      "description": "Warm light, coastlines, terraces and imagined Mediterranean atmospheres. These are artistic interpretations, not specific documented locations.",
+      "cover": "/assets/art/terrasse-i-solnedgang-ved-havet-thumb.webp",
+      "featured": true
+    },
+    {
+      "id": "earth-and-emotion",
+      "name": "Earth & Emotion",
+      "description": "Earth colours, botanical forms, texture and pared-back compositions for an expressive yet calm interior.",
+      "cover": "/assets/art/abstrakt-portal-i-jordtoner-thumb.webp",
+      "featured": true
+    },
+    {
+      "id": "studio-archive",
+      "name": "Studio Archive",
+      "description": "Painterly studies, geometric experiments and other landscapes from the wider studio. Browse these without confusing them with the four featured collections.",
+      "cover": "/assets/art/art-nouveau-dronning-med-iris-og-svaner-thumb.webp",
+      "featured": false
+    }
+  ],
+  "byStyle": {
+    "symbolic-realism": "human-condition",
+    "surrealism": "human-condition",
+    "conceptual": "human-condition",
+    "street-art": "words-that-matter",
+    "expressionism": "words-that-matter",
+    "abstract": "earth-and-emotion",
+    "landscape": "mediterranean-soul",
+    "impressionism": "mediterranean-soul",
+    "renaissance-baroque": "studio-archive",
+    "art-nouveau": "studio-archive",
+    "cubism": "studio-archive"
+  },
+  "byArtworkId": {
+    "gylden-sol-over-stille-hav": "mediterranean-soul",
+    "terrakottasolen-over-det-bla-landskapet": "mediterranean-soul",
+    "botanisk-drm-i-gull-og-grnt": "earth-and-emotion",
+    "stillhetens-blomstrende-opprr": "earth-and-emotion",
+    "maneportalen-ved-fjordvannet": "studio-archive",
+    "vandreren-ved-det-stormfulle-fjordlandskapet": "studio-archive",
+    "morgenlys-ved-italiensk-innsjterrasse": "studio-archive",
+    "impresjonistisk-hagefest-ved-elven": "studio-archive",
+    "manenymfen-ved-innsjen": "studio-archive",
+    "maneskinnets-fortryllede-blomstersti": "studio-archive",
+    "en-roligere-lysere-verden": "human-condition",
+    "paradis-over-plast-freddys-dystre-vannlinje": "human-condition"
+  }
+}
