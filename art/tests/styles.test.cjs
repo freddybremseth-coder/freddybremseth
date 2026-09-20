@@ -39,9 +39,9 @@ test('four featured collections and the separate studio archive cover every exis
 });
 test('existing artwork URLs, protected masters and actual €50 digital price are preserved',()=>{
  const privateMasters=read('scripts/private-masters-manifest.json');
- assert.deepEqual(artworks.map(a=>a.id).sort(),privateMasters.map(a=>a.id).sort());
+ assert.deepEqual(artworks.filter(a=>a.digital_available!==false).map(a=>a.id).sort(),privateMasters.map(a=>a.id).sort());
  for(const art of artworks){
-  assert.equal(art.price_cents,5000);assert.equal(art.currency,'eur');
+  if(art.digital_available!==false){assert.equal(art.price_cents,5000);assert.equal(art.currency,'eur')}else{assert.equal(art.price_cents,null)}
   assert.ok(fs.existsSync(path.join(root,'verk',art.id,'index.html')));
  }
 });
