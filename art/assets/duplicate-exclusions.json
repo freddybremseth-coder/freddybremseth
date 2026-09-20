@@ -1,10 +1,11 @@
 {
-  "reason": "Near-identical artwork variations are excluded from the public collection; retained edition chosen by visual review and print-master suitability.",
+  "reason": "Near-identical artwork variations are excluded from the public collection. The existing Barokk studie med musiker og vanitas stilleben is retained; the later Barokk studie med musikk og måneskinn is the same image under another title.",
   "removed_ids": [
     "abstrakt-solnedgang-over-mykt-hav",
     "applausens-tomme-fest",
     "art-nouveau-med-svaner-og-iris",
     "barn-av-algoritmen-i-neonbyen",
+    "barokk-studie-med-musikk-og-maneskinn",
     "barokkstudie-med-violin-og-vanitas",
     "den-himmelske-trappen-til-manen",
     "drmmenes-landskap-med-flytende-drer",

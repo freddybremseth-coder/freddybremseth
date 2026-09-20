@@ -32,6 +32,12 @@ npm run preview
 Local preview keeps digital purchases disabled. Do not use a basic file:// URL: fetch() needs an HTTP server.
 
 
+## Artwork title and duplicate review (20 September 2026)
+
+Artwork titles use sentence-style capitalization: the first word is capitalized, subsequent words are lowercase unless they are proper names (for example Freddy/Freddys and the English geographical adjective Mediterranean). The original work **Barokk studie med musiker og vanitas stilleben** is retained. **Barokk studie med musikk og måneskinn**, a renamed copy of the same image, is expressly excluded from the new import manifest and the gallery exclusion list. Existing artwork IDs, paid download mappings and URLs remain unchanged.
+
+The four public-preview ZIPs are already present in GitHub and contain 56 source entries, including the duplicate. The importer deliberately removes that one duplicate and its two previews during the build, then corrects imported title capitalization and publishes **55 new artworks**. An optional corrected 55-work ZIP bundle is also available, but no replacement upload is necessary. The build must report `ART_IMPORT_ADDED 55 TOTAL 118`; do not advertise 119 unique works.
+
 ## Curated collections and product availability
 
 The customer-facing gallery features **The Human Condition** (33 works), **Words That Matter** (7), **Mediterranean Soul** (5), and **Earth & Emotion** (5). The other 13 works remain discoverable in a separate **Studio Archive** so historical studies and fjord/lake landscapes are not falsely presented as Mediterranean imagery. Collection curation is stored in `assets/collections.json`; the existing artistic style mapping and artwork IDs are preserved. The entire current catalogue has exactly one primary thematic collection.
