@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import 55 unique works safely from the original or corrected four public-preview ZIP packs.
+"""Import 50 distinct additional works from the four original or corrected public-preview ZIP packs.
 
 Place all four gallery_web_part_N_of_4.zip archives in art/import-packs/.
 If none or only some exist, the existing gallery is left unchanged.
@@ -67,6 +67,34 @@ if len(manifest)!=55 or len(previews)!=110:
     raise ValueError('Expected 55 artworks and 110 previews after removing the baroque duplicate')
 if duplicate_baroque in {item.get('id') for item in manifest} or any(duplicate_baroque in name for name in previews):
     raise ValueError('The duplicate baroque image must not be published')
+
+# These five new titles are alternate names for older gallery works. Keep the
+# original canonical artwork IDs, secure digital purchase references and URLs.
+# Drop both public preview variants before building catalog or public/ output.
+repeat_pairs={
+    'impresjonistisk-hagefest-ved-innsjen':'impresjonistisk-hagefest-ved-elven',
+    'romantisk-solnedgang-pa-verandaen':'melankolsk-solnedgang-ved-havet',
+    'stormlys-over-det-gamle-fjordlandskapet':'vandreren-ved-det-stormfulle-fjordlandskapet',
+    'modig-bykvinne-i-graffitiunivers':'modig-dronning-i-fargerik-gatekunst',
+    'renessansebibliotek-med-lrde-og-solnedgang':'renessansestudie-med-symbolske-skatter',
+}
+if not set(repeat_pairs.values()).issubset(existing):
+    raise ValueError('Do not remove duplicate variants unless all five canonical works exist in the protected catalogue')
+found={item.get('id') for item in manifest}.intersection(repeat_pairs)
+if found!=set(repeat_pairs):
+    raise ValueError('Unexpected repeated-artwork import mapping: '+repr(sorted(found)))
+manifest=[item for item in manifest if item.get('id') not in repeat_pairs]
+for repeated_id in repeat_pairs:
+    for variant in ('thumb','view'):
+        preview_key='assets/art/'+repeated_id+'-'+variant+'.webp'
+        if preview_key not in previews:
+            raise ValueError('Repeated artwork preview missing: '+preview_key)
+        del previews[preview_key]
+if len(manifest)!=50 or len(previews)!=100:
+    raise ValueError('Expected exactly 50 distinct newly imported artworks and 100 public previews')
+if any(item.get('id') in repeat_pairs for item in manifest) or any(repeated_id in name for name in previews for repeated_id in repeat_pairs):
+    raise ValueError('A repeated artwork variant remained in the public import')
+
 # Most imported titles were written in English-style title case. Normalize to
 # Norwegian sentence-style capitalization; do not lower-case proper names.
 manual_titles={
