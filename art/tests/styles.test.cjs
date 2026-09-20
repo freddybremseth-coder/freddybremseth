@@ -131,3 +131,40 @@ test('editorial artwork view uses public preview only and preserves server check
  assert.match(app,/fetch\('\/api\/create-checkout'/);
  assert.match(html,/digitally created works developed with AI-assisted techniques/);
 });
+
+test('five repeated images are removed while original gallery artwork IDs remain canonical',()=>{
+ const pairs={
+  'impresjonistisk-hagefest-ved-innsjen':'impresjonistisk-hagefest-ved-elven',
+  'romantisk-solnedgang-pa-verandaen':'melankolsk-solnedgang-ved-havet',
+  'stormlys-over-det-gamle-fjordlandskapet':'vandreren-ved-det-stormfulle-fjordlandskapet',
+  'modig-bykvinne-i-graffitiunivers':'modig-dronning-i-fargerik-gatekunst',
+  'renessansebibliotek-med-lrde-og-solnedgang':'renessansestudie-med-symbolske-skatter'
+ };
+ const exclusions=read('assets/duplicate-exclusions.json').removed_ids;
+ const masterIds=new Set(read('scripts/private-masters-manifest.json').map(item=>item.id));
+ const pageIds=new Set(artworks.map(item=>item.id));
+ assert.equal(artworks.length,113,'63 established works plus 50 unique imported works');
+ for(const [removed,kept] of Object.entries(pairs)){
+  assert.ok(exclusions.includes(removed),'Duplicate must stay excluded: '+removed);
+  assert.ok(pageIds.has(kept),'Established artwork must remain: '+kept);
+  assert.ok(masterIds.has(kept),'Existing protected original must remain: '+kept);
+  assert.ok(!pageIds.has(removed),'Repeated new preview must not be published: '+removed);
+  assert.ok(!fs.existsSync(path.join(root,'assets/art',removed+'-view.webp')),'Excluded view must not exist: '+removed);
+  assert.ok(!fs.existsSync(path.join(root,'assets/art',removed+'-thumb.webp')),'Excluded thumbnail must not exist: '+removed);
+ }
+ const manifest=read('assets/new-import-manifest.json');
+ assert.equal(manifest.length,50,'Deduplicated import manifest has 50 new artworks');
+});
+test('homepage hero image differs from every featured collection cover',()=>{
+ const home=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const match=home.match(/id="hero-img-main"\s+src="([^"]+)"/);
+ assert.ok(match,'Homepage hero is present');
+ const hero=match[1];
+ assert.ok(fs.existsSync(path.join(root,hero.replace(/^\//,''))),'Hero artwork has a real public preview');
+ assert.ok(artworks.some(art=>art.image===hero),'Hero image belongs to the curated gallery');
+ for(const collection of curation.collections.filter(item=>item.featured)){
+  assert.notEqual(hero,collection.cover.replace('-thumb.webp','-view.webp'),
+   'Hero artwork must not repeat the adjacent featured collection image: '+collection.name);
+ }
+ assert.ok(home.includes('<meta property="og:image" content="https://art.freddybremseth.com'+hero+'">'));
+});
