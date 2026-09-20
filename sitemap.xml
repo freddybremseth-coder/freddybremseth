@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.freddybremseth.com/</loc>
-    <lastmod>2026-05-10</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -31,22 +31,10 @@
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.freddybremseth.com/book</loc>
-    <lastmod>2026-08-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
     <loc>https://www.freddybremseth.com/olivenolje-og-dona-anna.html</loc>
     <lastmod>2026-05-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
-  </url>
-  <url>
-    <loc>https://www.freddybremseth.com/forfatter.html</loc>
-    <lastmod>2026-08-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.72</priority>
   </url>
   <!-- i18n:pages -->
   <url>
