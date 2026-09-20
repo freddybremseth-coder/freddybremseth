@@ -24,12 +24,30 @@
 <body>
   <div id="app"></div>
   <noscript>
-    <div style="max-width:760px;margin:60px auto;padding:0 24px;font-family:Georgia,serif">
-      <h1>Freddy Bremseth — Bøker &amp; serier</h1>
-      <p>Denne siden trenger JavaScript for å vise hele bokkatalogen. Se
-        <a href="https://www.freddybremseth.com/">forfattersiden</a> eller
-        <a href="https://www.amazon.com/s?k=Freddy+Bremseth">bøkene på Amazon</a>.</p>
-    </div>
+    <main style="max-width:820px;margin:48px auto;padding:0 24px;font-family:Georgia,serif;line-height:1.65">
+      <h1>Freddy Bremseth — Bøker og bokserier</h1>
+      <p>Utforsk psykologiske thrillere, krim og sakprosa skrevet av Freddy Bremseth.
+      Dette er en enkel, lesbar oversikt over utvalgte titler når JavaScript er slått av.
+      Katalogens tilgjengelige utgaver, prøvekapitler og kjøpsmuligheter vises på de enkelte boksidene.</p>
+      <nav aria-label="Bokkatalog og forfatterinformasjon">
+        <p><a href="/library">Se hele bokkatalogen</a> ·
+        <a href="/about">Om forfatteren</a> ·
+        <a href="/en/">Books in English</a> ·
+        <a href="/es/">Libros en español</a></p>
+      </nav>
+      <section aria-labelledby="michael-thorne-title">
+        <h2 id="michael-thorne-title">Michael Thorne — psykologisk krim</h2>
+        <p>En thriller- og krimserie om etterforskning, identitet, skyld og institusjonell makt.
+        <a href="/series/michael-thorne">Les om Michael Thorne-serien</a>.</p>
+        <ul>
+          <li><a href="/book/the-facade-of-justice">The Facade of Justice</a> — første bok i serien.</li>
+          <li><a href="/book/shadows-of-the-past">Shadows of the Past</a> — andre bok i serien.</li>
+          <li><a href="/book/the-ascendants">The Ascendants</a> — tredje bok i serien.</li>
+        </ul>
+      </section>
+      <p>Se også <a href="https://www.freddybremseth.com/">Freddy Bremseths hovednettsted</a>
+      og <a href="https://art.freddybremseth.com/">kunstgalleriet</a>.</p>
+    </main>
   </noscript>
   <script src="/assets/books-data.js"></script>
   <script src="/assets/books-extra.js"></script>
