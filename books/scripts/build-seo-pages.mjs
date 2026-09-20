@@ -99,14 +99,22 @@ function seriesPage(s, lang) {
 }
 
 function bookPage(s, b, lang) {
-  const desc = pick(b.descFull, lang) || pick(b.descShort, lang) || b.excerpt || '';
+  // Some catalog records have a title and verified series but no description.
+  // Never fabricate a plot summary or leave an empty metadata/HTML description.
+  const name = pick(s.title, lang);
+  const factualFallback = lang === 'es'
+    ? 'Descubre ' + b.title + ', un título de la serie ' + name + ' de Freddy Bremseth. Consulta los detalles del libro y de la serie.'
+    : lang === 'en'
+      ? 'Discover ' + b.title + ', a book in the ' + name + ' series by Freddy Bremseth. Explore the book and its series.'
+      : 'Utforsk ' + b.title + ', en bok i serien ' + name + ' av Freddy Bremseth. Se bokinformasjon og resten av serien.';
+  const desc = pick(b.descFull, lang) || pick(b.descShort, lang) || b.excerpt || factualFallback;
   const short = pick(b.descShort, lang) || desc;
   const route = `book/${b.id}`;
   const title = `${b.title}${b.subtitle ? ` — ${b.subtitle}` : ''} | Freddy Bremseth`;
   const buy = b.amazon ? `<p><a href="${esc(b.amazon)}" rel="nofollow sponsored noopener">Amazon</a></p>` : '';
   const sample = b.samplePath ? `<p><a href="/${esc(b.samplePath)}">${lang === 'en' ? 'Read a free sample' : lang === 'es' ? 'Leer una muestra gratis' : 'Les gratis prøvekapittel'}</a></p>` : '';
   const body = `<main style="max-width:920px;margin:40px auto;padding:0 24px">${nav(lang)}<p><a href="${prefixFor(lang)}/series/${esc(s.id)}">← ${esc(pick(s.title, lang))}</a></p><article><h1>${esc(b.title)}</h1>${b.subtitle ? `<p>${esc(b.subtitle)}</p>` : ''}${b.cover ? `<img src="/${esc(b.cover)}" alt="${esc(b.title)} book cover by Freddy Bremseth" width="320" />` : ''}<p>${esc(desc)}</p>${b.words ? `<p>${Number(b.words).toLocaleString('en-US')} words${b.pages ? ` · ${b.pages} pages` : ''}</p>` : ''}${sample}${buy}</article></main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'Book', name: b.title, description: desc, url: absolute(lang, route), image: b.cover ? coverUrl(b.cover) : undefined, author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, isPartOf: { '@type': 'CreativeWorkSeries', name: pick(s.title, lang), url: absolute(lang, `series/${s.id}`) }, inLanguage: lang, numberOfPages: b.pages || undefined, offers: b.amazon ? { '@type': 'Offer', url: b.amazon, availability: 'https://schema.org/InStock' } : undefined };
+  const schema = { '@context': 'https://schema.org', '@type': 'Book', name: b.title, description: desc, url: absolute(lang, route), image: b.cover ? coverUrl(b.cover) : undefined, author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, isPartOf: { '@type': 'CreativeWorkSeries', name: pick(s.title, lang), url: absolute(lang, `series/${s.id}`) }, inLanguage: lang, numberOfPages: b.pages || undefined };
   return chrome(lang, title, short, route, body, schema, b.cover);
 }
 
