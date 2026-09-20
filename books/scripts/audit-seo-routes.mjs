@@ -47,6 +47,11 @@ function checkPage(lang, route, label, isBook = false) {
       !html.includes('/assets/books-sample-links.js')) {
     throw Error('SEO HTML missing readable body or expected runtime for ' + publicPath);
   }
+  // Every generated, indexable book/series/language HTML page has exactly one
+  // bounded public referrer tracker; never add this to API or checkout pages.
+  if (html.split('src="/assets/seo-referral-tracker.js"').length - 1 !== 1) {
+    throw Error('Public book SEO route missing unique source tracker ' + publicPath);
+  }
   if (!sitemap.includes('<loc>' + url + '</loc>')) {
     throw Error('Generated SEO route missing from sitemap ' + publicPath);
   }
