@@ -36,7 +36,7 @@ Local preview keeps digital purchases disabled. Do not use a basic file:// URL: 
 
 Artwork titles use sentence-style capitalization: the first word is capitalized, subsequent words are lowercase unless they are proper names (for example Freddy/Freddys and the English geographical adjective Mediterranean). The original work **Barokk studie med musiker og vanitas stilleben** is retained. **Barokk studie med musikk og måneskinn**, a renamed copy of the same image, is expressly excluded from the new import manifest and the gallery exclusion list. Existing artwork IDs, paid download mappings and URLs remain unchanged.
 
-The four public-preview ZIPs are already present in GitHub and contain 56 source entries, including the duplicate. The importer deliberately removes that one duplicate and its two previews during the build, then corrects imported title capitalization and publishes **55 new artworks**. An optional corrected 55-work ZIP bundle is also available, but no replacement upload is necessary. The build must report `ART_IMPORT_ADDED 55 TOTAL 118`; do not advertise 119 unique works.
+The four public-preview ZIPs are already present in GitHub and contain 56 source entries, including the duplicate. The importer removes that duplicate and five more confirmed renamed copies, plus both previews for each, before building, then corrects imported title capitalization and publishes **50 unique new artworks**. An optional corrected 55-work ZIP bundle is also available, but no replacement upload is necessary. The build must report `ART_IMPORT_ADDED 50 TOTAL 113`; do not advertise 118 or 119 unique works.
 
 ## Curated collections and product availability
 
@@ -128,3 +128,7 @@ On the homepage, **By artistic style** is the default: every style has its own h
 ## Gallery deduplication
 
 The public catalog has 63 distinct compositions. 37 overlapping variants, lower-quality previews or duplicate editions were removed from the catalog and public artwork pages. The retained artwork slugs are stable. The removal list is recorded in `assets/duplicate-exclusions.json`. Only the 63 retained masters are eligible for new sales. If a removed artwork was previously sold, handle that purchase separately rather than deleting a customer's private master.
+
+## Curated gallery refresh and five further repeat exclusions
+
+The editorial homepage displays Marmorbyste med gullsprekker og sommerfugl as the main image rather than repeating the adjacent The Human Condition cover. Five additional newly imported preview-only artwork titles repeat established catalogue images and are excluded before publication: Impresjonistisk hagefest ved innsjøen; Romantisk solnedgang på verandaen; Stormlys over det gamle fjordlandskapet; Modig bykvinne i graffitiunivers; Renessansebibliotek med lærde og solnedgang. Their five original counterparts, existing URLs and digital purchase mappings remain intact. The public gallery contains 63 established and 50 unique imported works: **113** in total.

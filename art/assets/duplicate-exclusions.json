@@ -1,5 +1,5 @@
 {
-  "reason": "Near-identical artwork variations are excluded from the public collection. The existing Barokk studie med musiker og vanitas stilleben is retained; the later Barokk studie med musikk og måneskinn is the same image under another title.",
+  "reason": "Approved exclusion list for repeated or near-identical artworks. Five newer preview-only works duplicate canonical works already in the original gallery; their original canonical URLs and authorized digital-download references are retained. The previously identified duplicate baroque preview remains excluded as well.",
   "removed_ids": [
     "abstrakt-solnedgang-over-mykt-hav",
     "applausens-tomme-fest",
@@ -27,17 +27,22 @@
     "fortsatt-nok-i-det-gylne-tempelet",
     "gater-hap-og-kronede-drmmer",
     "gull-ravner-og-gyldne-kartveier",
+    "impresjonistisk-hagefest-ved-innsjen",
     "kafe-i-kubistiske-minner",
     "kaotisk-graffitiportrett-med-kroner-og-hap",
     "kronet-graffitihelt-i-byens-hap",
     "kubistisk-kvinne-i-byens-stille-rom",
     "manetrappen-til-en-lysere-deg",
+    "modig-bykvinne-i-graffitiunivers",
     "paradis-med-plastens-skjulte-spor",
     "renessanse-ved-vinduet-med-pomegranate",
+    "renessansebibliotek-med-lrde-og-solnedgang",
+    "romantisk-solnedgang-pa-verandaen",
     "soloppgang-pa-den-blomstrende-terrassen",
     "stillhetens-gyldne-sannhet",
     "stjernekveld-over-landsbyen-ved-vannet",
     "stormfylt-abstrakt-skikkelse",
+    "stormlys-over-det-gamle-fjordlandskapet",
     "trappen-mot-manens-dr"
   ]
 }
