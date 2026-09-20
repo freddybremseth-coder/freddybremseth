@@ -43,5 +43,32 @@
       ]
     }
   ],
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "redirects": [
+    {
+      "source": "/verk/impresjonistisk-hagefest-ved-innsjen/",
+      "destination": "/verk/impresjonistisk-hagefest-ved-elven/",
+      "permanent": true
+    },
+    {
+      "source": "/verk/romantisk-solnedgang-pa-verandaen/",
+      "destination": "/verk/melankolsk-solnedgang-ved-havet/",
+      "permanent": true
+    },
+    {
+      "source": "/verk/stormlys-over-det-gamle-fjordlandskapet/",
+      "destination": "/verk/vandreren-ved-det-stormfulle-fjordlandskapet/",
+      "permanent": true
+    },
+    {
+      "source": "/verk/modig-bykvinne-i-graffitiunivers/",
+      "destination": "/verk/modig-dronning-i-fargerik-gatekunst/",
+      "permanent": true
+    },
+    {
+      "source": "/verk/renessansebibliotek-med-lrde-og-solnedgang/",
+      "destination": "/verk/renessansestudie-med-symbolske-skatter/",
+      "permanent": true
+    }
+  ]
 }
