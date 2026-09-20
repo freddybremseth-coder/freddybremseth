@@ -99,7 +99,15 @@ function seriesPage(s, lang) {
 }
 
 function bookPage(s, b, lang) {
-  const desc = pick(b.descFull, lang) || pick(b.descShort, lang) || b.excerpt || '';
+  // Some catalog records have a title and verified series but no description.
+  // Never fabricate a plot summary or leave an empty metadata/HTML description.
+  const name = pick(s.title, lang);
+  const factualFallback = lang === 'es'
+    ? 'Descubre ' + b.title + ', un título de la serie ' + name + ' de Freddy Bremseth. Consulta los detalles del libro y de la serie.'
+    : lang === 'en'
+      ? 'Discover ' + b.title + ', a book in the ' + name + ' series by Freddy Bremseth. Explore the book and its series.'
+      : 'Utforsk ' + b.title + ', en bok i serien ' + name + ' av Freddy Bremseth. Se bokinformasjon og resten av serien.';
+  const desc = pick(b.descFull, lang) || pick(b.descShort, lang) || b.excerpt || factualFallback;
   const short = pick(b.descShort, lang) || desc;
   const route = `book/${b.id}`;
   const title = `${b.title}${b.subtitle ? ` — ${b.subtitle}` : ''} | Freddy Bremseth`;
