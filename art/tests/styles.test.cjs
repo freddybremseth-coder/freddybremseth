@@ -88,3 +88,46 @@ test('artwork titles use sentence-style capitalization except proper names',()=>
   }
  }
 });
+
+test('five dedicated collections have complete indexable, mobile-friendly static pages',()=>{
+ const sitemap=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
+ const homepage=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const css=fs.readFileSync(path.join(root,'assets/css/site.css'),'utf8');
+ const names=new Set();
+ for(const collection of curation.collections){
+  assert.ok(/^[a-z0-9-]+$/.test(collection.id));
+  const url='/collections/'+collection.id+'/';
+  const html=fs.readFileSync(path.join(root,'collections',collection.id,'index.html'),'utf8');
+  assert.match(html,new RegExp('<link rel="canonical" href="https://art\\.freddybremseth\\.com'+url+'">'));
+  assert.match(sitemap,new RegExp('<loc>https://art\\.freddybremseth\\.com'+url+'</loc>'));
+  assert.ok(html.includes('href="'+url+'"')||homepage.includes('href="'+url+'"'));
+  assert.ok(html.includes('name="'+collection.name.replaceAll('&','&amp;')+'"')||html.includes('<h1>'+collection.name.replaceAll('&','&amp;')+'</h1>'));
+  const works=artworks.filter(item=>collectionFor(item)===collection.id);
+  assert.ok(works.length>0);
+  for(const art of works){
+   const link='/verk/'+art.id+'/';
+   assert.ok(html.includes('href="'+link+'"'),'Missing '+art.id+' in '+collection.id);
+   assert.ok(!names.has(art.id),'Artwork appears in more than one collection: '+art.id);
+   names.add(art.id);
+  }
+  assert.ok(!html.includes('/api/create-checkout'),'No standalone collection page should bypass secure checkout');
+ }
+ assert.equal(names.size,artworks.length);
+ assert.match(homepage,/class="collection-cards"/);
+ assert.match(app,/\/collections\/.*collection\.id/);
+ assert.match(css,/\.collection-landing-hero/);
+ assert.match(css,/prefers-reduced-motion/);
+});
+test('editorial artwork view uses public preview only and preserves server checkout',()=>{
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ assert.match(html,/id="art-zoom-dialog"/);
+ assert.match(html,/id="dialog-related"/);
+ assert.match(html,/id="dialog-collection-link"/);
+ assert.match(app,/state\.selected\.image/);
+ assert.match(app,/function fillRelated\(art\)/);
+ assert.match(app,/function openZoom\(\)/);
+ assert.match(app,/fetch\('\/api\/create-checkout'/);
+ assert.match(html,/digitally created works developed with AI-assisted techniques/);
+});
