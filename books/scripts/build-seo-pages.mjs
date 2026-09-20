@@ -60,6 +60,7 @@ function chrome(lang, title, description, route, body, schema, image) {
   <script src="/assets/books-i18n.js"></script>
   <script src="/assets/books-app.js"></script>
   <script src="/assets/books-growth.js"></script>
+  <script defer src="/assets/seo-referral-tracker.js"></script>
 </body>
 </html>\n`;
 }

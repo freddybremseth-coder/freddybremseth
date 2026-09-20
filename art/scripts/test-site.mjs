@@ -42,6 +42,7 @@ for(const item of art){
  if(!structured.some(schema=>schema?.['@type']==='VisualArtwork'&&
    schema.name===item.title&&schema.url===canonical&&
    schema.image==='https://art.freddybremseth.com'+item.image))throw Error('Wrong artwork structured data '+item.id);
+ if(page.split('src="/assets/js/seo-referral-tracker.js"').length-1!==1)throw Error('Public artwork missing unique attribution tracker '+item.id);
  if(!sitemap.includes('<loc>'+canonical+'</loc>'))throw Error('Artwork missing from sitemap '+item.id);
 }
 if(art.find(item=>item.id==='marmorbyste-med-gullsprekker-og-sommerfugl')?.title!=='Marble Bust with Golden Cracks and Butterfly')

@@ -21,6 +21,8 @@ for (const file of publicFiles) {
   fs.copyFileSync(path.join(root, file), path.join(output, file));
 }
 
+const trackerFile = path.join(output, 'assets/js/seo-referral-tracker.js');
+if (!fs.existsSync(trackerFile)) throw Error('Public Art referral tracker missing from Vercel static output');
 const catalog = JSON.parse(fs.readFileSync(path.join(root, 'assets/catalog.json'), 'utf8'));
 for (const item of catalog) {
   const page = path.join(output, 'verk', item.id, 'index.html');
