@@ -1,15 +1,15 @@
 # Freddy Bremseth Art — art.freddybremseth.com
 
-A complete **63-unique-artwork gallery application** prepared as an isolated **Vercel project with root directory `art/`**, matching the deployment architecture of `books/` in the connected `freddybremseth-coder/freddybremseth` GitHub repository. Nothing in this bundle changes the existing main or books websites.
+A **63-artwork gallery application** prepared as an isolated **Vercel project with root directory `art/`**, matching the deployment architecture of `books/` in the connected `freddybremseth-coder/freddybremseth` GitHub repository. Nothing in this bundle changes the existing main or books websites.
 
-**Status:** The public gallery, artwork pages, responsive layouts, filters, search, print-link support, €50 server-authoritative Stripe Checkout and verified private-file download code are implemented. **Live payment must remain OFF until private files, merchant details and Stripe are configured** until you configure the art project, private storage, Stripe, and merchant details. No working live domain or payment is claimed.
+**Status:** The public gallery, four thematic signature collections plus a studio archive, style/motif/colour-cue/orientation/price filters, artwork pages, responsive layouts, search, print-link support, €50 server-authoritative Stripe Checkout and verified private-file download code are implemented. **Live payment must remain OFF until private files, merchant details and Stripe are configured** until you configure the art project, private storage, Stripe, and merchant details. No working live domain or payment is claimed.
 
 ## What's in the bundle
 
 - **63 unique artwork entries** from the individual pieces available in this conversation, including the 15 separate legacy gallery studies.
 - **126 public WebP previews** (thumbnail + enlarged gallery view for each image), deliberately not the purchaser's full digital file.
 - A static, search-friendly `/verk/<slug>/` page with artwork-specific title, description, canonical URL, Open Graph preview and CreativeWork structured data for **every work**, plus `sitemap.xml`, `robots.txt` and footer pages.
-- Functional interactive gallery: style filters, title search, A–Z sorting, load-more, deep-linkable artwork modal, mobile layout and reduced-motion support.
+- Functional interactive gallery: four prominent thematic collections, an honest separate studio archive, existing visual-style categories as a second filter, selective title-based motif/colour-cue discovery, actual-price and orientation filters, title search, sorting, load-more, deep-linkable artwork modal, mobile layout and reduced-motion support.
 - Digital edition: **€50 per image**; secret price comes from server code and cannot be changed from the browser. Stripe Checkout creates the session; confirmation verifies paid status, expected artwork, currency and total before issuing a five-minute signed private URL from Supabase Storage.
 - Before charging for an item, the server checks its private master exists; sale activation requires configuring all artwork originals in the private bucket.
 - Print-on-demand **link mapping** ready to fill once a real product/storefront URL exists. Prints are visibly marked “coming soon” until then. There are no fictional print prices, materials, sizes or shipping times.
@@ -30,6 +30,15 @@ npm run preview
 ```
 
 Local preview keeps digital purchases disabled. Do not use a basic file:// URL: fetch() needs an HTTP server.
+
+
+## Curated collections and product availability
+
+The customer-facing gallery features **The Human Condition** (33 works), **Words That Matter** (7), **Mediterranean Soul** (5), and **Earth & Emotion** (5). The other 13 works remain discoverable in a separate **Studio Archive** so historical studies and fjord/lake landscapes are not falsely presented as Mediterranean imagery. Collection curation is stored in `assets/collections.json`; the existing artistic style mapping and artwork IDs are preserved. The entire current catalogue has exactly one primary thematic collection.
+
+Colour and motif filters are **selective discovery cues derived from current artwork titles/style**, not comprehensive human-verified colour analysis. Orientation uses the recorded image orientation, **not a physical print size**. All available prices are the genuine €50 personal-use digital product; higher price filter brackets correctly return no products until separately verified print or original products are available. The site must not describe a digital AI-assisted composition as a physically painted one or advertise fictitious edition limits, framing, shipping, or availability.
+
+To add physical products, first obtain verified print-provider URLs and prices, dimensions, production quality/specifications and shipping terms, and proof/review of actual print masters. The current `assets/print-links.json` can surface real partner links without charging the digital Stripe checkout for a print. A future product catalogue with separate physical variants and prices is needed before higher-price filters represent actual purchasable inventory.
 
 ## Configure the 63 PRIVATE digital masters before activating Stripe
 
@@ -68,7 +77,7 @@ Set the following as **server-side environment variables in the ART Vercel proje
 | `SUPABASE_URL` | API URL for the project containing the private bucket |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side storage access only. Never public. |
 | `ART_STORAGE_BUCKET` | `art-originals` |
-| `DIGITAL_SALES_ENABLED` | `false` first; `true` only after setup, legal review and **all 100 masters** are present |
+| `DIGITAL_SALES_ENABLED` | `false` first; `true` only after setup, legal review and **all 63 masters** are present |
 | `STRIPE_AUTOMATIC_TAX` | Optional `true` only after your Stripe Tax configuration is complete |
 
 Pay attention to merchant details, contact information, VAT and EU consumer requirements **before enabling paid sales**; the legal pages are practical starter copy, not an assertion that your individual business is compliant. Stripe is a payment processor: this project does not create or configure a Stripe merchant account. Do not set a payment link for a non-existent product. Configure Stripe's merchant/receipt email settings for receipts.
