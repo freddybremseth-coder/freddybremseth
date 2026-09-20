@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import 56 approved public-only WebP previews from four small GitHub ZIP packs.
+"""Import 55 approved public-only WebP previews from four small GitHub ZIP packs.
 
 Place all four gallery_web_part_N_of_4.zip archives in art/import-packs/.
 If none or only some exist, the existing gallery is left unchanged.
@@ -46,9 +46,25 @@ for n,pack in enumerate(PACKS):
             if binary[:4]!=b'RIFF' or binary[8:12]!=b'WEBP':
                 raise ValueError('Invalid WebP '+name)
             previews[name]=binary
-if not isinstance(manifest,list) or len(manifest)!=56:
-    raise ValueError('Expected exactly 56 approved artworks in import manifest')
+if not isinstance(manifest,list) or len(manifest)!=55:
+    raise ValueError('Expected 55 artworks; the earlier 56-work package includes a duplicate baroque image')
 ids=[a['id'] for a in manifest]
+# This image duplicates the existing paid work 'barokk-studie-med-musiker-og-vanitas-stilleben'.
+duplicate_baroque='barokk-studie-med-musikk-og-maneskinn'
+if duplicate_baroque in ids or any(duplicate_baroque in name for name in previews):
+    raise ValueError('Duplicate baroque artwork: use the corrected 55-artwork ZIP packs')
+def expected_title_casing(title):
+    # Titles follow Norwegian sentence capitalization; preserve geographical proper names.
+    if not isinstance(title,str) or not title.strip() or title!=title.strip():
+        return False
+    for token in title.split()[1:]:
+        plain=token.strip('.,:;!?–—()[]')
+        if plain and plain[0].isupper() and plain not in {'Mediterranean'}:
+            return False
+    return True
+for item in manifest:
+    if not expected_title_casing(item.get('title')):
+        raise ValueError('Artwork title must use sentence capitalization: '+str(item.get('id')))
 if len(set(ids))!=len(ids):raise ValueError('Duplicate artwork IDs')
 expected=set()
 for item in manifest:
