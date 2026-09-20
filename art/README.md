@@ -36,7 +36,7 @@ Local preview keeps digital purchases disabled. Do not use a basic file:// URL: 
 
 Artwork titles use sentence-style capitalization: the first word is capitalized, subsequent words are lowercase unless they are proper names (for example Freddy/Freddys and the English geographical adjective Mediterranean). The original work **Barokk studie med musiker og vanitas stilleben** is retained. **Barokk studie med musikk og måneskinn**, a renamed copy of the same image, is expressly excluded from the new import manifest and the gallery exclusion list. Existing artwork IDs, paid download mappings and URLs remain unchanged.
 
-The corrected four-pack gallery import contains **55 new artworks**, not the superseded 56. Use only `Freddy_Art_55_nye_kunstverk_korrigert.zip` (its four inner ZIP parts). The importer intentionally rejects the earlier 56-piece pack, so the duplicate cannot accidentally be republished. This documentation does not imply the four ZIP binaries have already been uploaded to GitHub; import occurs only once all four corrected parts are present under `art/import-packs/`.
+The four public-preview ZIPs are already present in GitHub and contain 56 source entries, including the duplicate. The importer deliberately removes that one duplicate and its two previews during the build, then corrects imported title capitalization and publishes **55 new artworks**. An optional corrected 55-work ZIP bundle is also available, but no replacement upload is necessary. The build must report `ART_IMPORT_ADDED 55 TOTAL 118`; do not advertise 119 unique works.
 
 ## Curated collections and product availability
 
