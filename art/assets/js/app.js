@@ -25,13 +25,13 @@
   const cardsHost=$('collection-cards');cardsHost.replaceChildren();
   for(const collection of state.collections.filter(c=>c.featured)){
    const count=state.art.filter(a=>a.collection_id===collection.id).length;
-   const button=document.createElement('button');button.type='button';button.className='collection-tile';
+   const button=document.createElement('a');button.href='/collections/'+encodeURIComponent(collection.id)+'/';button.className='collection-tile';
    const image=document.createElement('img');image.src=collection.cover;image.alt='Artwork preview for '+collection.name;image.loading='lazy';
    const text=document.createElement('span');text.className='collection-tile-copy';
    const title=document.createElement('strong');title.textContent=collection.name;
    const intro=document.createElement('span');intro.textContent=collection.description;
    const total=document.createElement('small');total.textContent=count+' artworks · Explore collection ↗';
-   text.append(title,intro,total);button.append(image,text);button.addEventListener('click',()=>setCollection(collection.id));cardsHost.appendChild(button);
+   text.append(title,intro,total);button.append(image,text);cardsHost.appendChild(button);
   }
  }
  // Selective discovery cues. Only label motifs and palettes supported by artwork titles.
@@ -85,7 +85,7 @@
     const heading=document.createElement('div');heading.className='style-group-heading';const h=document.createElement('h3');h.textContent=entry.name;
     const summary=document.createElement('p');summary.textContent=entry.description;
     const top=document.createElement('div');top.append(h,summary);
-    const open=document.createElement('button');open.className='style-browse';open.textContent='View all '+works.length+' artworks ↗';open.type='button';open.addEventListener('click',()=>setCollection(entry.id));
+    const open=document.createElement('a');open.className='style-browse';open.href='/collections/'+encodeURIComponent(entry.id)+'/';open.textContent='View all '+works.length+' artworks ↗';
     heading.append(top,open);section.appendChild(heading);
     const segment=document.createElement('div');segment.className='style-group-grid gallery-grid';segment.appendChild(cards(narrowed?works:works.slice(0,4)));section.appendChild(segment);grid.appendChild(section);
    }
@@ -93,8 +93,8 @@
    const sorted=[...state.filtered];
    if(state.sort==='az')sorted.sort((a,b)=>a.title.localeCompare(b.title));
    else if(state.sort==='za')sorted.sort((a,b)=>b.title.localeCompare(a.title));
-   else if(state.sort==='price-low')sorted.sort((a,b)=>a.price_cents-b.price_cents||byCollection(a,b));
-   else if(state.sort==='price-high')sorted.sort((a,b)=>b.price_cents-a.price_cents||byCollection(a,b));
+   else if(state.sort==='price-low')sorted.sort((a,b)=>(a.price_cents===null)-(b.price_cents===null)||(a.price_cents??Infinity)-(b.price_cents??Infinity)||byCollection(a,b));
+   else if(state.sort==='price-high')sorted.sort((a,b)=>(a.price_cents===null)-(b.price_cents===null)||(b.price_cents??-Infinity)-(a.price_cents??-Infinity)||byCollection(a,b));
    else sorted.sort(byCollection);
    const segment=document.createElement('div');segment.className='gallery-grid';segment.appendChild(cards(sorted.slice(0,state.count)));grid.appendChild(segment);
    $('load-more').hidden=state.count>=sorted.length;
@@ -104,10 +104,39 @@
  }
  function printLinkFor(art){return safeLink(state.print.byArtworkId?.[art.id]||state.print.defaultPrintUrl||art.print_url)}
  function updateBuy(){const btn=$('checkout-button');const available=state.selected?.digital_available!==false;btn.disabled=!available||!state.checkout||!$('digital-consent').checked;btn.textContent=!available?'Edition not yet available':state.checkout?text('buy'):text('unavailable')}
- function openArt(art,push){state.selected=art;$('dialog-image').src=art.image;$('dialog-image').alt=art.title;$('dialog-title').textContent=art.title;$('dialog-index').textContent='ARTWORK / '+String(art.number).padStart(3,'0');$('dialog-category').textContent=art.category;$('dialog-collection').textContent=collectionName(art)+(art.digital_available===false?' · Gallery preview':' · Digital artwork €'+(art.price_cents/100).toFixed(0));$('dialog-story').textContent=art.story;$('dialog-edition').textContent=art.edition;$('dialog-size').textContent=art.width+' × '+art.height+' px (public preview source)';$('digital-consent').checked=false;const forSale=art.digital_available!==false;$('digital-consent').closest('.consent').hidden=!forSale;const label=$('dialog-price-label');label.textContent=forSale?'Digital edition':'Gallery preview · Not yet for sale';if(forSale){const strong=document.createElement('strong');strong.textContent='€'+(art.price_cents/100).toFixed(0);label.appendChild(strong)}$('checkout-help').textContent=forSale?'Secure checkout by Stripe · The full-size file is not publicly accessible.':'This work is displayed for viewing. No paid download or physical edition has been configured.';updateBuy();const url=printLinkFor(art);$('print-link').hidden=!url;$('print-placeholder').hidden=!!url;if(url)$('print-link').href=url;
+ function fillRelated(art){
+  const host=$('dialog-related');host.replaceChildren();
+  const relatives=state.art.filter(candidate=>candidate.id!==art.id&&candidate.collection_id===art.collection_id).slice(0,3);
+  $('dialog-collection-link').href='/collections/'+encodeURIComponent(art.collection_id)+'/';
+  $('dialog-collection-link').textContent='Browse '+collectionName(art)+' ↗';
+  for(const relative of relatives){
+   const link=document.createElement('a');link.href=detailHref(relative);
+   const image=document.createElement('img');image.src=relative.thumb;image.alt=relative.title;image.loading='lazy';
+   const caption=document.createElement('span');caption.textContent=relative.title;
+   link.append(image,caption);host.appendChild(link);
+  }
+  $('dialog-related').closest('.dialog-related').hidden=relatives.length===0;
+ }
+ let zoom=1;
+ function setZoom(next){
+  zoom=Math.max(1,Math.min(3,Math.round(next*2)/2));
+  const image=$('zoom-image');
+  image.style.width=zoom===1?'auto':zoom*100+'%';
+  image.style.maxWidth=zoom===1?'100%':'none';
+  image.style.maxHeight=zoom===1?'100%':'none';
+  $('zoom-level').textContent=Math.round(zoom*100)+'%';
+  $('zoom-out').disabled=zoom<=1;$('zoom-in').disabled=zoom>=3;
+ }
+ function openZoom(){
+  if(!state.selected)return;
+  const preview=$('zoom-image');preview.src=state.selected.image;preview.alt=state.selected.title+' — gallery preview';
+  $('zoom-title').textContent=state.selected.title+' · Public gallery preview';
+  setZoom(1);const dialog=$('art-zoom-dialog');if(!dialog.open)dialog.showModal();
+ }
+ function openArt(art,push){state.selected=art;$('dialog-image').src=art.image;$('dialog-image').alt=art.title;$('dialog-title').textContent=art.title;$('dialog-index').textContent='ARTWORK / '+String(art.number).padStart(3,'0');$('dialog-category').textContent=art.category;$('dialog-collection').textContent=collectionName(art)+(art.digital_available===false?' · Gallery preview':' · Digital artwork €'+(art.price_cents/100).toFixed(0));$('dialog-story').textContent=art.story;$('dialog-edition').textContent=art.edition;$('dialog-size').textContent=art.width+' × '+art.height+' px (public preview source)';$('digital-consent').checked=false;const forSale=art.digital_available!==false;$('digital-consent').closest('.consent').hidden=!forSale;const label=$('dialog-price-label');label.textContent=forSale?'Digital edition':'Gallery preview · Not yet for sale';if(forSale){const strong=document.createElement('strong');strong.textContent='€'+(art.price_cents/100).toFixed(0);label.appendChild(strong)}$('checkout-help').textContent=forSale?'Secure checkout by Stripe · The full-size file is not publicly accessible.':'This work is displayed for viewing. No paid download or physical edition has been configured.';updateBuy();fillRelated(art);const url=printLinkFor(art);$('print-link').hidden=!url;$('print-placeholder').hidden=!!url;if(url)$('print-link').href=url;
   if(push&&location.pathname!==detailHref(art))history.pushState({art:art.id},'',detailHref(art));
   const dialog=$('art-dialog');if(!dialog.open)dialog.showModal();document.title=art.title+' — Freddy Bremseth Art';}
- function closeArt(){const dialog=$('art-dialog');if(dialog.open)dialog.close()}
+ function closeArt(){const lightbox=$('art-zoom-dialog');if(lightbox.open)lightbox.close();const dialog=$('art-dialog');if(dialog.open)dialog.close()}
  async function beginCheckout(){if(!state.selected||state.selected.digital_available===false)return;if(!$('digital-consent').checked){showToast(text('agree'));return}const btn=$('checkout-button');btn.disabled=true;btn.textContent=state.lang==='no'?'Starter betaling…':'Starting checkout…';try{const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:state.selected.id,digital_consent:true})});const data=await res.json();if(!res.ok||!safeLink(data.url)||!data.url.startsWith('https://checkout.stripe.com/'))throw Error(data.error||'Checkout unavailable');location.assign(data.url)}catch(e){showToast(text('checkoutError'));updateBuy()}}
  async function verifyPurchase(sessionId){const dialog=$('purchase-dialog');if(!dialog.open)dialog.showModal();$('purchase-status').textContent=text('pending');$('download-link').hidden=true;$('purchase-retry').hidden=true;try{const r=await fetch('/api/confirm-download?session_id='+encodeURIComponent(sessionId),{headers:{'Accept':'application/json'}});const data=await r.json();if(!r.ok){if(data.payment_verified){$('purchase-status').textContent=text('fileMissing')}else $('purchase-status').textContent=data.error||text('failed');$('purchase-retry').hidden=false;return}if(!safeLink(data.download_url))throw new Error('Invalid download URL');$('purchase-title').textContent=data.title||'Your artwork is ready.';$('purchase-status').textContent=text('paid');$('download-link').href=data.download_url;$('download-link').hidden=false;$('download-link').textContent=text('download')}catch{$('purchase-status').textContent=text('failed');$('purchase-retry').hidden=false}}
  async function init(){
@@ -143,6 +172,12 @@
   $('art-search').value='';$('art-sort').value='collection';$('style-filter').value='all';$('orientation-filter').value='all';$('motif-filter').value='all';$('colour-filter').value='all';$('price-filter').value='all';render()});
  $('load-more').addEventListener('click',()=>{state.count+=18;render()});
  $('digital-consent').addEventListener('change',updateBuy);
+ $('art-zoom-trigger').addEventListener('click',openZoom);
+ $('zoom-in').addEventListener('click',()=>setZoom(zoom+.5));
+ $('zoom-out').addEventListener('click',()=>setZoom(zoom-.5));
+ $('zoom-reset').addEventListener('click',()=>setZoom(1));
+ $('zoom-close').addEventListener('click',()=>$('art-zoom-dialog').close());
+ $('art-zoom-dialog').addEventListener('click',event=>{if(event.target===$('art-zoom-dialog'))event.currentTarget.close()});
  $('checkout-button').addEventListener('click',beginCheckout);
  for(const button of document.querySelectorAll('#art-dialog .dialog-close'))button.addEventListener('click',()=>closeArt());$('art-dialog').addEventListener('close',()=>{if(currentSlug()){history.replaceState({},'','/');document.title='Freddy Bremseth Art — Art that stays with you'}});$('art-dialog').addEventListener('click',e=>{if(e.target===$('art-dialog'))closeArt()});$('purchase-close').addEventListener('click',()=>$('purchase-dialog').close());$('purchase-retry').addEventListener('click',()=>{const id=new URLSearchParams(location.search).get('session_id');if(id)verifyPurchase(id)});addEventListener('popstate',()=>{const slug=currentSlug();const art=state.art.find(a=>a.id===slug);if(art)openArt(art,false);else closeArt()});
  init();

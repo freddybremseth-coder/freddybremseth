@@ -6,7 +6,7 @@ import path from 'node:path';
 // source manifests in the project root, never in the published directory.
 const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'public');
-const publicDirectories = ['assets', 'legal', 'verk'];
+const publicDirectories = ['assets', 'legal', 'verk', 'collections'];
 const publicFiles = ['index.html', 'robots.txt', 'sitemap.xml'];
 
 fs.rmSync(output, { recursive: true, force: true });
@@ -30,9 +30,16 @@ for (const item of catalog) {
     throw Error('Missing published page or preview: ' + item.id);
   }
 }
+const curated = JSON.parse(fs.readFileSync(path.join(root, 'assets/collections.json'), 'utf8'));
+for (const collection of curated.collections) {
+  const page = path.join(output, 'collections', collection.id, 'index.html');
+  if (!fs.existsSync(page) || !fs.readFileSync(page, 'utf8').includes('<h1>' + collection.name.replaceAll('&','&amp;') + '</h1>')) {
+    throw Error('Missing or incorrect published collection page: ' + collection.id);
+  }
+}
 if (fs.existsSync(path.join(output, 'api')) ||
     fs.existsSync(path.join(output, 'scripts')) ||
     fs.existsSync(path.join(output, 'private-originals'))) {
   throw Error('Non-public application files entered the static output');
 }
-console.log('PASS: Vercel public output contains ' + catalog.length + ' artwork pages and previews; server files excluded');
+console.log('PASS: Vercel public output contains ' + catalog.length + ' artwork pages, '+curated.collections.length+' dedicated collection pages and previews; server files excluded');
