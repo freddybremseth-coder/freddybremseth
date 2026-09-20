@@ -55,7 +55,7 @@ try:
   z=args.kintsugi_zip
   if z not in archives:archives[z]=zipfile.ZipFile(z)
   for n,slug in enumerate(SLUGS,1):
-   tail='/retina_2x_jpg/'+f'{n:02d}_{slug}_2x.jpg'
+   tail='/retina_2x_jpg/'+f'{n:02d}_{slug.replace("-","_")}_2x.jpg'
    found=[x for x in archives[z].namelist() if ('/'+x).endswith(tail)]
    if len(found)!=1:raise FileNotFoundError(str(z)+' :: expected one '+tail)
    sources.append({'id':'kintsugi-2026-'+slug,'archive':z,'entry':found[0],
