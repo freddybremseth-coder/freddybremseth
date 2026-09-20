@@ -172,3 +172,35 @@ test('homepage hero image differs from every featured collection cover',()=>{
  }
  assert.ok(home.includes('<meta property="og:image" content="https://art.freddybremseth.com'+hero+'">'));
 });
+
+test('Drømmetrappen til månen retains the full original horizontal composition in all gallery views',()=>{
+ const art=artworks.find(item=>item.id==='drmmetrappen-til-manen');
+ assert.ok(art,'Original artwork must remain in the catalogue');
+ assert.equal(art.orientation,'Landscape');
+ const image=fs.readFileSync(path.join(root,art.image.replace(/^\//,'')));
+ const thumbnail=fs.readFileSync(path.join(root,art.thumb.replace(/^\//,'')));
+ const webpSize=bytes=>{
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  const frame=bytes.indexOf(Buffer.from([0x9d,0x01,0x2a]));
+  assert.ok(frame>=0,'Expected a valid VP8 frame header');
+  return [bytes.readUInt16LE(frame+3)&0x3fff,bytes.readUInt16LE(frame+5)&0x3fff];
+ };
+ assert.deepEqual(webpSize(image),[1480,740]);
+ assert.deepEqual(webpSize(thumbnail),[640,320]);
+ assert.equal(art.width,1480);
+ assert.equal(art.height,740);
+ const css=fs.readFileSync(path.join(root,'assets/css/site.css'),'utf8');
+ const js=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const page=fs.readFileSync(path.join(root,'verk',art.id,'index.html'),'utf8');
+ const collection=fs.readFileSync(path.join(root,'collections','human-condition','index.html'),'utf8');
+ assert.match(css,/\.art-card-landscape-feature[\s\S]*column-span:\s*all/);
+ assert.match(css,/\.art-card-landscape-feature \.art-photo img[\s\S]*object-fit:\s*contain/);
+ assert.match(css,/dialog\.landscape-artwork \.dialog-layout/);
+ assert.match(js,/art\.id==='drmmetrappen-til-manen'\?' art-card-landscape-feature'/);
+ assert.match(js,/dialog\.classList\.toggle\('landscape-artwork'/);
+ assert.match(page,/class="art-card art-card-landscape-feature"/);
+ assert.ok(collection.includes('class="art-card art-card-landscape-feature"'));
+ assert.ok(collection.includes('src="'+art.image+'"'),'The large landscape card must use the full public preview');
+ assert.ok(!collection.includes('src="'+art.thumb+'"'),'Do not upscale the tiny thumbnail to full panorama width');
+});
