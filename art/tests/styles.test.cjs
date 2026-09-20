@@ -69,3 +69,22 @@ test('new gallery previews have no advertised price or enabled paid checkout',()
  const previewOnly=artworks.filter(a=>a.digital_available===false);
  for(const art of previewOnly)assert.equal(art.price_cents,null);
 });
+
+test('retain the existing baroque artwork, exclude its renamed visual duplicate',()=>{
+ const exclusions=read('assets/duplicate-exclusions.json').removed_ids;
+ assert.ok(artworks.some(a=>a.id==='barokk-studie-med-musiker-og-vanitas-stilleben'));
+ assert.ok(!artworks.some(a=>a.id==='barokk-studie-med-musikk-og-maneskinn'));
+ assert.ok(exclusions.includes('barokk-studie-med-musikk-og-maneskinn'));
+});
+test('artwork titles use sentence-style capitalization except proper names',()=>{
+ const allowed=new Set(['Freddys','Mediterranean']);
+ for(const item of artworks){
+  assert.equal(typeof item.title,'string');
+  for(const token of item.title.trim().split(/\s+/).slice(1)){
+   const clean=token.replace(/^[^\p{L}]+|[^\p{L}]+$/gu,'');
+   if(clean && /^\p{Lu}/u.test(clean) && !allowed.has(clean)){
+     assert.fail('Unexpected middle-of-title uppercase: '+item.id+' ('+item.title+')');
+   }
+  }
+ }
+});
