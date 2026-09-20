@@ -45,6 +45,13 @@ if new_import_path.exists():
   if new_id in {a['id'] for a in catalog} and new_id not in assign:
    if new_style not in byid:raise ValueError('Unknown approved new style: '+new_style)
    assign[new_id]=new_style
+# The ten individual Kintsugi works are explicitly approved for Symbolic Realism.
+kintsugi_manifest=root/'assets/kintsugi-import-manifest.json'
+if kintsugi_manifest.exists():
+ for entry in json.loads(kintsugi_manifest.read_text(encoding='utf8')):
+  if entry['style_id']!='symbolic-realism':raise ValueError('Unexpected Kintsugi style')
+  if entry['id'] in {a['id'] for a in catalog} and entry['id'] not in assign:
+   assign[entry['id']]='symbolic-realism'
 actual={a['id'] for a in catalog}
 missing=actual-set(assign)
 extra=set(assign)-actual

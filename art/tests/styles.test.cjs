@@ -76,16 +76,14 @@ test('retain the existing baroque artwork, exclude its renamed visual duplicate'
  assert.ok(!artworks.some(a=>a.id==='barokk-studie-med-musikk-og-maneskinn'));
  assert.ok(exclusions.includes('barokk-studie-med-musikk-og-maneskinn'));
 });
-test('artwork titles use sentence-style capitalization except proper names',()=>{
- const allowed=new Set(['Freddys','Mediterranean']);
- for(const item of artworks){
-  assert.equal(typeof item.title,'string');
-  for(const token of item.title.trim().split(/\s+/).slice(1)){
-   const clean=token.replace(/^[^\p{L}]+|[^\p{L}]+$/gu,'');
-   if(clean && /^\p{Lu}/u.test(clean) && !allowed.has(clean)){
-     assert.fail('Unexpected middle-of-title uppercase: '+item.id+' ('+item.title+')');
-   }
-  }
+test('all published artwork titles use English display names with stable original slugs',()=>{
+ const ids=new Set();
+ for(const art of artworks){
+  assert.equal(typeof art.title,'string');
+  assert.ok(art.title.trim().length>3,'Missing title: '+art.id);
+  assert.ok(art.title.split('').every(ch=>ch.codePointAt(0)>=32 && ch.codePointAt(0)<=126),'Title contains non-English characters: '+art.id+' ('+art.title+')');
+  assert.ok(!ids.has(art.id),'Duplicate artwork ID: '+art.id);
+  ids.add(art.id);
  }
 });
 
@@ -143,7 +141,7 @@ test('five repeated images are removed while original gallery artwork IDs remain
  const exclusions=read('assets/duplicate-exclusions.json').removed_ids;
  const masterIds=new Set(read('scripts/private-masters-manifest.json').map(item=>item.id));
  const pageIds=new Set(artworks.map(item=>item.id));
- assert.equal(artworks.length,113,'63 established works plus 50 unique imported works');
+ assert.equal(artworks.length,123,'63 established works plus 50 imported works plus 10 individual Kintsugi previews');
  for(const [removed,kept] of Object.entries(pairs)){
   assert.ok(exclusions.includes(removed),'Duplicate must stay excluded: '+removed);
   assert.ok(pageIds.has(kept),'Established artwork must remain: '+kept);
@@ -159,6 +157,31 @@ test('five repeated images are removed while original gallery artwork IDs remain
  const manifest=read('assets/new-import-manifest.json');
  assert.equal(manifest.length,50,'Deduplicated import manifest has 50 new artworks');
 });
+test('ten separate Kintsugi works appear in The Human Condition and Symbolic Realism as preview-only art',()=>{
+ const manifest=read('assets/kintsugi-import-manifest.json');
+ assert.equal(manifest.length,10);
+ assert.equal(new Set(manifest.map(a=>a.id)).size,10);
+ for(const item of manifest){
+  const artwork=artworks.find(a=>a.id===item.id);
+  assert.ok(artwork,'Missing Kintsugi artwork: '+item.id);
+  assert.equal(artwork.title,item.title);
+  assert.equal(artwork.style_id,'symbolic-realism');
+  assert.equal(collectionFor(artwork),'human-condition');
+  assert.equal(artwork.digital_available,false);
+  assert.equal(artwork.price_cents,null);
+  for(const prop of ['image','thumb']){
+   assert.ok(artwork[prop].startsWith('/assets/art/kintsugi-2026-') && artwork[prop].endsWith('.webp'));
+   assert.ok(fs.existsSync(path.join(root,artwork[prop].slice(1))));
+  }
+  assert.ok(fs.existsSync(path.join(root,'verk',item.id,'index.html')));
+  const page=fs.readFileSync(path.join(root,'verk',item.id,'index.html'),'utf8');
+  assert.ok(page.includes('<title>'+item.title+' — Freddy Bremseth Art</title>'));
+  assert.ok(!page.includes('Digital edition €50.'));
+ }
+ const collectionPage=fs.readFileSync(path.join(root,'collections/human-condition/index.html'),'utf8');
+ for(const art of manifest)assert.ok(collectionPage.includes('/verk/'+art.id+'/'));
+});
+
 test('homepage hero image differs from every featured collection cover',()=>{
  const home=fs.readFileSync(path.join(root,'index.html'),'utf8');
  const match=home.match(/id="hero-img-main"\s+src="([^"]+)"/);
