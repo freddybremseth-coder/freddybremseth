@@ -1,21 +1,55 @@
 {
   "routes": [
     {
-      "has": [{ "type": "host", "value": "books.freddybremseth.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
       "src": "/assets/(.*)",
       "dest": "/books/assets/$1"
     },
     {
-      "has": [{ "type": "host", "value": "books.freddybremseth.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
       "src": "/(sitemap\\.xml|robots\\.txt)",
       "dest": "/books/$1"
     },
     {
-      "has": [{ "type": "host", "value": "books.freddybremseth.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/(en|es)/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants)/?",
+      "dest": "/books/seo/$1/$2.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants)/?",
+      "dest": "/books/seo/no/$1.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
       "src": "/(.*)",
       "dest": "/books/index.html"
     },
-
     {
       "src": "/",
       "dest": "/home.html"
@@ -27,7 +61,9 @@
     {
       "src": "/book",
       "status": 308,
-      "headers": { "Location": "/avtale" }
+      "headers": {
+        "Location": "/avtale"
+      }
     },
     {
       "src": "/avtale",
@@ -36,7 +72,9 @@
     {
       "src": "/forfatter(\\.html)?",
       "status": 308,
-      "headers": { "Location": "https://books.freddybremseth.com/" }
+      "headers": {
+        "Location": "https://books.freddybremseth.com/"
+      }
     },
     {
       "src": "/(.*)",
