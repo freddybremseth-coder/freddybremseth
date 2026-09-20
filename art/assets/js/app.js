@@ -1,6 +1,6 @@
 (()=>{'use strict';
  const $=id=>document.getElementById(id);
- const state={art:[],styles:[],collections:[],filtered:[],count:18,category:'all',style:'all',orientation:'all',price:'all',search:'',sort:'collection',selected:null,lang:'en',checkout:false,print:{byArtworkId:{},defaultPrintUrl:''}};
+ const state={art:[],styles:[],collections:[],filtered:[],count:18,category:'all',style:'all',orientation:'all',motif:'all',colour:'all',price:'all',search:'',sort:'collection',selected:null,lang:'en',checkout:false,print:{byArtworkId:{},defaultPrintUrl:''}};
  const copy={en:{all:'All styles',loading:'Loading the gallery…',results:'artworks',more:'View more artworks ↓',buy:'Buy digital edition · €50 ↗',unavailable:'Digital checkout opening soon',agree:'Please accept the digital delivery terms first.',checkoutError:'Checkout is temporarily unavailable. No payment was taken.',pending:'Confirming your payment…',paid:'Payment confirmed. Your download is available below.',failed:'This payment has not yet been confirmed. You have not been charged by this page.',fileMissing:'Your payment was verified, but the file is not yet ready. Please keep the Stripe confirmation link and contact the gallery.',download:'Download artwork ↓'},no:{all:'Alle stiler',loading:'Laster galleriet…',results:'kunstverk',more:'Vis flere kunstverk ↓',buy:'Kjøp digital utgave · €50 ↗',unavailable:'Digital betaling åpner snart',agree:'Godta vilkårene for digital levering først.',checkoutError:'Betaling er midlertidig utilgjengelig. Ingen betaling er gjennomført.',pending:'Kontrollerer betalingen…',paid:'Betalingen er bekreftet. Du kan laste ned kunstverket.',failed:'Betalingen er ennå ikke bekreftet. Du er ikke belastet av denne siden.',fileMissing:'Betalingen er bekreftet, men filen er ennå ikke tilgjengelig. Ta vare på Stripe-lenken og kontakt galleriet.',download:'Last ned kunstverket ↓'}};
  const text=key=>copy[state.lang][key];
  const showToast=s=>{const node=$('toast');node.textContent=s;node.classList.add('on');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>node.classList.remove('on'),4600)};
@@ -34,6 +34,23 @@
    text.append(title,intro,total);button.append(image,text);button.addEventListener('click',()=>setCollection(collection.id));cardsHost.appendChild(button);
   }
  }
+ // Selective discovery cues. Only label motifs and palettes supported by artwork titles.
+ // An untagged artwork still appears in its collection and in "All" results.
+ function cuesFor(art){
+  const id=art.id;
+  const motifs=[];
+  if(/kvinne|ansikt|portrett|dronning|gudinne|barn|byste|musiker|kyss|menneske|skikkelse|vandreren/.test(id))motifs.push('people');
+  if(/hav|sol|landskap|innsj|fjord|hage|kyst|terrasse|blomst|natur|botanisk|vann|elven|leopard|svaner/.test(id))motifs.push('nature');
+  if(/portal|drer|doren|katedral|kafe|kabinett|vindu|speil|trapp|stigen/.test(id))motifs.push('architecture');
+  if(art.style_id==='abstract')motifs.push('abstract');
+  const colours=[];
+  if(/gull|gyld|forgylt|solnedgang|terrakotta/.test(id))colours.push('gold');
+  if(/bla|hav|fjord|vann|innsj|kyst/.test(id))colours.push('blue');
+  if(/graffiti|fargerik|neon|malerstorm|gatekunst/.test(id))colours.push('vivid');
+  if(/grnt|botanisk|blomst|natur/.test(id))colours.push('green');
+  if(/jord|sediment|teksturert|marmor/.test(id))colours.push('earth');
+  return {motifs,colours};
+ }
  function priceMatches(art){
   if(state.price==='all')return true;
   const value=art.price_cents/100;
@@ -48,6 +65,8 @@
   state.filtered=state.art.filter(art=>(!collection||art.collection_id===collection.id)
    &&(state.style==='all'||art.style_id===state.style)
    &&(state.orientation==='all'||art.orientation===state.orientation)
+   &&(state.motif==='all'||cuesFor(art).motifs.includes(state.motif))
+   &&(state.colour==='all'||cuesFor(art).colours.includes(state.colour))
    &&priceMatches(art)
    &&(!state.search||(art.title+' '+art.category+' '+art.story+' '+art.style_description+' '+collectionName(art)).toLocaleLowerCase().includes(state.search)));
   const grid=$('gallery');grid.replaceChildren();
@@ -55,10 +74,10 @@
   grid.classList.toggle('gallery-grouped',grouped);
   for(const chip of $('categories').querySelectorAll('.chip')){const active=chip.dataset.category===state.category;chip.classList.toggle('active',active);chip.setAttribute('aria-pressed',String(active))}
   $('result-count').textContent=state.filtered.length+' artworks'+(collection?' · '+collection.name:grouped?' · four signature collections + studio archive':'');
-  $('active-style-description').textContent=collection?collection.description:'Four signature collections plus our studio archive. Further refine with style, orientation, price or a title search.';
+  $('active-style-description').textContent=collection?collection.description:'Four signature collections plus our studio archive. Refine by style, motif, selective colour cues, orientation, price or title.';
   $('load-more').hidden=true;
   if(grouped){
-   const narrowed=!!(state.search||state.style!=='all'||state.orientation!=='all'||state.price!=='all');
+   const narrowed=!!(state.search||state.style!=='all'||state.orientation!=='all'||state.motif!=='all'||state.colour!=='all'||state.price!=='all');
    for(const entry of state.collections){
     const works=state.filtered.filter(a=>a.collection_id===entry.id);if(!works.length)continue;
     const section=document.createElement('section');section.className='style-group';section.id='collection-'+entry.id;section.setAttribute('aria-label',entry.name);
@@ -116,9 +135,11 @@
  $('art-sort').addEventListener('change',event=>{state.sort=event.target.value;state.count=18;render()});
  $('style-filter').addEventListener('change',event=>{state.style=event.target.value;state.count=18;render()});
  $('orientation-filter').addEventListener('change',event=>{state.orientation=event.target.value;state.count=18;render()});
+ $('motif-filter').addEventListener('change',event=>{state.motif=event.target.value;state.count=18;render()});
+ $('colour-filter').addEventListener('change',event=>{state.colour=event.target.value;state.count=18;render()});
  $('price-filter').addEventListener('change',event=>{state.price=event.target.value;state.count=18;render()});
- $('clear-filters').addEventListener('click',()=>{state.category='all';state.style='all';state.orientation='all';state.price='all';state.search='';state.sort='collection';state.count=18;
-  $('art-search').value='';$('art-sort').value='collection';$('style-filter').value='all';$('orientation-filter').value='all';$('price-filter').value='all';render()});
+ $('clear-filters').addEventListener('click',()=>{state.category='all';state.style='all';state.orientation='all';state.motif='all';state.colour='all';state.price='all';state.search='';state.sort='collection';state.count=18;
+  $('art-search').value='';$('art-sort').value='collection';$('style-filter').value='all';$('orientation-filter').value='all';$('motif-filter').value='all';$('colour-filter').value='all';$('price-filter').value='all';render()});
  $('load-more').addEventListener('click',()=>{state.count+=18;render()});
  $('digital-consent').addEventListener('change',updateBuy);
  $('checkout-button').addEventListener('click',beginCheckout);
