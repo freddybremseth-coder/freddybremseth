@@ -57,3 +57,15 @@ test('gallery controls use curated collections without inventing physical checko
  assert.match(html,/Physical prints and unique hand-finished works are not yet on sale/);
  assert.ok(!html.includes('€5,000 original'));
 });
+
+test('new gallery previews have no advertised price or enabled paid checkout',()=>{
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const checkout=fs.readFileSync(path.join(root,'api/create-checkout.js'),'utf8');
+ assert.match(html,/id="dialog-price-label"/);
+ assert.match(app,/digital_available===false/);
+ assert.match(app,/Edition not yet available/);
+ assert.match(checkout,/art\.digital_available===false/);
+ const previewOnly=artworks.filter(a=>a.digital_available===false);
+ for(const art of previewOnly)assert.equal(art.price_cents,null);
+});
