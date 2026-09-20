@@ -153,3 +153,72 @@ dialog.art-zoom-dialog{width:min(1320px,96vw);height:min(94vh,1050px);max-width:
  .zoom-tools button{min-width:35px}
 }
 @media(prefers-reduced-motion:reduce){.collection-tile,.collection-tile img,.collection-landing .art-card img{transition:none!important}}
+
+
+/* Drømmetrappen til månen is an original horizontal panorama. Let it span
+   the narrow masonry columns, without cropping, rotating or distorting it. */
+.gallery-grid .art-card-landscape-feature {
+  column-span: all;
+  break-inside: avoid;
+  width: 100%;
+  max-width: 1180px;
+  margin: 8px auto 48px;
+}
+.gallery-grid .art-card-landscape-feature .art-photo {
+  display: block;
+  aspect-ratio: 2 / 1;
+  background: #dfd8cb;
+}
+.gallery-grid .art-card-landscape-feature .art-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: contain;
+}
+.gallery-grid .art-card-landscape-feature .art-card-meta {
+  padding-top: 15px;
+}
+dialog.landscape-artwork {
+  max-width: min(1480px, 96vw);
+  width: min(1480px, 96vw);
+}
+dialog.landscape-artwork .dialog-layout {
+  grid-template-columns: minmax(0, 68%) minmax(0, 32%);
+}
+dialog.landscape-artwork .dialog-photo {
+  min-width: 0;
+}
+dialog.landscape-artwork .dialog-photo img {
+  width: 100%;
+  height: auto;
+  max-height: 85vh;
+  object-fit: contain;
+}
+@media(max-width:760px){
+  .gallery-grid .art-card-landscape-feature {
+    max-width: 100%;
+    margin: 0 auto 32px;
+  }
+  .gallery-grid .art-card-landscape-feature .art-title {
+    font-size: 21px;
+  }
+  dialog.landscape-artwork {
+    max-width: 95vw;
+    width: 95vw;
+  }
+  dialog.landscape-artwork .dialog-layout {
+    display: block;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  dialog.landscape-artwork .dialog-photo {
+    min-height: 0;
+    max-height: 60vh;
+  }
+  dialog.landscape-artwork .dialog-photo img {
+    height: auto;
+    max-height: 60vh;
+    max-width: 100%;
+  }
+}
