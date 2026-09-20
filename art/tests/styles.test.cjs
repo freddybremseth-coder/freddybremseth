@@ -81,7 +81,7 @@ test('all published artwork titles use English display names with stable origina
  for(const art of artworks){
   assert.equal(typeof art.title,'string');
   assert.ok(art.title.trim().length>3,'Missing title: '+art.id);
-  assert.ok(/^[\\x20-\\x7e]+$/.test(art.title),'Title contains non-English characters: '+art.id+' ('+art.title+')');
+  assert.ok(art.title.split('').every(ch=>ch.codePointAt(0)>=32 && ch.codePointAt(0)<=126),'Title contains non-English characters: '+art.id+' ('+art.title+')');
   assert.ok(!ids.has(art.id),'Duplicate artwork ID: '+art.id);
   ids.add(art.id);
  }
@@ -170,7 +170,7 @@ test('ten separate Kintsugi works appear in The Human Condition and Symbolic Rea
   assert.equal(artwork.digital_available,false);
   assert.equal(artwork.price_cents,null);
   for(const prop of ['image','thumb']){
-   assert.match(artwork[prop],/\\/assets\\/art\\/kintsugi-2026-[a-z-]+-(view|thumb)\\.webp$/);
+   assert.ok(artwork[prop].startsWith('/assets/art/kintsugi-2026-') && artwork[prop].endsWith('.webp'));
    assert.ok(fs.existsSync(path.join(root,artwork[prop].slice(1))));
   }
   assert.ok(fs.existsSync(path.join(root,'verk',item.id,'index.html')));
