@@ -404,5 +404,24 @@
       '</div></section>';
   }
 
+  // A remote /api/cover image may fail when storage is unavailable. Show the
+  // book title instead of the browser's broken-image icon; never substitute
+  // artwork from another book or imply that a missing cover has been published.
+  document.addEventListener('error', function (event) {
+    var img = event.target;
+    if (!img || img.tagName !== 'IMG' || !img.closest) return;
+    var selector = '.book-cell .cover img, .detail .cover img, .gallery-item img, .series-card .top img, .featured img';
+    if (!img.matches(selector)) return;
+    var parent = img.parentElement;
+    if (!parent) return;
+    var fallback = document.createElement('span');
+    fallback.className = 'ph book-cover-fallback';
+    fallback.textContent = img.alt || 'Freddy Bremseth';
+    if (parent.classList.contains('top')) parent.classList.add('placeholder');
+    if (parent.classList.contains('gallery-item')) parent.classList.add('has-cover-fallback');
+    if (parent.closest('.featured')) parent.classList.add('featured-cover-fallback');
+    img.replaceWith(fallback);
+  }, true);
+
   document.addEventListener('DOMContentLoaded', render);
 })();
