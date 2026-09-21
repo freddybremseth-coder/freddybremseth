@@ -27,7 +27,7 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/(en|es)/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants)/?",
+      "src": "/(en|es)/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants|birokt-og-oliven|fra-jord-til-bord|polyfenolens-kraft)/?",
       "dest": "/books/seo/$1/$2.html"
     },
     {
@@ -37,7 +37,7 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants)/?",
+      "src": "/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants|birokt-og-oliven|fra-jord-til-bord|polyfenolens-kraft)/?",
       "dest": "/books/seo/no/$1.html"
     },
     {
