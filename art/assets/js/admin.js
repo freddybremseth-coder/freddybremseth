@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const cfg=window.ART_GALLERY_CONFIG;
-const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],queue:[],busy:false};
+const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
 const MAX_FILE=50*1024*1024,MAX_ZIP=250*1024*1024,MAX_ITEMS=30;
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,75);
@@ -140,13 +140,17 @@ async function verifyAdmin(){
  await loadCatalogue();status('Administrator access verified. Ready for files.');
 }
 async function loadCatalogue(){
- const [styles,curation,works]=await Promise.all([
+ const [styles,curation,works,variants]=await Promise.all([
  fetch('/assets/styles.json').then(r=>r.json()),fetch('/assets/collections.json').then(r=>r.json()),
- api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000')
+ api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
+ api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000')
  ]);
- state.styles=styles;state.collections=curation.collections;state.works=works;
+ state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;
  for(const [element,entries] of [['collection-default',state.collections],['style-default',state.styles]]){
- const select=$(element);for(const entry of entries){const o=new Option(entry.name,entry.id);select.add(o)}
+ const select=$(element),current=select.value;
+ select.replaceChildren(new Option(element==='collection-default'?'Choose a collection…':'Choose an artistic style…',''));
+ for(const entry of entries){const o=new Option(entry.name,entry.id);select.add(o)}
+ if(current)select.value=current;
  }
  $('catalog-count').textContent=state.works.length;renderCatalogue();
 }
@@ -156,10 +160,80 @@ function renderCatalogue(){
  for(const work of matches){
   const el=document.createElement('div');el.className='catalog-item';
   const src=work.public_thumb_path?publicImage(work.public_thumb_path):work.legacy_thumb_url||'';
-  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+'</small></span>';
-  const button=document.createElement('button');button.type='button';button.textContent='Edit category';button.addEventListener('click',()=>editWork(work));el.append(button);$('catalog-list').append(el);
+  const link=state.variants.find(v=>v.variant_id===work.id),children=state.variants.filter(v=>v.primary_id===work.id);
+  const relation=link?' · Variant of '+(state.works.find(w=>w.id===link.primary_id)?.title_en||link.primary_id):children.length?' · Main artwork · '+children.length+' variant(s)':'';
+  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small></span>';
+  const button=document.createElement('button');button.type='button';button.textContent='Edit category';button.addEventListener('click',()=>editWork(work));el.append(button);const variantsButton=document.createElement('button');variantsButton.type='button';variantsButton.textContent=link?'Change variant':children.length?'Manage '+children.length+' variants':'Group as variant';variantsButton.addEventListener('click',()=>manageVariant(work));el.append(variantsButton);$('catalog-list').append(el);
  }
  if(matches.length===0)$('catalog-list').textContent='No matching artworks.';
+}
+function isVariant(id){return state.variants.some(row=>row.variant_id===id)}
+function isPrimary(id){return state.variants.some(row=>row.primary_id===id)}
+function sameCollectionPrimaries(work){
+ return state.works.filter(main=>main.id!==work.id&&main.collection_id===work.collection_id
+  &&main.published&&!isVariant(main.id)&&!main.digital_available);
+}
+function manageVariant(work){
+ if(!state.authorized)return;
+ const current=state.variants.find(row=>row.variant_id===work.id);
+ const owned=state.variants.filter(row=>row.primary_id===work.id);
+ const panel=document.createElement('div');panel.className='panel variant-editor';
+ const heading=document.createElement('h2');heading.textContent='Variations · '+work.title_en;
+ const expl=document.createElement('p');expl.textContent='You decide which artworks belong together. The main artwork stays in the public gallery; each variation is preserved in Supabase and can be viewed when the artwork is opened.';
+ panel.append(heading,expl);
+ const preview=document.createElement('div');preview.className='variant-compare';
+ const candidate=document.createElement('img');candidate.alt='Selected artwork: '+work.title_en;
+ candidate.src=work.public_thumb_path?publicImage(work.public_thumb_path):work.legacy_thumb_url||'';
+ const selectedPreview=document.createElement('img');selectedPreview.alt='Chosen main artwork';
+ preview.append(candidate,selectedPreview);panel.append(preview);
+ if(owned.length){
+  const info=document.createElement('p');info.textContent='This is a main artwork with '+owned.length+' existing variation(s). To make it a variant, unlink those versions first.';
+  panel.append(info);
+  for(const child of owned){
+   const childWork=state.works.find(w=>w.id===child.variant_id);
+   const item=document.createElement('div');item.className='variant-owned';
+   const thumb=document.createElement('img');thumb.alt='';thumb.src=childWork?.public_thumb_path?publicImage(childWork.public_thumb_path):childWork?.legacy_thumb_url||'';
+   const title=document.createElement('span');title.textContent=childWork?.title_en||child.variant_id;
+   const unlink=document.createElement('button');unlink.type='button';unlink.textContent='Show separately';
+   unlink.addEventListener('click',async()=>{try{
+    if(!confirm('Show this artwork separately in the public gallery again? Its files will be preserved.'))return;
+    await api('/rest/v1/art_gallery_variants?variant_id=eq.'+encodeURIComponent(child.variant_id),{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await loadCatalogue();panel.remove();status('Artwork restored to its own gallery card.');
+   }catch(e){status(e.message,true)}});
+   item.append(thumb,title,unlink);panel.append(item);
+  }
+ }
+ if(!owned.length){
+  const options=sameCollectionPrimaries(work);
+  const label=document.createElement('label');label.textContent='Main artwork (same collection)';
+  const select=document.createElement('select');select.add(new Option('Show this artwork separately',''));
+  for(const main of options)select.add(new Option(main.title_en,main.id));
+  select.value=current?.primary_id||'';
+  const currentLabel=document.createElement('p');currentLabel.className='subtle';
+  currentLabel.textContent=current?'Currently grouped as a variation. Choose another main artwork or show separately.':'Not grouped. Choose the main artwork that should appear in the public grid.';
+  const showPreview=()=>{const main=state.works.find(w=>w.id===select.value);
+   selectedPreview.hidden=!main;selectedPreview.src=main?(main.public_thumb_path?publicImage(main.public_thumb_path):main.legacy_thumb_url||''):'';
+  };
+  select.addEventListener('change',showPreview);showPreview();label.append(select);panel.append(label,currentLabel);
+  const save=document.createElement('button');save.className='primary';save.type='button';save.textContent='Save my variant choice';
+  save.addEventListener('click',async()=>{
+   try{
+    if(select.value===current?.primary_id){panel.remove();status('Variant group unchanged.');return}
+    if(!select.value&&!current){panel.remove();status('Artwork remains a separate gallery entry.');return}
+    if(!confirm(select.value?'Group this artwork under the chosen main artwork? Nothing will be deleted.':'Show this artwork separately on the gallery again?'))return;
+    if(select.value){
+     const parent=state.works.find(w=>w.id===select.value);
+     if(!parent||parent.collection_id!==work.collection_id||parent.digital_available||isVariant(parent.id))throw Error('Choose a valid stand-alone main artwork in the same collection.');
+     const record={variant_id:work.id,primary_id:parent.id,sort_order:state.variants.filter(row=>row.primary_id===parent.id).length+1};
+     if(current)await api('/rest/v1/art_gallery_variants?variant_id=eq.'+encodeURIComponent(work.id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({primary_id:record.primary_id,sort_order:record.sort_order})});
+     else await api('/rest/v1/art_gallery_variants',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
+    }else await api('/rest/v1/art_gallery_variants?variant_id=eq.'+encodeURIComponent(work.id),{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await loadCatalogue();panel.remove();status('Variant grouping saved. The gallery will display your manually selected main artwork.');
+   }catch(e){status(e.message,true)}
+  });panel.append(save);
+ }
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Close';cancel.addEventListener('click',()=>panel.remove());panel.append(cancel);
+ $('catalog-list').prepend(panel);panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function publicImage(objectPath){return cfg.url+'/storage/v1/object/public/art-previews/'+objectPath.split('/').map(encodeURIComponent).join('/')}
 function editWork(work){
@@ -171,6 +245,7 @@ function editWork(work){
  const save=document.createElement('button');save.className='primary';save.textContent='Save title and chosen categories';save.addEventListener('click',async()=>{
   try{if(!collection.value||!style.value||!title.value.trim())throw Error('Title, collection and style are required');
    if(work.digital_available)throw Error('Existing active sale editions require a separate approved update.');
+   if(work.collection_id!==collection.value&&(isVariant(work.id)||isPrimary(work.id)))throw Error('Separate this artwork from its variant group before changing its collection.');
    await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(work.id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({title_en:title.value.trim(),collection_id:collection.value,style_id:style.value,source:'admin-edit'})});
    work.title_en=title.value.trim();work.collection_id=collection.value;work.style_id=style.value;prompt.remove();renderCatalogue();status('Updated '+work.title_en+'; the live gallery will use your new categories.');
   }catch(e){status(e.message,true)}
