@@ -34,6 +34,7 @@ const footer='<footer class="footer"><div class="footer-top"><a class="footer-br
 const notes={
   'human-condition':'Stories about connection, resilience and the feelings that shape our choices.',
   'words-that-matter':'Expressive street-inspired art where form, colour and imagery carry a message.',
+  'symbolic-street-art':'A meeting of symbolic figures, expressive urban imagery and words that carry feeling.',
   'mediterranean-soul':'Imagined coasts, warm light and atmospheric landscapes rather than documented locations.',
   'earth-and-emotion':'Botanical forms, grounded palettes and tactile-looking digital compositions.',
   'studio-archive':'A wider selection of historical and stylistic studies from the digital studio.'

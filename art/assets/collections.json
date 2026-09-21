@@ -15,6 +15,13 @@
       "featured": true
     },
     {
+      "id": "symbolic-street-art",
+      "name": "Symbolic Street Art",
+      "description": "Symbolic realism meets street art and pop-art energy: layered imagery, bold words and stories of vulnerability, resilience and hope.",
+      "cover": "/assets/art/kongelig-gatekunst-hap-smerte-og-kjrlighet-thumb.webp",
+      "featured": true
+    },
+    {
       "id": "mediterranean-soul",
       "name": "Mediterranean Soul",
       "description": "Warm light, coastlines, terraces and imagined Mediterranean atmospheres. These are artistic interpretations, not specific documented locations.",
@@ -47,7 +54,8 @@
     "impressionism": "mediterranean-soul",
     "renaissance-baroque": "studio-archive",
     "art-nouveau": "studio-archive",
-    "cubism": "studio-archive"
+    "cubism": "studio-archive",
+    "symbolic-street-art": "symbolic-street-art"
   },
   "byArtworkId": {
     "gylden-sol-over-stille-hav": "mediterranean-soul",
@@ -61,6 +69,9 @@
     "manenymfen-ved-innsjen": "studio-archive",
     "maneskinnets-fortryllede-blomstersti": "studio-archive",
     "en-roligere-lysere-verden": "human-condition",
-    "paradis-over-plast-freddys-dystre-vannlinje": "human-condition"
+    "paradis-over-plast-freddys-dystre-vannlinje": "human-condition",
+    "fargerikt-portrett-av-motstandskraft": "symbolic-street-art",
+    "kongelig-gatekunst-hap-smerte-og-kjrlighet": "symbolic-street-art",
+    "modig-dronning-i-fargerik-gatekunst": "symbolic-street-art"
   }
 }

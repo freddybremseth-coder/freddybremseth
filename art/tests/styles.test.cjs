@@ -11,7 +11,7 @@ const collectionFor=art=>curation.byArtworkId[art.id]||curation.byStyle[art.styl
 test('every unique artwork retains its existing style',()=>{
  assert.ok(artworks.length>=63);
  assert.equal(new Set(artworks.map(a=>a.id)).size,artworks.length);
- assert.equal(styles.length,11);
+ assert.equal(styles.length,12);
  for(const art of artworks){
   const style=styles.find(s=>s.id===art.style_id);
   assert.ok(style,'Missing style: '+art.id);
@@ -23,11 +23,11 @@ test('every unique artwork retains its existing style',()=>{
   assert.ok(style.count>0);
  }
 });
-test('four featured collections and the separate studio archive cover every existing artwork',()=>{
- assert.equal(curation.collections.filter(c=>c.featured).length,4);
- assert.equal(curation.collections.length,5);
+test('five featured collections and the separate studio archive cover every existing artwork',()=>{
+ assert.equal(curation.collections.filter(c=>c.featured).length,5);
+ assert.equal(curation.collections.length,6);
  assert.deepEqual(curation.collections.filter(c=>c.featured).map(c=>c.id),[
-  'human-condition','words-that-matter','mediterranean-soul','earth-and-emotion'
+  'human-condition','words-that-matter','symbolic-street-art','mediterranean-soul','earth-and-emotion'
  ]);
  assert.equal(curation.collections.find(c=>c.id==='studio-archive').featured,false);
  assert.ok(artworks.every(art=>curation.collections.some(c=>c.id===collectionFor(art))));
@@ -87,7 +87,7 @@ test('all published artwork titles use English display names with stable origina
  }
 });
 
-test('five dedicated collections have complete indexable, mobile-friendly static pages',()=>{
+test('six dedicated collections have complete indexable, mobile-friendly static pages',()=>{
  const sitemap=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
  const homepage=fs.readFileSync(path.join(root,'index.html'),'utf8');
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
@@ -226,4 +226,18 @@ test('Drømmetrappen til månen retains the full original horizontal composition
  assert.ok(collection.includes('class="art-card art-card-landscape-feature"'));
  assert.ok(collection.includes('src="'+art.image+'"'),'The large landscape card must use the full public preview');
  assert.ok(!collection.includes('src="'+art.thumb+'"'),'Do not upscale the tiny thumbnail to full panorama width');
+});
+
+test('Symbolic Street Art appears as a distinct navigable art style and curated collection',()=>{
+ const style=styles.find(s=>s.id==='symbolic-street-art');
+ const collection=curation.collections.find(c=>c.id==='symbolic-street-art');
+ assert.equal(style.name,'Symbolic Street Art');
+ assert.equal(style.count,3);
+ assert.equal(collection.featured,true);
+ for(const id of ["fargerikt-portrett-av-motstandskraft","kongelig-gatekunst-hap-smerte-og-kjrlighet","modig-dronning-i-fargerik-gatekunst"]){
+  const art=artworks.find(a=>a.id===id);
+  assert.equal(art.style_id,style.id);
+  assert.equal(collectionFor(art),collection.id);
+ }
+ assert.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('href="/collections/symbolic-street-art/"'));
 });

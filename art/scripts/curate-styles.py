@@ -13,6 +13,7 @@ styles=[
  {'id':'abstract','name':'Abstract & Minimalist','description':'Colour fields, material texture and distilled forms that create space for personal interpretation.'},
  {'id':'expressionism','name':'Expressionism','description':'Gesture, vivid contrast and energetic marks used to heighten emotional intensity.'},
  {'id':'street-art','name':'Street Art & Pop','description':'Layered paint, urban imagery and graphic collage with contemporary social references.'},
+ {'id':'symbolic-street-art','name':'Symbolic Street Art','description':'Emotion-led art combining realistic symbolism, expressive graffiti, layered urban textures and pop-art colour.'},
  {'id':'surrealism','name':'Surrealism & Dreamscapes','description':'Impossible architecture, thresholds and otherworldly scenes that follow the logic of dreams.'},
  {'id':'symbolic-realism','name':'Symbolic Realism','description':'Detailed figurative imagery where objects, gestures and contrasts suggest meanings beyond the visible.'},
  {'id':'conceptual','name':'Contemporary Conceptual','description':'Digital-era imagery that explores identity, technology, consumerism and modern social pressures.'},
@@ -30,7 +31,8 @@ setid('art-nouveau','''art-nouveau-dronning-med-iris-og-svaner art-nouveau-med-s
 setid('cubism','''kafe-i-kubistiske-minner kubistisk-kafe-med-drmmende-utsikt kubistisk-kafescene-med-gitar-og-stilleben kubistisk-kvinne-i-byens-stille-rom''')
 setid('abstract','''abstrakt-portal-i-jordtoner abstrakt-solnedgang-over-mykt-hav gylden-sol-over-stille-hav skulpturelt-landskap-i-gulltoner teksturert-landskap-med-sedimentre-lag terrakottasolen-over-det-bla-landskapet''')
 setid('expressionism','''abstrakt-maleri-med-ansikter-og-ravner ekspressiv-kvinne-i-fargerik-malerstorm stormfylt-abstrakt-skikkelse''')
-setid('street-art','''fargerikt-portrett-av-motstandskraft gater-hap-og-kronede-drmmer graffitikvinne-med-byens-drmmer kaotisk-graffitiportrett-med-kroner-og-hap kaotisk-skjnnhet-i-graffitiportrett kongelig-gatekunst-hap-smerte-og-kjrlighet kronet-graffitihelt-i-byens-hap modig-dronning-i-fargerik-gatekunst''')
+setid('street-art','''gater-hap-og-kronede-drmmer graffitikvinne-med-byens-drmmer kaotisk-graffitiportrett-med-kroner-og-hap kaotisk-skjnnhet-i-graffitiportrett kronet-graffitihelt-i-byens-hap''')
+setid('symbolic-street-art','''fargerikt-portrett-av-motstandskraft kongelig-gatekunst-hap-smerte-og-kjrlighet modig-dronning-i-fargerik-gatekunst''')
 setid('surrealism','''den-himmelske-trappen-til-manen drmmenes-landskap-med-flytende-drer drmmenes-apne-drer drmmestigen-mot-manens-portal drmmestigen-til-maneportalen drmmetrappen-mot-manen drmmetrappen-til-manen drer-mot-nye-horisonter en-katedral-for-utbrente-drmmer forgylt-taushet-i-en-knust-katedral kunnskapens-katedral-ved-solnedgang manenymfen-ved-innsjen maneskinnets-fortryllede-blomstersti manetrappen-til-en-lysere-deg portalen-av-gyllent-lys portalen-mellom-to-verdener portalen-mot-det-gylne-lyset trappen-mot-manens-dr edition-02-maneporten edition-09-doren-til-frihet edition-11-den-skulte-doren''')
 setid('conceptual','''applausens-tomme-fest barn-av-algoritmen-drmmer-i-gull barn-av-algoritmen-i-neonbyen en-roligere-lysere-verden fortsatt-nok-i-det-gylne-tempelet kosmisk-hjerte-i-neonbyen paradis-med-plastens-skjulte-spor paradis-over-plast-freddys-dystre-vannlinje speilbildet-bak-applausen speilsalens-tomme-festning edition-14-mot-og-instinkt''')
 setid('landscape','''melankolsk-solnedgang-ved-havet maneportalen-ved-fjordvannet vandreren-ved-det-stormfulle-fjordlandskapet''')

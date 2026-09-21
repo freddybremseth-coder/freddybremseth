@@ -254,7 +254,7 @@
   {
     "id": "fargerikt-portrett-av-motstandskraft",
     "title": "Fargerikt portrett av motstandskraft",
-    "category": "Street Art & Pop",
+    "category": "Symbolic Street Art",
     "story": "A contemporary visual conversation about identity, presence and the contradictions of everyday life.",
     "image": "/assets/art/fargerikt-portrett-av-motstandskraft-view.webp",
     "thumb": "/assets/art/fargerikt-portrett-av-motstandskraft-thumb.webp",
@@ -266,8 +266,8 @@
     "price_cents": 5000,
     "currency": "eur",
     "print_url": "",
-    "style_id": "street-art",
-    "style_description": "Layered paint, urban imagery and graphic collage with contemporary social references."
+    "style_id": "symbolic-street-art",
+    "style_description": "Emotion-led art combining realistic symbolism, expressive graffiti, layered urban textures and pop-art colour."
   },
   {
     "id": "forgylt-glasshjerte-med-blomster",
@@ -560,7 +560,7 @@
   {
     "id": "kongelig-gatekunst-hap-smerte-og-kjrlighet",
     "title": "Kongelig gatekunst håp smerte og kjærlighet",
-    "category": "Street Art & Pop",
+    "category": "Symbolic Street Art",
     "story": "A contemporary visual conversation about identity, presence and the contradictions of everyday life.",
     "image": "/assets/art/kongelig-gatekunst-hap-smerte-og-kjrlighet-view.webp",
     "thumb": "/assets/art/kongelig-gatekunst-hap-smerte-og-kjrlighet-thumb.webp",
@@ -572,8 +572,8 @@
     "price_cents": 5000,
     "currency": "eur",
     "print_url": "",
-    "style_id": "street-art",
-    "style_description": "Layered paint, urban imagery and graphic collage with contemporary social references."
+    "style_id": "symbolic-street-art",
+    "style_description": "Emotion-led art combining realistic symbolism, expressive graffiti, layered urban textures and pop-art colour."
   },
   {
     "id": "kosmisk-hjerte-i-neonbyen",
@@ -704,7 +704,7 @@
   {
     "id": "modig-dronning-i-fargerik-gatekunst",
     "title": "Modig dronning i fargerik gatekunst",
-    "category": "Street Art & Pop",
+    "category": "Symbolic Street Art",
     "story": "A contemporary visual conversation about identity, presence and the contradictions of everyday life.",
     "image": "/assets/art/modig-dronning-i-fargerik-gatekunst-view.webp",
     "thumb": "/assets/art/modig-dronning-i-fargerik-gatekunst-thumb.webp",
@@ -716,8 +716,8 @@
     "price_cents": 5000,
     "currency": "eur",
     "print_url": "",
-    "style_id": "street-art",
-    "style_description": "Layered paint, urban imagery and graphic collage with contemporary social references."
+    "style_id": "symbolic-street-art",
+    "style_description": "Emotion-led art combining realistic symbolism, expressive graffiti, layered urban textures and pop-art colour."
   },
   {
     "id": "morgenlys-ved-italiensk-innsjterrasse",

@@ -45,8 +45,15 @@
     "id": "street-art",
     "name": "Street Art & Pop",
     "description": "Layered paint, urban imagery and graphic collage with contemporary social references.",
-    "count": 5,
+    "count": 2,
     "cover": "/assets/art/fargerikt-portrett-av-motstandskraft-thumb.webp"
+  },
+  {
+    "id": "symbolic-street-art",
+    "name": "Symbolic Street Art",
+    "description": "Emotion-led art combining realistic symbolism, expressive graffiti, layered urban textures and pop-art colour.",
+    "count": 3,
+    "cover": "/assets/art/kongelig-gatekunst-hap-smerte-og-kjrlighet-thumb.webp"
   },
   {
     "id": "surrealism",
