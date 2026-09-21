@@ -51,39 +51,11 @@
     } catch (_) { return null; }
   }
 
-  function trackSearchDiscovery() {
-    var referrer = document.referrer || '';
-    if (!referrer) return;
-    var host = '';
-    try { host = new URL(referrer).hostname.toLowerCase(); } catch (_) { return; }
-    var known =
-      host.indexOf('google.') !== -1 ||
-      host === 'bing.com' || host.endsWith('.bing.com') ||
-      host === 'chatgpt.com' || host.endsWith('.chatgpt.com') ||
-      host === 'copilot.microsoft.com' ||
-      host === 'perplexity.ai' || host.endsWith('.perplexity.ai') ||
-      host === 'gemini.google.com' ||
-      host === 'search.brave.com' ||
-      host === 'duckduckgo.com' || host.endsWith('.duckduckgo.com');
-    if (!known) return;
-
-    var path = location.pathname || '/';
-    var storageKey = 'books:search-discovery:' + path + ':' + referrer;
-    try {
-      if (sessionStorage.getItem(storageKey)) return;
-      sessionStorage.setItem(storageKey, '1');
-    } catch (_) {}
-
-    fetch('https://realtyflow.chatgenius.pro/api/public/search-discovery', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: path, referrer: referrer }),
-      keepalive: true
-    }).catch(function () {});
-  }
+  // The dedicated seo-referral-tracker.js owns privacy-minimal search/AI arrivals.
+  // Never duplicate those collector calls here: a second request double-counts
+  // a single visit and the old code transmitted full referrer URLs.
 
   document.addEventListener('DOMContentLoaded', function () {
-    trackSearchDiscovery();
     var slug = currentBookSlug();
     if (slug) send('book_view', slug, { source: 'page' });
   });
