@@ -1,0 +1,42 @@
+name: Freddy root search discovery privacy checks
+
+on:
+  pull_request:
+    paths:
+      - 'assets/search-discovery.js'
+      - 'home.html'
+      - 'index.html'
+      - 'en/index.html'
+      - 'es/index.html'
+      - 'fr/index.html'
+      - 'de/index.html'
+      - 'ru/index.html'
+      - 'eiendomsradgiver-spania.html'
+      - 'ai-og-salgsstrategi.html'
+      - 'foredrag-og-radgivning.html'
+      - 'olivenolje-og-dona-anna.html'
+      - 'scripts/test-root-search-discovery.mjs'
+      - '.github/workflows/freddy-discovery-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/search-discovery.js'
+      - 'en/index.html'
+      - 'es/index.html'
+      - 'fr/index.html'
+      - 'de/index.html'
+      - 'ru/index.html'
+      - 'scripts/test-root-search-discovery.mjs'
+      - '.github/workflows/freddy-discovery-validation.yml'
+
+jobs:
+  root-search-attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Public-root and multilingual search/AI attribution privacy contracts
+        run: node --test scripts/test-root-search-discovery.mjs
