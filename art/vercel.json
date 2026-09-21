@@ -75,6 +75,10 @@
     {
       "source": "/artwork/:id/",
       "destination": "/api/artwork-page?id=:id"
+    },
+    {
+      "source": "/artwork-sitemap.xml",
+      "destination": "/api/artwork-sitemap"
     }
   ]
 }
