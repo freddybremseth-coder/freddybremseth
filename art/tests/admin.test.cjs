@@ -54,3 +54,18 @@ test('email sign-in preserves actionable Supabase Auth response without revealin
  assert.match(admin,/Content-Type/);
  assert.ok(!admin.includes('SUPABASE_SERVICE_ROLE_KEY'));
 });
+
+test('magic-link callback is handled explicitly and no email OTP is required',()=>{
+ const admin=read('assets/js/admin.js'),html=read('admin/index.html');
+ assert.match(admin,/param\('access_token'\)/);
+ assert.match(admin,/param\('refresh_token'\)/);
+ assert.match(admin,/param\('token_hash'\)/);
+ assert.match(admin,/param\('code'\)/);
+ assert.match(admin,/localStorage\.setItem\('art-admin-magic-link-requested-at'/);
+ assert.match(admin,/The email opened the gallery without a usable Supabase login session/);
+ assert.match(admin,/remember\(\{access_token:token,refresh_token:refreshToken/);
+ assert.match(html,/A magic link does not contain a separate verification code/);
+ assert.match(html,/\{\{ \.ConfirmationURL \}\}/);
+ assert.match(html,/art\.freddybremseth\.com\/admin\//);
+ assert.ok(!html.includes('<form id="code-form" hidden>'));
+});
