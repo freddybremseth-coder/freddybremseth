@@ -305,7 +305,7 @@ async function gather(files){
  if(grouped.size>MAX_ITEMS||state.queue.length+grouped.size>MAX_ITEMS)throw Error('Maximum 30 artworks per batch. Clear the queue or split your archives.');
  const collection=$('collection-default').value,style=$('style-default').value;
  for(const item of grouped.values()){
-  const blobUrl=URL.createObjectURL(item.file),queueItem={...item,blobUrl,title:titleFromName(item.file.name),description:'',collection_id:collection,style_id:style,published:$('publish-default').checked,existing_id:'',price:'50',skip:false,progress:'Ready'};
+  const blobUrl=URL.createObjectURL(item.file),queueItem={...item,blobUrl,title:titleFromName(item.file.name),description:'',collection_id:collection,style_id:style,published:$('publish-default').checked,existing_id:'',variant_primary_id:'',price:'50',skip:false,progress:'Ready'};
   state.queue.push(queueItem);
  }
  renderQueue();status('Added '+grouped.size+' separate artwork(s) to review. Choose categories before uploading.');
@@ -322,10 +322,13 @@ function renderQueue(){
   '<label>Collection<select data-field="collection_id" required>'+rowSelect(state.collections,item.collection_id,'Choose collection…')+'</select></label>'+
   '<label>Artistic style<select data-field="style_id" required>'+rowSelect(state.styles,item.style_id,'Choose style…')+'</select></label>'+
   '<label class="wide">Description (optional)<textarea data-field="description" maxlength="1200">'+esc(item.description)+'</textarea></label>'+
+  (existing?'':'<label class="wide">This artwork is a variation of (optional)<select data-field="variant_primary_id">'+
+    rowSelect(state.works.filter(main=>main.collection_id===item.collection_id&&main.published&&!isVariant(main.id)&&!main.digital_available),item.variant_primary_id,'Show separately as its own artwork')+
+    '</select></label>')+
   '<label>Planned digital price (€)<input data-field="price" type="number" min="1" max="100000" step="1" value="'+esc(item.price)+'"></label>'+
   '<label class="check wide"><input type="checkbox" data-field="published" '+(item.published?'checked':'')+'><span>Publish gallery preview after uploading</span></label>'+
   '<div class="row-tools"><label class="check"><input type="checkbox" data-field="skip" '+(item.skip?'checked':'')+'><span>Skip this artwork</span></label><span class="row-status">'+esc(item.progress)+'</span></div></div>';
-  row.querySelectorAll('[data-field]').forEach(input=>input.addEventListener('change',()=>{const f=input.dataset.field;item[f]=input.type==='checkbox'?input.checked:input.value;if(f==='existing_id'&&item.existing_id){const match=state.works.find(a=>a.id===item.existing_id);if(match){item.title=match.title_en;item.collection_id=match.collection_id;item.style_id=match.style_id;renderQueue()}}}));
+  row.querySelectorAll('[data-field]').forEach(input=>input.addEventListener('change',()=>{const f=input.dataset.field;item[f]=input.type==='checkbox'?input.checked:input.value;if(f==='existing_id'&&item.existing_id){const match=state.works.find(a=>a.id===item.existing_id);if(match){item.title=match.title_en;item.collection_id=match.collection_id;item.style_id=match.style_id;renderQueue()}}if(f==='collection_id'){const main=state.works.find(w=>w.id===item.variant_primary_id);if(main?.collection_id!==item.collection_id)item.variant_primary_id='';renderQueue()}}));
   $('review-list').append(row);item.row=row;
  }
 }
@@ -356,6 +359,8 @@ async function uploadOne(item){
  if(mode==='existing'&&!existing)throw Error('Choose the exact existing artwork for '+item.title);
  if(existing?.digital_available)throw Error('This work has a sale-enabled master. Replace it through a separate approved versioning workflow.');
  if(item.file.size>MAX_FILE)throw Error('Image exceeds the 50 MB storage limit');
+ const main=item.variant_primary_id?state.works.find(w=>w.id===item.variant_primary_id):null;
+ if(main&&(!main.published||main.collection_id!==item.collection_id||main.digital_available||isVariant(main.id)))throw Error('Choose a stand-alone main artwork in the same collection.');
  const id=existing?.id||'art-'+dateId()+'-'+slug(item.title).slice(0,48)+'-'+crypto.randomUUID().slice(0,8);
  const nonce=crypto.randomUUID(),folder=id+'/'+nonce;const suffix=extensions[masterType(item.file)];
  const publicData=await imagePreviews(item.file);
@@ -383,7 +388,15 @@ async function uploadOne(item){
  if(current?.[0]?.verified_at)throw Error('Verified sale master exists; replacement requires separate QA.');
  if(current?.length)await api('/rest/v1/art_gallery_masters?artwork_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
  else await api('/rest/v1/art_gallery_masters',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
- item.progress='Complete · '+id;item.row.querySelector('.row-status').textContent=item.progress;
+ let groupingIssue=false;
+ if(!existing&&main){
+  try{
+   await api('/rest/v1/art_gallery_variants',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({variant_id:id,primary_id:main.id,sort_order:state.variants.filter(row=>row.primary_id===main.id).length+1})});
+  }catch(error){groupingIssue=true;console.warn('Private master uploaded but variant grouping needs review:',error.message)}
+ }
+ item.progress='Complete · '+id+(groupingIssue?' · Grouping needs manual review in Catalogue':'');
+ item.row.querySelector('.row-status').textContent=item.progress;
  return id;
 }
 async function uploadAll(){
