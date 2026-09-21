@@ -64,6 +64,7 @@ async function sendLink(){
   const reason=message||code||'Supabase did not provide a detailed error';
   throw Error('Supabase email sign-in failed (HTTP '+res.status+'): '+reason+'.'+guidance);
  }
+ try{localStorage.setItem('art-admin-magic-link-requested-at',String(Date.now()))}catch{}
  status('A magic link was sent. Open the link once, ideally in the same browser. No separate verification code is needed for a magic link.');
 }
 async function verifyCode(){
@@ -87,6 +88,7 @@ async function acceptCallback(){
  const token=param('access_token'),refreshToken=param('refresh_token');
  if(token&&refreshToken){
   remember({access_token:token,refresh_token:refreshToken,expires_at:Math.floor(Date.now()/1000)+Number(param('expires_in')||3600)});
+  try{localStorage.removeItem('art-admin-magic-link-requested-at')}catch{}
   status('Magic link verified. Checking your gallery administrator access…');
   return true;
  }
@@ -103,6 +105,7 @@ async function acceptCallback(){
    throw Error('This sign-in link could not be verified. It may have expired or already been used. Request a new magic link.');
   }
   remember(await res.json());
+  try{localStorage.removeItem('art-admin-magic-link-requested-at')}catch{}
   status('Email verified. Checking your gallery administrator access…');
   return true;
  }
@@ -115,6 +118,12 @@ async function acceptCallback(){
  if(location.hash||location.search){
   history.replaceState({},'',location.pathname);
   throw Error('The email opened the gallery without a usable Supabase login session. Check that the Magic Link email button uses {{ .ConfirmationURL }}, not {{ .SiteURL }} or a hard-coded Family URL. Then request a fresh link.');
+ }
+ let recentlyRequested=false;
+ try{const time=Number(localStorage.getItem('art-admin-magic-link-requested-at')||0);recentlyRequested=time>0&&Date.now()-time<20*60*1000}catch{}
+ if(recentlyRequested){
+  try{localStorage.removeItem('art-admin-magic-link-requested-at')}catch{}
+  throw Error('You returned to /admin/ after requesting a magic link, but Supabase provided no login session. No verification code is required: the email must link to {{ .ConfirmationURL }} and the gallery URL must be an allowed redirect. See the instructions below before requesting a new link.');
  }
  return false;
 }
