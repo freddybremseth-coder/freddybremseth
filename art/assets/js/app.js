@@ -90,7 +90,23 @@
     const top=document.createElement('div');top.append(h,summary);
     const open=document.createElement('a');open.className='style-browse';open.href='/collections/'+encodeURIComponent(entry.id)+'/';open.textContent='View all '+works.length+' artworks ↗';
     heading.append(top,open);section.appendChild(heading);
-    const segment=document.createElement('div');segment.className='style-group-grid gallery-grid';segment.appendChild(cards(narrowed?works:works.slice(0,4)));section.appendChild(segment);grid.appendChild(section);
+    // The Human Condition contains an original 2:1 panorama. Give horizontal
+    // art its own editorial showcase instead of letting column-span break the
+    // four-column portrait grid on the homepage.
+    const isHumanCondition=entry.id==='human-condition';
+    const horizontal=isHumanCondition?works.filter(art=>art.orientation==='Landscape'||art.width>art.height):[];
+    const portraitWorks=isHumanCondition?works.filter(art=>!horizontal.includes(art)):works;
+    if(horizontal.length){
+     section.classList.add('style-group-human-condition');
+     const showcase=document.createElement('div');showcase.className='human-condition-feature';
+     showcase.appendChild(cards(horizontal));section.appendChild(showcase);
+    }
+    if(portraitWorks.length){
+     const segment=document.createElement('div');segment.className='style-group-grid gallery-grid';
+     segment.appendChild(cards(narrowed?portraitWorks:portraitWorks.slice(0,4)));
+     section.appendChild(segment);
+    }
+    grid.appendChild(section);
    }
   }else{
    const sorted=[...state.filtered];
