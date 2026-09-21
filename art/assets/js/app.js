@@ -9,8 +9,8 @@
  const showToast=s=>{const node=$('toast');node.textContent=s;node.classList.add('on');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>node.classList.remove('on'),4600)};
  const safeLink=x=>{try{const u=new URL(x);return (u.protocol==='https:'||u.protocol==='http:')?u.toString():null}catch{return null}};
  const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const detailHref=art=>'/verk/'+encodeURIComponent(art.id)+'/';
- const currentSlug=()=>{const m=location.pathname.match(/^\/verk\/([a-z0-9-]+)\/?$/);return m?m[1]:null};
+ const detailHref=art=>(art.dynamic?'/artwork/':'/verk/')+encodeURIComponent(art.id)+'/';
+ const currentSlug=()=>{const m=location.pathname.match(/^\/(?:verk|artwork)\/([a-z0-9-]+)\/?$/);return m?m[1]:null};
  const collectionName=art=>state.collections.find(c=>c.id===art.collection_id)?.name||'Studio Archive';
  const byCollection=(a,b)=>state.collections.findIndex(c=>c.id===a.collection_id)-state.collections.findIndex(c=>c.id===b.collection_id)||a.number-b.number;
  const cards=(arts)=>{const frag=document.createDocumentFragment();for(const art of arts){const card=document.createElement('article');card.className='art-card'+(art.id==='drmmetrappen-til-manen'?' art-card-landscape-feature':'');const button=document.createElement('button');button.type='button';button.setAttribute('aria-label','View '+art.title);button.innerHTML=`<span class="art-photo"><img loading="lazy" src="${art.id==='drmmetrappen-til-manen'?art.image:art.thumb}" alt="${escapeHtml(art.title)}, ${escapeHtml(art.category)} digital artwork" width="${art.width}" height="${art.height}"><span class="art-overlay">Explore artwork ↗</span></span><span class="art-card-meta"><span><span class="art-title">${escapeHtml(art.title)}</span><span class="art-category">${escapeHtml(collectionName(art))} · ${art.digital_available===false?'Gallery preview':`€${(art.price_cents/100).toFixed(0)} digital`}</span></span><span class="art-number">${String(art.number).padStart(3,'0')}</span></span>`;button.addEventListener('click',()=>openArt(art,true));card.appendChild(button);frag.appendChild(card)}return frag};
@@ -142,6 +142,39 @@
  function closeArt(){const lightbox=$('art-zoom-dialog');if(lightbox.open)lightbox.close();const dialog=$('art-dialog');if(dialog.open)dialog.close()}
  async function beginCheckout(){if(!state.selected||state.selected.digital_available===false)return;if(!$('digital-consent').checked){showToast(text('agree'));return}const btn=$('checkout-button');btn.disabled=true;btn.textContent=state.lang==='no'?'Starter betaling…':'Starting checkout…';try{const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:state.selected.id,digital_consent:true})});const data=await res.json();if(!res.ok||!safeLink(data.url)||!data.url.startsWith('https://checkout.stripe.com/'))throw Error(data.error||'Checkout unavailable');location.assign(data.url)}catch(e){showToast(text('checkoutError'));updateBuy()}}
  async function verifyPurchase(sessionId){const dialog=$('purchase-dialog');if(!dialog.open)dialog.showModal();$('purchase-status').textContent=text('pending');$('download-link').hidden=true;$('purchase-retry').hidden=true;try{const r=await fetch('/api/confirm-download?session_id='+encodeURIComponent(sessionId),{headers:{'Accept':'application/json'}});const data=await r.json();if(!r.ok){if(data.payment_verified){$('purchase-status').textContent=text('fileMissing')}else $('purchase-status').textContent=data.error||text('failed');$('purchase-retry').hidden=false;return}if(!safeLink(data.download_url))throw new Error('Invalid download URL');$('purchase-title').textContent=data.title||'Your artwork is ready.';$('purchase-status').textContent=text('paid');$('download-link').href=data.download_url;$('download-link').hidden=false;$('download-link').textContent=text('download')}catch{$('purchase-status').textContent=text('failed');$('purchase-retry').hidden=false}}
+ async function loadSupabaseCatalogue(){
+  const cfg=window.ART_GALLERY_CONFIG;
+  if(!cfg?.url||!cfg?.anonKey)return [];
+  const select='id,title_en,description_en,style_id,collection_id,orientation,public_preview_path,public_thumb_path,pixel_width,pixel_height,price_cents,digital_available,published,source';
+  const url=cfg.url+'/rest/v1/art_gallery_works?select='+encodeURIComponent(select)+'&published=eq.true&limit=1000';
+  const result=await fetch(url,{headers:{'apikey':cfg.anonKey}});
+  if(!result.ok)throw Error('Live gallery catalogue temporarily unavailable');
+  const data=await result.json();return Array.isArray(data)?data:[];
+ }
+ const publicPreview=(cfg,path)=>cfg.url+'/storage/v1/object/public/art-previews/'+path.split('/').map(encodeURIComponent).join('/');
+ function mergedCatalogue(catalog,rows,styles,curation){
+  const cfg=window.ART_GALLERY_CONFIG,byId=new Map(catalog.map(a=>[a.id,{...a,collection_id:curation.byArtworkId[a.id]||curation.byStyle[a.style_id]}]));
+  const styleById=new Map(styles.map(s=>[s.id,s]));
+  let number=Math.max(0,...catalog.map(a=>a.number));
+  for(const row of rows){
+   if(!/^[a-z0-9-]+$/.test(row.id)||!styleById.has(row.style_id)||!curation.collections.some(collection=>collection.id===row.collection_id))continue;
+   const old=byId.get(row.id),updated=['admin-upload','admin-edit'].includes(row.source);
+   if(old&&!updated)continue;
+   const style=styleById.get(row.style_id);
+   const image=row.public_preview_path&&/^[-a-z0-9/]+\.webp$/.test(row.public_preview_path)?publicPreview(cfg,row.public_preview_path):old?.image;
+   const thumb=row.public_thumb_path&&/^[-a-z0-9/]+\.webp$/.test(row.public_thumb_path)?publicPreview(cfg,row.public_thumb_path):old?.thumb;
+   if(!image||!thumb)continue;
+   const sale=old?old.digital_available===false?false:old.digital_available:false;
+   const art={...(old||{}),id:row.id,title:row.title_en,story:row.description_en||old?.story||'A digital artwork by Freddy Bremseth.',image,thumb,
+    style_id:style.id,category:style.name,style_description:style.description,collection_id:row.collection_id,
+    orientation:row.orientation||old?.orientation||'Portrait',width:row.pixel_width||old?.width||1122,height:row.pixel_height||old?.height||1402,
+    number:old?.number||++number,edition:old?.edition||'Gallery preview — edition not yet available',
+    currency:'eur',price_cents:old?.price_cents??row.price_cents,digital_available:sale,
+    print_url:old?.print_url||'',dynamic:!old};
+   byId.set(art.id,art);
+  }
+  return [...byId.values()];
+ }
  async function init(){
   try{
    const [catalog,styles,curation,status,print]=await Promise.all([
@@ -153,7 +186,9 @@
    ]);
    state.styles=Array.isArray(styles)?styles:[];
    state.collections=curation.collections;
-   state.art=catalog.map(art=>({...art,collection_id:curation.byArtworkId[art.id]||curation.byStyle[art.style_id]}));
+   // Static catalogue stays as an outage fallback; admin-published art joins at runtime.
+   let remote=[];try{remote=await loadSupabaseCatalogue()}catch(error){console.warn('Using gallery snapshot:',error.message)}
+   state.art=mergedCatalogue(catalog,remote,state.styles,curation);
    if(state.art.some(art=>!state.collections.some(c=>c.id===art.collection_id)))throw Error('Artwork without a curated collection');
    state.checkout=!!status.sales_enabled;state.print=print;makeCollections();
    $('art-count').textContent=state.art.length;$('end-number').textContent=state.art.length;

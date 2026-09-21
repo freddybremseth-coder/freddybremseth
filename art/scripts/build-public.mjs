@@ -6,7 +6,7 @@ import path from 'node:path';
 // source manifests in the project root, never in the published directory.
 const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'public');
-const publicDirectories = ['assets', 'legal', 'verk', 'collections'];
+const publicDirectories = ['assets', 'legal', 'verk', 'collections', 'admin'];
 const publicFiles = ['index.html', 'robots.txt', 'sitemap.xml'];
 
 fs.rmSync(output, { recursive: true, force: true });
