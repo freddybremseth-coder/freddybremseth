@@ -1,6 +1,6 @@
 (()=>{'use strict';
  const $=id=>document.getElementById(id);
- const state={art:[],styles:[],collections:[],filtered:[],count:18,category:'all',style:'all',orientation:'all',motif:'all',colour:'all',price:'all',search:'',sort:'collection',selected:null,lang:'en',checkout:false,print:{byArtworkId:{},defaultPrintUrl:''}};
+ const state={art:[],styles:[],collections:[],filtered:[],count:18,category:'all',style:'all',orientation:'all',motif:'all',colour:'all',price:'all',search:'',sort:'collection',selected:null,lang:'en',checkout:false,print:{byArtworkId:{},defaultPrintUrl:''},variants:[],variantById:new Map(),variantsByPrimary:new Map()};
  const copy={en:{all:'All styles',loading:'Loading the gallery…',results:'artworks',more:'View more artworks ↓',buy:'Buy digital edition · €50 ↗',unavailable:'Digital checkout opening soon',agree:'Please accept the digital delivery terms first.',checkoutError:'Checkout is temporarily unavailable. No payment was taken.',pending:'Confirming your payment…',paid:'Payment confirmed. Your download is available below.',failed:'This payment has not yet been confirmed. You have not been charged by this page.',fileMissing:'Your payment was verified, but the file is not yet ready. Please keep the Stripe confirmation link and contact the gallery.',download:'Download artwork ↓'},no:{all:'Alle stiler',loading:'Laster galleriet…',results:'kunstverk',more:'Vis flere kunstverk ↓',buy:'Kjøp digital utgave · €50 ↗',unavailable:'Digital betaling åpner snart',agree:'Godta vilkårene for digital levering først.',checkoutError:'Betaling er midlertidig utilgjengelig. Ingen betaling er gjennomført.',pending:'Kontrollerer betalingen…',paid:'Betalingen er bekreftet. Du kan laste ned kunstverket.',failed:'Betalingen er ennå ikke bekreftet. Du er ikke belastet av denne siden.',fileMissing:'Betalingen er bekreftet, men filen er ennå ikke tilgjengelig. Ta vare på Stripe-lenken og kontakt galleriet.',download:'Last ned kunstverket ↓'}};
  const text=key=>copy[state.lang][key];
  const DISCOVERY_ENDPOINT='https://realtyflow.chatgenius.pro/api/public/search-discovery';
@@ -12,8 +12,11 @@
  const detailHref=art=>(art.dynamic?'/artwork/':'/verk/')+encodeURIComponent(art.id)+'/';
  const currentSlug=()=>{const m=location.pathname.match(/^\/(?:verk|artwork)\/([a-z0-9-]+)\/?$/);return m?m[1]:null};
  const collectionName=art=>state.collections.find(c=>c.id===art.collection_id)?.name||'Studio Archive';
+ const visibleArt=()=>state.art.filter(art=>!state.variantById.has(art.id));
+ const primaryIdFor=id=>state.variantById.get(id)?.primary_id||id;
+ const familyFor=id=>{const main=primaryIdFor(id);return state.art.filter(art=>art.id===main||state.variantById.get(art.id)?.primary_id===main).sort((a,b)=>a.id===main?-1:b.id===main?1:(state.variantById.get(a.id)?.sort_order||0)-(state.variantById.get(b.id)?.sort_order||0))};
  const byCollection=(a,b)=>state.collections.findIndex(c=>c.id===a.collection_id)-state.collections.findIndex(c=>c.id===b.collection_id)||a.number-b.number;
- const cards=(arts)=>{const frag=document.createDocumentFragment();for(const art of arts){const card=document.createElement('article');card.className='art-card'+(art.id==='drmmetrappen-til-manen'?' art-card-landscape-feature':'');const button=document.createElement('button');button.type='button';button.setAttribute('aria-label','View '+art.title);button.innerHTML=`<span class="art-photo"><img loading="lazy" src="${art.id==='drmmetrappen-til-manen'?art.image:art.thumb}" alt="${escapeHtml(art.title)}, ${escapeHtml(art.category)} digital artwork" width="${art.width}" height="${art.height}"><span class="art-overlay">Explore artwork ↗</span></span><span class="art-card-meta"><span><span class="art-title">${escapeHtml(art.title)}</span><span class="art-category">${escapeHtml(collectionName(art))} · ${art.digital_available===false?'Gallery preview':`€${(art.price_cents/100).toFixed(0)} digital`}</span></span><span class="art-number">${String(art.number).padStart(3,'0')}</span></span>`;button.addEventListener('click',()=>openArt(art,true));card.appendChild(button);frag.appendChild(card)}return frag};
+ const cards=(arts)=>{const frag=document.createDocumentFragment();for(const art of arts){const card=document.createElement('article');card.className='art-card'+(art.id==='drmmetrappen-til-manen'?' art-card-landscape-feature':'');const button=document.createElement('button');button.type='button';button.setAttribute('aria-label','View '+art.title);button.innerHTML=`<span class="art-photo"><img loading="lazy" src="${art.id==='drmmetrappen-til-manen'?art.image:art.thumb}" alt="${escapeHtml(art.title)}, ${escapeHtml(art.category)} digital artwork" width="${art.width}" height="${art.height}"><span class="art-overlay">Explore artwork ↗</span></span><span class="art-card-meta"><span><span class="art-title">${escapeHtml(art.title)}</span><span class="art-category">${escapeHtml(collectionName(art))} · ${art.digital_available===false?'Gallery preview':`€${(art.price_cents/100).toFixed(0)} digital`}</span></span><span class="art-number">${String(art.number).padStart(3,'0')}</span></span>`;button.addEventListener('click',()=>openArt(art,true));card.appendChild(button);const n=state.variantsByPrimary.get(art.id)?.length||0;if(n){const badge=document.createElement('span');badge.className='art-card-variant-count';badge.textContent='+'+n+' '+(n===1?'variant':'variants');card.appendChild(badge)}frag.appendChild(card)}return frag};
  function setCollection(category){
   if(category!=='all'&&!state.collections.some(c=>c.id===category))return;
   state.category=category;state.count=18;render();
@@ -21,13 +24,13 @@
  }
  function makeCollections(){
   const host=$('categories');host.replaceChildren();
-  const all=document.createElement('button');all.type='button';all.className='chip';all.dataset.category='all';all.textContent='All collections ('+state.art.length+')';host.appendChild(all);
-  for(const collection of state.collections){const button=document.createElement('button');button.type='button';button.className='chip';button.dataset.category=collection.id;button.textContent=collection.name+' ('+state.art.filter(a=>a.collection_id===collection.id).length+')';host.appendChild(button)}
+  const all=document.createElement('button');all.type='button';all.className='chip';all.dataset.category='all';all.textContent='All collections ('+visibleArt().length+')';host.appendChild(all);
+  for(const collection of state.collections){const button=document.createElement('button');button.type='button';button.className='chip';button.dataset.category=collection.id;button.textContent=collection.name+' ('+visibleArt().filter(a=>a.collection_id===collection.id).length+')';host.appendChild(button)}
   const styleSelect=$('style-filter');styleSelect.replaceChildren(new Option('All artistic styles','all'));
-  for(const style of state.styles){if(state.art.some(a=>a.style_id===style.id))styleSelect.add(new Option(style.name,style.id))}
+  for(const style of state.styles){if(visibleArt().some(a=>a.style_id===style.id))styleSelect.add(new Option(style.name,style.id))}
   const cardsHost=$('collection-cards');cardsHost.replaceChildren();
   for(const collection of state.collections.filter(c=>c.featured)){
-   const count=state.art.filter(a=>a.collection_id===collection.id).length;
+   const count=visibleArt().filter(a=>a.collection_id===collection.id).length;
    const button=document.createElement('a');button.href='/collections/'+encodeURIComponent(collection.id)+'/';button.className='collection-tile';
    const image=document.createElement('img');image.src=collection.cover;image.alt='Artwork preview for '+collection.name;image.loading='lazy';
    const text=document.createElement('span');text.className='collection-tile-copy';
@@ -66,7 +69,7 @@
  }
  function render(){
   const collection=state.collections.find(c=>c.id===state.category);
-  state.filtered=state.art.filter(art=>(!collection||art.collection_id===collection.id)
+  state.filtered=visibleArt().filter(art=>(!collection||art.collection_id===collection.id)
    &&(state.style==='all'||art.style_id===state.style)
    &&(state.orientation==='all'||art.orientation===state.orientation)
    &&(state.motif==='all'||cuesFor(art).motifs.includes(state.motif))
@@ -125,7 +128,7 @@
  function updateBuy(){const btn=$('checkout-button');const available=state.selected?.digital_available!==false;btn.disabled=!available||!state.checkout||!$('digital-consent').checked;btn.textContent=!available?'Edition not yet available':state.checkout?text('buy'):text('unavailable')}
  function fillRelated(art){
   const host=$('dialog-related');host.replaceChildren();
-  const relatives=state.art.filter(candidate=>candidate.id!==art.id&&candidate.collection_id===art.collection_id).slice(0,3);
+  const relatives=visibleArt().filter(candidate=>candidate.id!==primaryIdFor(art.id)&&candidate.collection_id===art.collection_id).slice(0,3);
   $('dialog-collection-link').href='/collections/'+encodeURIComponent(art.collection_id)+'/';
   $('dialog-collection-link').textContent='Browse '+collectionName(art)+' ↗';
   for(const relative of relatives){
@@ -152,12 +155,37 @@
   $('zoom-title').textContent=state.selected.title+' · Public gallery preview';
   setZoom(1);const dialog=$('art-zoom-dialog');if(!dialog.open)dialog.showModal();
  }
- function openArt(art,push){state.selected=art;$('dialog-image').src=art.image;$('dialog-image').alt=art.title;$('dialog-title').textContent=art.title;$('dialog-index').textContent='ARTWORK / '+String(art.number).padStart(3,'0');$('dialog-category').textContent=art.category;$('dialog-collection').textContent=collectionName(art)+(art.digital_available===false?' · Gallery preview':' · Digital artwork €'+(art.price_cents/100).toFixed(0));$('dialog-story').textContent=art.story;$('dialog-edition').textContent=art.edition;$('dialog-size').textContent=art.width+' × '+art.height+' px (public preview source)';$('digital-consent').checked=false;const forSale=art.digital_available!==false;$('digital-consent').closest('.consent').hidden=!forSale;const label=$('dialog-price-label');label.textContent=forSale?'Digital edition':'Gallery preview · Not yet for sale';if(forSale){const strong=document.createElement('strong');strong.textContent='€'+(art.price_cents/100).toFixed(0);label.appendChild(strong)}$('checkout-help').textContent=forSale?'Secure checkout by Stripe · The full-size file is not publicly accessible.':'This work is displayed for viewing. No paid download or physical edition has been configured.';updateBuy();fillRelated(art);const url=printLinkFor(art);$('print-link').hidden=!url;$('print-placeholder').hidden=!!url;if(url)$('print-link').href=url;
+ function renderVariants(art){
+  const host=$('art-variants');if(!host)return;
+  host.replaceChildren();const family=familyFor(art.id);host.hidden=family.length<2;
+  if(family.length<2)return;
+  const heading=document.createElement('p');heading.className='art-variants-heading';heading.textContent='Variations of this artwork · '+family.length+' versions';
+  const choices=document.createElement('div');choices.className='art-variants-choices';
+  for(const [index,relative] of family.entries()){
+   const button=document.createElement('button');button.type='button';button.className='art-variant-choice';
+   button.setAttribute('aria-label','Show '+relative.title);
+   button.setAttribute('aria-pressed',String(relative.id===art.id));
+   button.title=relative.title;
+   const img=document.createElement('img');img.src=relative.thumb;img.alt='';img.loading='lazy';
+   const label=document.createElement('span');label.textContent=(index===0?'Main artwork':'Variant '+index)+(relative.id===art.id?' · Selected':'');
+   button.append(img,label);button.addEventListener('click',()=>{if(relative.id!==state.selected?.id)openArt(relative,true)});
+   choices.append(button);
+  }
+  host.append(heading,choices);
+ }
+ function openArt(art,push){state.selected=art;renderVariants(art);$('dialog-image').src=art.image;$('dialog-image').alt=art.title;$('dialog-title').textContent=art.title;$('dialog-index').textContent='ARTWORK / '+String(art.number).padStart(3,'0');$('dialog-category').textContent=art.category;$('dialog-collection').textContent=collectionName(art)+(art.digital_available===false?' · Gallery preview':' · Digital artwork €'+(art.price_cents/100).toFixed(0));$('dialog-story').textContent=art.story;$('dialog-edition').textContent=art.edition;$('dialog-size').textContent=art.width+' × '+art.height+' px (public preview source)';$('digital-consent').checked=false;const forSale=art.digital_available!==false;$('digital-consent').closest('.consent').hidden=!forSale;const label=$('dialog-price-label');label.textContent=forSale?'Digital edition':'Gallery preview · Not yet for sale';if(forSale){const strong=document.createElement('strong');strong.textContent='€'+(art.price_cents/100).toFixed(0);label.appendChild(strong)}$('checkout-help').textContent=forSale?'Secure checkout by Stripe · The full-size file is not publicly accessible.':'This work is displayed for viewing. No paid download or physical edition has been configured.';updateBuy();fillRelated(art);const url=printLinkFor(art);$('print-link').hidden=!url;$('print-placeholder').hidden=!!url;if(url)$('print-link').href=url;
   if(push&&location.pathname!==detailHref(art))history.pushState({art:art.id},'',detailHref(art));
   const dialog=$('art-dialog');dialog.classList.toggle('landscape-artwork',art.id==='drmmetrappen-til-manen');if(!dialog.open)dialog.showModal();document.title=art.title+' — Freddy Bremseth Art';}
  function closeArt(){const lightbox=$('art-zoom-dialog');if(lightbox.open)lightbox.close();const dialog=$('art-dialog');if(dialog.open)dialog.close()}
  async function beginCheckout(){if(!state.selected||state.selected.digital_available===false)return;if(!$('digital-consent').checked){showToast(text('agree'));return}const btn=$('checkout-button');btn.disabled=true;btn.textContent=state.lang==='no'?'Starter betaling…':'Starting checkout…';try{const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:state.selected.id,digital_consent:true})});const data=await res.json();if(!res.ok||!safeLink(data.url)||!data.url.startsWith('https://checkout.stripe.com/'))throw Error(data.error||'Checkout unavailable');location.assign(data.url)}catch(e){showToast(text('checkoutError'));updateBuy()}}
  async function verifyPurchase(sessionId){const dialog=$('purchase-dialog');if(!dialog.open)dialog.showModal();$('purchase-status').textContent=text('pending');$('download-link').hidden=true;$('purchase-retry').hidden=true;try{const r=await fetch('/api/confirm-download?session_id='+encodeURIComponent(sessionId),{headers:{'Accept':'application/json'}});const data=await r.json();if(!r.ok){if(data.payment_verified){$('purchase-status').textContent=text('fileMissing')}else $('purchase-status').textContent=data.error||text('failed');$('purchase-retry').hidden=false;return}if(!safeLink(data.download_url))throw new Error('Invalid download URL');$('purchase-title').textContent=data.title||'Your artwork is ready.';$('purchase-status').textContent=text('paid');$('download-link').href=data.download_url;$('download-link').hidden=false;$('download-link').textContent=text('download')}catch{$('purchase-status').textContent=text('failed');$('purchase-retry').hidden=false}}
+ async function loadPublicVariantGroups(){
+  const cfg=window.ART_GALLERY_CONFIG;if(!cfg?.url||!cfg?.anonKey)return [];
+  const url=cfg.url+'/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=sort_order.asc&limit=1000';
+  const result=await fetch(url,{headers:{'apikey':cfg.anonKey}});
+  if(!result.ok)throw Error('Artwork variations unavailable ('+result.status+')');
+  const data=await result.json();return Array.isArray(data)?data:[];
+ }
  async function loadSupabaseCatalogue(){
   const cfg=window.ART_GALLERY_CONFIG;
   if(!cfg?.url||!cfg?.anonKey)return [];
@@ -205,9 +233,16 @@
    // Static catalogue stays as an outage fallback; admin-published art joins at runtime.
    let remote=[];try{remote=await loadSupabaseCatalogue()}catch(error){console.warn('Using gallery snapshot:',error.message)}
    state.art=mergedCatalogue(catalog,remote,state.styles,curation);
+   try{
+    const rows=await loadPublicVariantGroups(),ids=new Set(state.art.map(art=>art.id));
+    state.variants=rows.filter(row=>row.variant_id!==row.primary_id&&ids.has(row.variant_id)&&ids.has(row.primary_id));
+    state.variantById=new Map(state.variants.map(row=>[row.variant_id,row]));
+    state.variantsByPrimary=new Map();
+    for(const row of state.variants){const items=state.variantsByPrimary.get(row.primary_id)||[];items.push(row);state.variantsByPrimary.set(row.primary_id,items)}
+   }catch(error){console.warn('Variations fallback to individual artworks:',error.message)}
    if(state.art.some(art=>!state.collections.some(c=>c.id===art.collection_id)))throw Error('Artwork without a curated collection');
    state.checkout=!!status.sales_enabled;state.print=print;makeCollections();
-   $('art-count').textContent=state.art.length;$('end-number').textContent=state.art.length;
+   $('art-count').textContent=visibleArt().length;$('end-number').textContent=visibleArt().length;
    render();$('year').textContent=new Date().getFullYear();
    const slug=currentSlug();if(slug){const match=state.art.find(a=>a.id===slug);if(match)openArt(match,false)}
    const sessionId=new URLSearchParams(location.search).get('session_id');
