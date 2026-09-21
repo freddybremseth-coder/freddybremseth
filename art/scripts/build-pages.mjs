@@ -57,5 +57,5 @@ for(const collection of curation.collections){
 
 const urls=[domain+'/',domain+'/legal/license.html',domain+'/legal/terms.html',domain+'/legal/privacy.html',...collectionUrls,...catalog.map(a=>domain+'/verk/'+a.id+'/')];
 fs.writeFileSync(path.join(root,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.map(u=>`<url><loc>${u}</loc></url>`).join('\n')+'\n</urlset>\n');
-fs.writeFileSync(path.join(root,'robots.txt'),'User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: '+domain+'/sitemap.xml\n');
+fs.writeFileSync(path.join(root,'robots.txt'),'User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: '+domain+'/sitemap.xml\nSitemap: '+domain+'/artwork-sitemap.xml\n');
 console.log('Generated '+catalog.length+' canonical individual artwork pages and '+collectionUrls.length+' dedicated collection pages, sitemap and robots.txt');
