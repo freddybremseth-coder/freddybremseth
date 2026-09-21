@@ -43,3 +43,14 @@ test('collection builder includes live manually selected categories',()=>{
  assert.match(sync,/admin-upload/);
  assert.match(sync,/admin-edit/);
 });
+
+test('email sign-in preserves actionable Supabase Auth response without revealing credentials',()=>{
+ const admin=read('assets/js/admin.js');
+ assert.match(admin,/Supabase email sign-in failed \(HTTP /);
+ assert.match(admin,/error\.message/);
+ assert.match(admin,/not\.authori/);
+ assert.match(admin,/rate\.limit/);
+ assert.match(admin,/Redirect URLs/);
+ assert.match(admin,/Content-Type/);
+ assert.ok(!admin.includes('SUPABASE_SERVICE_ROLE_KEY'));
+});
