@@ -70,5 +70,11 @@
       "destination": "/verk/renessansestudie-med-symbolske-skatter/",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/artwork/:id/",
+      "destination": "/api/artwork-page?id=:id"
+    }
   ]
 }
