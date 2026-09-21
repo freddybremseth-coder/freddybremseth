@@ -43,7 +43,7 @@ test("Gemini is not Google web search; spoofed or insecure source hosts never re
   const gemini=visit({referrer:"https://gemini.google.com/app/persons-private-conversation"});
   assert.equal(gemini.calls.length,1);
   assert.deepEqual(JSON.parse(gemini.calls[0].options.body),{path:"/",referrer:"https://gemini.google.com/"});
-  for(const referrer of ["","https://google.com.evil.invalid/","https://notgoogle.com/","https://gemini.google.com.evil.invalid/","https://fakechatgpt.com/","http://www.google.com/search?q=private","https://user:pass@google.com/","https://www.google.com:443/","javascript:alert(1)"]){
+  for(const referrer of ["","https://google.com.evil.invalid/","https://notgoogle.com/","https://gemini.google.com.evil.invalid/","https://fakechatgpt.com/","http://www.google.com/search?q=private","https://user:pass@google.com/","https://www.google.com:8443/","javascript:alert(1)"]){
     assert.equal(visit({referrer}).calls.length,0,referrer);
   }
 });
