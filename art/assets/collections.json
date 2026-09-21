@@ -11,7 +11,7 @@
       "id": "words-that-matter",
       "name": "Words That Matter",
       "description": "Urban energy, expressive faces and artworks with something to say. Some communicate through imagery rather than literal lettering.",
-      "cover": "/assets/art/kongelig-gatekunst-hap-smerte-og-kjrlighet-thumb.webp",
+      "cover": "/assets/art/abstrakt-maleri-med-ansikter-og-ravner-thumb.webp",
       "featured": true
     },
     {
@@ -38,7 +38,7 @@
     {
       "id": "studio-archive",
       "name": "Studio Archive",
-      "description": "Painterly studies, geometric experiments and other landscapes from the wider studio. Browse these without confusing them with the four featured collections.",
+      "description": "Historical and stylistic studies from the wider studio, presented separately from the five signature collections.",
       "cover": "/assets/art/art-nouveau-dronning-med-iris-og-svaner-thumb.webp",
       "featured": false
     }

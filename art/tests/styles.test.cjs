@@ -241,3 +241,24 @@ test('Symbolic Street Art appears as a distinct navigable art style and curated 
  }
  assert.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('href="/collections/symbolic-street-art/"'));
 });
+
+test('featured collection covers are unique and belong to their collections',()=>{
+ const featured=curation.collections.filter(c=>c.featured);
+ assert.equal(new Set(featured.map(c=>c.cover)).size,featured.length);
+ for(const collection of featured){
+  assert.ok(artworks.some(a=>a.thumb===collection.cover&&collectionFor(a)===collection.id),
+    'Cover must be part of its own collection: '+collection.id);
+ }
+});
+test('discovery gallery supports a varied shuffle on an undecorated background',()=>{
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const css=fs.readFileSync(path.join(root,'assets/css/site.css'),'utf8');
+ assert.match(html,/id="remix-gallery"/);
+ assert.match(html,/value="discover"/);
+ assert.match(app,/function visualShuffle|const visualShuffle=/);
+ assert.match(app,/sort:'discover'/);
+ assert.match(app,/state\.mixSeed\+\+/);
+ assert.match(css,/\.gallery-section\{background:#faf9f6\}/);
+ assert.match(css,/\.gallery-section \.art-photo,\.collection-landing \.art-photo\{background:transparent\}/);
+});
