@@ -12,7 +12,7 @@ module.exports=async(req,res)=>{
   const result=await fetch(url,{headers:{apikey:KEY},signal:AbortSignal.timeout(7000)});
   if(!result.ok)throw Error('Catalogue unavailable');
   const rows=await result.json(),art=rows[0];
-  if(!art||!art.published||!art.public_preview_path||!/^[-a-z0-9/]+\\.webp$/.test(art.public_preview_path))return res.status(404).send('Artwork not found');
+  if(!art||!art.published||!art.public_preview_path||!art.public_preview_path.endsWith('.webp')||!art.public_preview_path.split('/').every(part=>/^[a-z0-9-]+(?:\.webp)?$/.test(part)))return res.status(404).send('Artwork not found');
   const image=BASE+'/storage/v1/object/public/art-previews/'+art.public_preview_path.split('/').map(encodeURIComponent).join('/');
   const canonical=SITE+'/artwork/'+encodeURIComponent(art.id)+'/';
   const name=art.title_en,desc=art.description_en||'A digital artwork by Freddy Bremseth.';
