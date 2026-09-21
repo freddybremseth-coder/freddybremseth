@@ -40,10 +40,32 @@ async function signIn(email,password){
 }
 async function sendLink(){
  const email=$('email').value.trim();if(!email)throw Error('Enter your email address first');
- const redirect=SITE+'/admin/';
- const res=await fetch(cfg.url+'/auth/v1/otp?redirect_to='+encodeURIComponent(redirect),{method:'POST',headers:{'apikey':cfg.anonKey,'Content-Type':'application/json'},body:JSON.stringify({email,create_user:true})});
- if(!res.ok)throw Error('The sign-in email could not be sent. Check Supabase Auth email and redirect settings.');
- $('code-form').hidden=false;status('Sign-in email requested. Follow its link or enter the code if your email template includes one.');
+ const redirect=location.origin+'/admin/';
+ let res;
+ try{
+  res=await fetch(cfg.url+'/auth/v1/otp?redirect_to='+encodeURIComponent(redirect),{
+   method:'POST',headers:{'apikey':cfg.anonKey,'Content-Type':'application/json'},
+   body:JSON.stringify({email,create_user:true})
+  });
+ }catch(error){throw Error('Unable to reach Supabase Auth. Check your connection and try again.')}
+ if(!res.ok){
+  let error={};try{error=await res.json()}catch{}
+  const code=String(error.code||error.error_code||'').slice(0,70);
+  const message=String(error.msg||error.message||error.error_description||'').slice(0,280);
+  let guidance='';
+  if(/not.authori[sz]ed|email.*not.*allowed|recipient.*not.*allowed/i.test(message+' '+code))
+   guidance=' The built-in Supabase email sender only delivers to project team members. Sign in using your team email, or configure custom SMTP in Supabase Authentication.';
+  else if(res.status===429||/rate.limit|too.many/i.test(message+' '+code))
+   guidance=' Email sending is rate-limited. Wait before retrying; configure custom SMTP for regular use.';
+  else if(/redirect|url.*not.*allowed/i.test(message+' '+code))
+   guidance=' Add '+redirect+' to Supabase Authentication → URL Configuration → Redirect URLs.';
+  else if(/signup.*disabled|signups.*not.*allowed/i.test(message+' '+code))
+   guidance=' Ask the Supabase project owner to invite your email in Authentication → Users, then request a sign-in link.';
+  const reason=message||code||'Supabase did not provide a detailed error';
+  throw Error('Supabase email sign-in failed (HTTP '+res.status+'): '+reason+'.'+guidance);
+ }
+ $('code-form').hidden=false;
+ status('Supabase accepted the email request. Check your inbox and spam folder; use the link or enter your one-time code.');
 }
 async function verifyCode(){
  const email=$('email').value.trim(),token=$('otp-code').value.trim();
