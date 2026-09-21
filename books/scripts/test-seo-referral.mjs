@@ -62,4 +62,14 @@ const topicHtml=fs.readFileSync(path.join(root,'es/topics/psychological-thriller
 for(const [label,html] of [['book',bookHtml],['English book',englishHtml],['topic',topicHtml]]) {
   assert.equal(html.split('src="/assets/seo-referral-tracker.js"').length-1,1,label+' must load the tracker exactly once');
 }
+
+// The growth-event client records book interactions, never a second search/AI
+// arrival. Only seo-referral-tracker.js can post to the portfolio collector;
+// otherwise one real visit is counted twice and the legacy client could send
+// referrer query strings to another domain.
+const growthClient = fs.readFileSync(path.join(root,'assets/books-growth.js'),'utf8');
+assert.ok(!growthClient.includes('trackSearchDiscovery('), 'legacy duplicate arrival tracker must be absent');
+assert.ok(!growthClient.includes('/api/public/search-discovery'), 'growth client cannot send duplicate discovery events');
+assert.ok(growthClient.includes("send('book_view'"), 'book interaction telemetry remains intact');
+
 console.log('PASS books: real item/topic pages load a single privacy-minimal source tracker, private/spoofed hosts excluded, 503 retry safe.');
