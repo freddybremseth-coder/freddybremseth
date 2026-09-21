@@ -106,7 +106,7 @@ function editWork(work){
  const save=document.createElement('button');save.className='primary';save.textContent='Save title and chosen categories';save.addEventListener('click',async()=>{
   try{if(!collection.value||!style.value||!title.value.trim())throw Error('Title, collection and style are required');
    if(work.digital_available)throw Error('Existing active sale editions require a separate approved update.');
-   await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(work.id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({title_en:title.value.trim(),collection_id:collection.value,style_id:style.value})});
+   await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(work.id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({title_en:title.value.trim(),collection_id:collection.value,style_id:style.value,source:'admin-edit'})});
    work.title_en=title.value.trim();work.collection_id=collection.value;work.style_id=style.value;prompt.remove();renderCatalogue();status('Updated '+work.title_en+'; the live gallery will use your new categories.');
   }catch(e){status(e.message,true)}
  });prompt.append(save);$('catalog-list').prepend(prompt);prompt.scrollIntoView({behavior:'smooth',block:'start'});
@@ -229,7 +229,7 @@ async function uploadOne(item){
   public_preview_path:folder+'/view.webp',public_thumb_path:folder+'/thumb.webp',pixel_width:publicData.w,pixel_height:publicData.h,published:item.published};
  item.progress='Registering in catalogue…';item.row.querySelector('.row-status').textContent=item.progress;
  if(existing){
-  await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(saved)});
+  await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({...saved,source:'admin-upload'})});
  }else{
   const price=Number(item.price);
   if(!Number.isFinite(price)||price<1||price>100000)throw Error('Digital price must be between €1 and €100,000.');
