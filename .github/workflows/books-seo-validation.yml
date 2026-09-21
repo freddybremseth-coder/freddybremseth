@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'books/**'
+      - 'vercel.json'
+      - 'scripts/test-books-root-routes.mjs'
       - '.github/workflows/books-seo-validation.yml'
   schedule:
     # Read-only build validation on the default branch; no deployment or SEO publishing.
@@ -22,6 +24,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Root Vercel book-host canonical routing
+        run: node --test scripts/test-books-root-routes.mjs
       - name: Build entire books catalogue and verify generated SEO pages
         working-directory: books
         run: npm run build
