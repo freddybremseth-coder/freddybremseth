@@ -64,8 +64,7 @@ async function sendLink(){
   const reason=message||code||'Supabase did not provide a detailed error';
   throw Error('Supabase email sign-in failed (HTTP '+res.status+'): '+reason+'.'+guidance);
  }
- $('code-form').hidden=false;
- status('Supabase accepted the email request. Check your inbox and spam folder; use the link or enter your one-time code.');
+ status('A magic link was sent. Open the link once, ideally in the same browser. No separate verification code is needed for a magic link.');
 }
 async function verifyCode(){
  const email=$('email').value.trim(),token=$('otp-code').value.trim();
@@ -75,14 +74,49 @@ async function verifyCode(){
  remember(await res.json());await verifyAdmin();
 }
 async function acceptCallback(){
+ // Magic-link emails normally contain a link, not a separate verification code.
+ // Supabase redirects with session tokens in the URL fragment in implicit flow.
+ // Never log or display a token or full callback URL.
  const hash=new URLSearchParams(location.hash.replace(/^#/,'')),query=new URLSearchParams(location.search);
- if(hash.get('access_token')&&hash.get('refresh_token')){remember({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token'),expires_at:Math.floor(Date.now()/1000)+Number(hash.get('expires_in')||3600)});return}
- if(query.get('token_hash')&&query.get('type')){
-  const type=query.get('type');if(!['email','magiclink','signup','invite','recovery'].includes(type))throw Error('Unrecognized email verification type');
-  const res=await fetch(cfg.url+'/auth/v1/verify',{method:'POST',headers:{'apikey':cfg.anonKey,'Content-Type':'application/json'},body:JSON.stringify({token_hash:query.get('token_hash'),type})});
-  if(!res.ok)throw Error('Email sign-in link expired. Please request another.');
-  remember(await res.json());
+ const param=name=>hash.get(name)||query.get(name);
+ const authError=param('error_description')||param('error');
+ if(authError){
+  history.replaceState({},'',location.pathname);
+  throw Error('Email sign-in was rejected: '+authError.slice(0,230)+'. Request a new sign-in link and open it only once.');
  }
+ const token=param('access_token'),refreshToken=param('refresh_token');
+ if(token&&refreshToken){
+  remember({access_token:token,refresh_token:refreshToken,expires_at:Math.floor(Date.now()/1000)+Number(param('expires_in')||3600)});
+  status('Magic link verified. Checking your gallery administrator access…');
+  return true;
+ }
+ const tokenHash=param('token_hash'),type=param('type');
+ if(tokenHash&&type){
+  if(!['email','magiclink','signup','invite','recovery'].includes(type)){
+   history.replaceState({},'',location.pathname);
+   throw Error('Unsupported email verification method. Request a new art gallery sign-in link.');
+  }
+  const res=await fetch(cfg.url+'/auth/v1/verify',{method:'POST',headers:{'apikey':cfg.anonKey,'Content-Type':'application/json'},
+    body:JSON.stringify({token_hash:tokenHash,type})});
+  if(!res.ok){
+   history.replaceState({},'',location.pathname);
+   throw Error('This sign-in link could not be verified. It may have expired or already been used. Request a new magic link.');
+  }
+  remember(await res.json());
+  status('Email verified. Checking your gallery administrator access…');
+  return true;
+ }
+ if(param('code')){
+  history.replaceState({},'',location.pathname);
+  throw Error('The email returned a PKCE authorization code, but this gallery login does not have a matching code verifier. Check that the Supabase Magic Link template uses {{ .ConfirmationURL }} and request a fresh link. Do not paste an authorization code here.');
+ }
+ // A custom Magic Link template using {{ .SiteURL }} or a hard-coded Family
+ // URL only navigates to the page and never establishes an Auth session.
+ if(location.hash||location.search){
+  history.replaceState({},'',location.pathname);
+  throw Error('The email opened the gallery without a usable Supabase login session. Check that the Magic Link email button uses {{ .ConfirmationURL }}, not {{ .SiteURL }} or a hard-coded Family URL. Then request a fresh link.');
+ }
+ return false;
 }
 async function verifyAdmin(){
  if(!state.session)return;
@@ -303,5 +337,5 @@ $('upload-all').addEventListener('click',withErrors(uploadAll));
 $('clear-queue').addEventListener('click',()=>{if(state.busy)return;for(const item of state.queue)URL.revokeObjectURL(item.blobUrl);state.queue=[];renderQueue();status('Queue cleared.')});
 $('catalog-search').addEventListener('input',renderCatalogue);
 dropEvents();
-(async()=>{if(!cfg?.url||!cfg?.anonKey)throw Error('Missing gallery configuration');await acceptCallback();if(!state.session){try{state.session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}}if(state.session)await verifyAdmin();else status('Private gallery: sign in to continue.');})().catch(e=>status(e.message,true));
+(async()=>{if(!cfg?.url||!cfg?.anonKey)throw Error('Missing gallery configuration');const fromLink=await acceptCallback();if(!state.session){try{state.session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}}if(state.session)await verifyAdmin();else if(!fromLink)status('Private gallery: sign in to continue. If an email link brought you back to this login screen, see the Magic Link template help below.');})().catch(e=>status(e.message,true));
 })();
