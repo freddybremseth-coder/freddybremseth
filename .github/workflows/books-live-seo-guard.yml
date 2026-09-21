@@ -1,0 +1,48 @@
+name: Books live canonical route guard
+
+on:
+  pull_request:
+    paths:
+      - 'books/scripts/audit-live-seo.mjs'
+      - 'books/scripts/audit-live-seo.test.mjs'
+      - '.github/workflows/books-live-seo-guard.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'books/scripts/audit-live-seo.mjs'
+      - 'books/scripts/audit-live-seo.test.mjs'
+      - '.github/workflows/books-live-seo-guard.yml'
+  schedule:
+    # Independent of the successful build-time SEO checks. Daily live-domain
+    # observation detects stale or wrongly routed Vercel production deployments.
+    - cron: '17 11 * * *'
+  workflow_dispatch:
+
+jobs:
+  regression-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate canonical-route smoke checks without external requests
+        working-directory: books
+        run: node --test scripts/audit-live-seo.test.mjs
+
+  public-site-smoke:
+    if: github.event_name != 'pull_request'
+    needs: regression-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify actual public book URLs, not only the generated build artifacts
+        working-directory: books
+        run: node scripts/audit-live-seo.mjs
