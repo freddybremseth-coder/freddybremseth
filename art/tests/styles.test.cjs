@@ -289,3 +289,21 @@ test('curated local variants are loaded when the live variants endpoint is unava
   assert.ok(!ids.has(row.variant_id));ids.add(row.variant_id);
  }
 });
+
+test('visually confirmed duplicate families show one primary card while preserving every artwork page',()=>{
+ const byId=new Map(artworks.map(a=>[a.id,a]));
+ const ids=new Set();
+ for(const row of variantPairs){
+  assert.ok(!ids.has(row.variant_id),'duplicate variant assignment '+row.variant_id);ids.add(row.variant_id);
+  const a=byId.get(row.variant_id),b=byId.get(row.primary_id);
+  if(a&&b){
+   assert.equal(collectionFor(a),collectionFor(b),'cross-collection pair '+row.variant_id);
+   assert.ok(fs.existsSync(path.join(root,'verk',a.id,'index.html')),'missing variant detail page '+a.id);
+   assert.ok(fs.existsSync(path.join(root,'verk',b.id,'index.html')),'missing parent detail page '+b.id);
+   assert.ok(!variantPairs.some(other=>other.variant_id===b.id),'variant must not also be a parent '+b.id);
+  }
+ }
+ for(const [variant,collection] of Object.entries({"melankolsk-blamane-og-ravn":"words-that-matter","morgenlys-ved-italiensk-innsjterrasse":"mediterranean-soul","signert-botanisk-art-deco-collage":"earth-and-emotion","lysdame-ved-stearinlys-og-havneutsikt":"studio-archive","terrakotta-og-stjernehimmel-ved-havet":"mediterranean-soul"})){
+  assert.equal(curation.byArtworkId[variant],collection);
+ }
+});

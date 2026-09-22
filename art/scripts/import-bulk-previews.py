@@ -158,7 +158,7 @@ for item in manifest:
         'digital_available':False
     })
     next_number+=1
-    collections['byArtworkId'][id]=item['collection_id']
+    collections['byArtworkId'].setdefault(id,item['collection_id'])  # preserve audited collection overrides
 
 # All validation completes before any file is written.
 for name,binary in previews.items():

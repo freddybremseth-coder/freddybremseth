@@ -28,5 +28,83 @@
     "primary_id": "en-katedral-for-utbrente-drmmer",
     "sort_order": 1,
     "reason": "Previously curated cathedral variant."
+  },
+  {
+    "variant_id": "art-20260921-eternal-light-fcbc5dc3",
+    "primary_id": "art-20260921-eternal-lights-d728f64c",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "art-20260921-sorrow-in-the-night-2eca5f96",
+    "primary_id": "art-20260921-grief-in-my-hearth-61f95e0d",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "art-20260921-broken-forest-c661d374",
+    "primary_id": "art-20260921-broken-forest-1c88ee37",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "melankolsk-blamane-og-ravn",
+    "primary_id": "abstrakt-maleri-med-ansikter-og-ravner",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "middelhavsterrasse-ved-solnedgang",
+    "primary_id": "morgenlys-ved-italiensk-innsjterrasse",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "art-20260921-moonshine-in-the-city-00e9dd4a",
+    "primary_id": "art-20260921-tree-of-gold-151036e6",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "art-20260921-reborn-again-cdbcb3e9",
+    "primary_id": "art-20260921-reborn-in-gold-and-darkness-f649ea3f",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "terrakotta-og-stjernehimmel-ved-havet",
+    "primary_id": "en-roligere-lysere-verden",
+    "sort_order": 2,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "drmmenes-forvandlende-drer",
+    "primary_id": "drer-mot-nye-horisonter",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "signert-botanisk-art-deco-collage",
+    "primary_id": "botanisk-drm-i-gull-og-grnt",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "lysdame-ved-stearinlys-og-havneutsikt",
+    "primary_id": "barokk-kabinett-med-lesende-kvinne",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "manedrm-ved-den-stille-innsjen",
+    "primary_id": "manenymfen-ved-innsjen",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "stjernenatt-over-kystlandsbyen",
+    "primary_id": "stjernekveld-over-kystlandsbyen",
+    "sort_order": 1,
+    "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
   }
 ]
