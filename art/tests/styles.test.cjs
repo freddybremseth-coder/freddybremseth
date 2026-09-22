@@ -307,3 +307,19 @@ test('visually confirmed duplicate families show one primary card while preservi
   assert.equal(curation.byArtworkId[variant],collection);
  }
 });
+
+test('full gallery audit keeps confirmed repeated admin uploads as variants',()=>{
+ const expected={
+  'art-20260921-after-the-flames-c1fc0b02':'art-20260921-phoenix-after-the-flames-5cfa5df9',
+  'art-20260921-hearth-under-heaven-of-stars-b226b987':'art-20260921-altarpiece-with-golden-cracks-48441684'
+ };
+ for(const [variant,parent] of Object.entries(expected)){
+  assert.ok(variantPairs.some(row=>row.variant_id===variant&&row.primary_id===parent));
+ }
+ // Distinct artwork interpretations of three women retain independent cards.
+ for(const id of [
+  'art-20260921-mourning-ladies-6e359978',
+  'art-20260921-ravens-and-roses-9c247d02',
+  'art-20260921-gold-and-shadow-2c60c3c1'
+ ])assert.ok(!variantPairs.some(row=>row.variant_id===id));
+});

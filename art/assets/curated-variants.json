@@ -106,5 +106,17 @@
     "primary_id": "stjernekveld-over-kystlandsbyen",
     "sort_order": 1,
     "reason": "Visually reviewed near-identical composition; shown as an alternative version, with its original artwork page preserved."
+  },
+  {
+    "variant_id": "art-20260921-after-the-flames-c1fc0b02",
+    "primary_id": "art-20260921-phoenix-after-the-flames-5cfa5df9",
+    "sort_order": 1,
+    "reason": "Visual audit of all 181 gallery previews confirmed the same phoenix scene with only minor rendering changes."
+  },
+  {
+    "variant_id": "art-20260921-hearth-under-heaven-of-stars-b226b987",
+    "primary_id": "art-20260921-altarpiece-with-golden-cracks-48441684",
+    "sort_order": 1,
+    "reason": "Visually reviewed the same central composition and pose with minor colour and detail changes."
   }
 ]
