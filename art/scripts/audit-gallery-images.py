@@ -14,6 +14,8 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 import urllib.request
+import urllib.error
+import time
 
 import imagehash
 import numpy as np
@@ -42,20 +44,27 @@ def retrieve(row):
             return row, None, "Missing public thumbnail"
         link = "https://art.freddybremseth.com" + fallback
     req = urllib.request.Request(link, headers={"User-Agent": "Freddy-Art-Visual-Audit/1.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=35) as response:
-            data = response.read()
-        image = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")
-        color = np.asarray(image.resize((48, 48)), dtype=np.float32) / 255.0
-        return row, {
-            "image": image, "phash": imagehash.phash(image, hash_size=8),
-            "dhash": imagehash.dhash(image, hash_size=8),
-            "color": color, "bytes_sha256": hashlib.sha256(data).hexdigest(),
-        }, None
-    except Exception as ex:
-        return row, None, type(ex).__name__ + ": " + str(ex)[:160]
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(req, timeout=35) as response:
+                data = response.read()
+            image = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")
+            color = np.asarray(image.resize((48, 48)), dtype=np.float32) / 255.0
+            return row, {
+                "image": image, "phash": imagehash.phash(image, hash_size=8),
+                "dhash": imagehash.dhash(image, hash_size=8),
+                "color": color, "bytes_sha256": hashlib.sha256(data).hexdigest(),
+            }, None
+        except urllib.error.HTTPError as ex:
+            if ex.code != 429 or attempt == 4:
+                return row, None, type(ex).__name__ + ": " + str(ex)[:160]
+            # The public storage endpoint may rate-limit large gallery audits.
+            # Slow down rather than treating a transient 429 as a missing image.
+            time.sleep((3, 12, 30, 65)[attempt])
+        except Exception as ex:
+            return row, None, type(ex).__name__ + ": " + str(ex)[:160]
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
     responses = list(executor.map(retrieve, rows))
 good = {row["id"]: (row, img) for row, img, error in responses if img}
 errors = [{"id": row["id"], "error": error} for row, img, error in responses if error]
