@@ -24,7 +24,7 @@ test('home collection separates horizontal originals from portrait gallery witho
  assert.match(app,/const horizontal=isHumanCondition\?works\.filter/);
  assert.match(app,/const portraitWorks=isHumanCondition\?works\.filter/);
  assert.match(app,/showcase\.className='human-condition-feature'/);
- assert.match(app,/segment\.appendChild\(cards\(narrowed\?portraitWorks:portraitWorks\.slice\(0,4\)\)\)/);
+ assert.match(app,/segment\.appendChild\(cards\(narrowed\?varied:varied\.slice\(0,4\)\)\)/);
  assert.match(css,/\.style-group-human-condition \.human-condition-feature \.art-photo img\s*\{[^}]*object-fit:\s*contain/s);
  assert.match(css,/\.style-group-human-condition \.style-group-grid\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/s);
  assert.match(css,/@media \(max-width: 760px\)[\s\S]*?\.style-group-human-condition \.style-group-grid\.gallery-grid\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/);

@@ -281,7 +281,7 @@ test('near-identical works share a single gallery card across collections withou
 });
 test('curated local variants are loaded when the live variants endpoint is unavailable',()=>{
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
- assert.match(app,/curated-variants\\.json/);
+ assert.match(app,/curated-variants\.json/);
  assert.match(app,/Using curated local variants/);
  const ids=new Set();
  for(const row of variantPairs){
