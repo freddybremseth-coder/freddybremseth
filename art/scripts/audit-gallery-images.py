@@ -62,8 +62,8 @@ errors = [{"id": row["id"], "error": error} for row, img, error in responses if 
 pairs = []
 for (aid, (ar, a)), (bid, (br, b)) in itertools.combinations(good.items(), 2):
     exact = a["bytes_sha256"] == b["bytes_sha256"]
-    phash = a["phash"] - b["phash"]
-    dhash = a["dhash"] - b["dhash"]
+    phash = int(a["phash"] - b["phash"])
+    dhash = int(a["dhash"] - b["dhash"])
     color_distance = float(np.mean(np.abs(a["color"] - b["color"])))
     # Wide candidates get human review; not an automatic verdict.
     if exact or (phash <= 12 and dhash <= 17 and color_distance < 0.24):
