@@ -8,6 +8,8 @@ const artworks=read('assets/catalog.json');
 const styles=read('assets/styles.json');
 const curation=read('assets/collections.json');
 const collectionFor=art=>curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
+const variantPairs=read('assets/curated-variants.json');
+const curatedVariantIds=new Set(variantPairs.filter(row=>artworks.some(a=>a.id===row.variant_id)&&artworks.some(a=>a.id===row.primary_id)).map(row=>row.variant_id));
 test('every unique artwork retains its existing style',()=>{
  assert.ok(artworks.length>=63);
  assert.equal(new Set(artworks.map(a=>a.id)).size,artworks.length);
@@ -101,7 +103,7 @@ test('six dedicated collections have complete indexable, mobile-friendly static 
   assert.match(sitemap,new RegExp('<loc>https://art\\.freddybremseth\\.com'+url+'</loc>'));
   assert.ok(homepage.includes('href="'+url+'"')||curation.collections.some(other=>other.id!==collection.id&&fs.readFileSync(path.join(root,'collections',other.id,'index.html'),'utf8').includes('href="'+url+'"')),'Collection is not linked from any gallery page: '+collection.id);
   assert.ok(html.includes('name="'+collection.name.replaceAll('&','&amp;')+'"')||html.includes('<h1>'+collection.name.replaceAll('&','&amp;')+'</h1>'));
-  const works=artworks.filter(item=>collectionFor(item)===collection.id);
+  const works=artworks.filter(item=>collectionFor(item)===collection.id&&!curatedVariantIds.has(item.id));
   assert.ok(works.length>0);
   for(const art of works){
    const link='/verk/'+art.id+'/';
@@ -111,7 +113,7 @@ test('six dedicated collections have complete indexable, mobile-friendly static 
   }
   assert.ok(!html.includes('/api/create-checkout'),'No standalone collection page should bypass secure checkout');
  }
- assert.equal(names.size,artworks.length);
+ assert.equal(names.size,artworks.length-curatedVariantIds.size);
  assert.match(homepage,/class="collection-cards"/);
  assert.match(app,/\/collections\/.*collection\.id/);
  assert.match(css,/\.collection-landing-hero/);
@@ -261,4 +263,29 @@ test('discovery gallery supports a varied shuffle on an undecorated background',
  assert.match(app,/state\.mixSeed\+\+/);
  assert.match(css,/\.gallery-section\{background:#faf9f6\}/);
  assert.match(css,/\.gallery-section \.art-photo,\.collection-landing \.art-photo\{background:transparent\}/);
+});
+
+test('near-identical works share a single gallery card across collections without breaking detail URLs',()=>{
+ const primary='en-roligere-lysere-verden';
+ const variant='terrakottasolen-over-det-bla-landskapet';
+ assert.ok(variantPairs.some(row=>row.variant_id===variant&&row.primary_id===primary));
+ assert.equal(collectionFor(artworks.find(a=>a.id===primary)),'mediterranean-soul');
+ assert.equal(collectionFor(artworks.find(a=>a.id===variant)),'mediterranean-soul');
+ const human=fs.readFileSync(path.join(root,'collections/human-condition/index.html'),'utf8');
+ const mediterranean=fs.readFileSync(path.join(root,'collections/mediterranean-soul/index.html'),'utf8');
+ assert.ok(!human.includes('href="/verk/'+variant+'/"'));
+ assert.ok(!human.includes('href="/verk/'+primary+'/"'));
+ assert.ok(!mediterranean.includes('href="/verk/'+variant+'/"'));
+ assert.ok(mediterranean.includes('href="/verk/'+primary+'/"'));
+ for(const id of [primary,variant])assert.ok(fs.existsSync(path.join(root,'verk',id,'index.html')));
+});
+test('curated local variants are loaded when the live variants endpoint is unavailable',()=>{
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ assert.match(app,/curated-variants\\.json/);
+ assert.match(app,/Using curated local variants/);
+ const ids=new Set();
+ for(const row of variantPairs){
+  assert.ok(row.variant_id!==row.primary_id);
+  assert.ok(!ids.has(row.variant_id));ids.add(row.variant_id);
+ }
 });

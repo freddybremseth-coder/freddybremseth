@@ -1,0 +1,32 @@
+[
+  {
+    "variant_id": "terrakottasolen-over-det-bla-landskapet",
+    "primary_id": "en-roligere-lysere-verden",
+    "sort_order": 1,
+    "reason": "Near-identical terracotta sun composition; show the signed version as the primary artwork."
+  },
+  {
+    "variant_id": "knust-glasshjerte-med-gyldne-blomster",
+    "primary_id": "forgylt-glasshjerte-med-blomster",
+    "sort_order": 1,
+    "reason": "Previously curated heart composition variant."
+  },
+  {
+    "variant_id": "kubistisk-kafescene-med-gitar-og-stilleben",
+    "primary_id": "kubistisk-kafe-med-drmmende-utsikt",
+    "sort_order": 1,
+    "reason": "Previously curated cubist cafe variant."
+  },
+  {
+    "variant_id": "kartografi-over-minner-og-ruiner",
+    "primary_id": "kart-over-minner-og-ruiner",
+    "sort_order": 1,
+    "reason": "Previously curated cartographic variant."
+  },
+  {
+    "variant_id": "katedralen-av-uendelige-drmmer",
+    "primary_id": "en-katedral-for-utbrente-drmmer",
+    "sort_order": 1,
+    "reason": "Previously curated cathedral variant."
+  }
+]

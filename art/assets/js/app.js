@@ -145,7 +145,8 @@
     }
     if(portraitWorks.length){
      const segment=document.createElement('div');segment.className='style-group-grid gallery-grid';
-     segment.appendChild(cards(narrowed?portraitWorks:portraitWorks.slice(0,4)));
+     const varied=visualShuffle(portraitWorks,state.mixSeed);
+     segment.appendChild(cards(narrowed?varied:varied.slice(0,4)));
      section.appendChild(segment);
     }
     grid.appendChild(section);
@@ -261,25 +262,32 @@
  }
  async function init(){
   try{
-   const [catalog,styles,curation,status,print]=await Promise.all([
+   const [catalog,styles,curation,status,print,curatedVariants]=await Promise.all([
     fetch('/assets/catalog.json').then(r=>{if(!r.ok)throw Error('Catalog unavailable');return r.json()}),
     fetch('/assets/styles.json').then(r=>{if(!r.ok)throw Error('Styles unavailable');return r.json()}),
     fetch('/assets/collections.json').then(r=>{if(!r.ok)throw Error('Collections unavailable');return r.json()}),
     fetch('/api/status').then(r=>r.ok?r.json():({sales_enabled:false})).catch(()=>({sales_enabled:false})),
-    fetch('/assets/print-links.json').then(r=>r.ok?r.json():({})).catch(()=>({}))
+    fetch('/assets/print-links.json').then(r=>r.ok?r.json():({})).catch(()=>({})),
+    fetch('/assets/curated-variants.json').then(r=>r.ok?r.json():[]).catch(()=>[])
    ]);
    state.styles=Array.isArray(styles)?styles:[];
    state.collections=curation.collections;
    // Static catalogue stays as an outage fallback; admin-published art joins at runtime.
    let remote=[];try{remote=await loadSupabaseCatalogue()}catch(error){console.warn('Using gallery snapshot:',error.message)}
    state.art=mergedCatalogue(catalog,remote,state.styles,curation);
-   try{
-    const rows=await loadPublicVariantGroups(),ids=new Set(state.art.map(art=>art.id));
-    state.variants=rows.filter(row=>row.variant_id!==row.primary_id&&ids.has(row.variant_id)&&ids.has(row.primary_id));
-    state.variantById=new Map(state.variants.map(row=>[row.variant_id,row]));
-    state.variantsByPrimary=new Map();
-    for(const row of state.variants){const items=state.variantsByPrimary.get(row.primary_id)||[];items.push(row);state.variantsByPrimary.set(row.primary_id,items)}
-   }catch(error){console.warn('Variations fallback to individual artworks:',error.message)}
+   // Curated local groups protect the gallery if the live variant API is offline.
+   // Live groups take precedence for artworks moved in the gallery admin.
+   const ids=new Set(state.art.map(art=>art.id));
+   let remoteVariants=[];
+   try{remoteVariants=await loadPublicVariantGroups()}catch(error){console.warn('Using curated local variants:',error.message)}
+   const variants=new Map();
+   for(const row of [...(Array.isArray(curatedVariants)?curatedVariants:[]),...remoteVariants]){
+    if(row.variant_id!==row.primary_id&&ids.has(row.variant_id)&&ids.has(row.primary_id))variants.set(row.variant_id,row);
+   }
+   state.variants=[...variants.values()];
+   state.variantById=new Map(state.variants.map(row=>[row.variant_id,row]));
+   state.variantsByPrimary=new Map();
+   for(const row of state.variants){const items=state.variantsByPrimary.get(row.primary_id)||[];items.push(row);state.variantsByPrimary.set(row.primary_id,items)}
    if(state.art.some(art=>!state.collections.some(c=>c.id===art.collection_id)))throw Error('Artwork without a curated collection');
    state.checkout=!!status.sales_enabled;state.print=print;makeCollections();
    $('art-count').textContent=visibleArt().length;$('end-number').textContent=visibleArt().length;

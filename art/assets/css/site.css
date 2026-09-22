@@ -390,3 +390,12 @@ dialog.landscape-artwork .dialog-photo img {
  .collection-cards>.collection-tile:nth-child(5) img{height:100%;width:100%;aspect-ratio:4/5;object-fit:contain;background:#f7f6f3}
 }
 .collection-landing{background-image:none;background-color:#faf9f6}
+
+/* Discovery uses row-major layout so the diversity order also applies visually,
+   instead of the previous vertical masonry columns placing similar cards side by side. */
+.gallery-discover>.gallery-grid{columns:unset;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:clamp(30px,4vw,62px) clamp(22px,3vw,48px)}
+.gallery-discover>.gallery-grid .art-card{min-width:0;margin:0;break-inside:auto}
+.gallery-discover>.gallery-grid .art-card-landscape-feature{column-span:none;grid-column:span 2}
+.gallery-discover>.gallery-grid .art-photo{background:transparent}
+@media(max-width:800px){.gallery-discover>.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 15px}}
+@media(max-width:480px){.gallery-discover>.gallery-grid{grid-template-columns:minmax(0,1fr)}.gallery-discover>.gallery-grid .art-card-landscape-feature{grid-column:auto}}

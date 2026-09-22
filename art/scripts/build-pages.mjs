@@ -1,6 +1,7 @@
 import fs from 'node:fs';import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'..');
 const catalog=JSON.parse(fs.readFileSync(path.join(root,'assets/catalog.json'),'utf8'));
+const curatedVariantIds=new Set(JSON.parse(fs.readFileSync(path.join(root,'assets/curated-variants.json'),'utf8')).map(row=>row.variant_id));
 let template=fs.readFileSync(path.join(root,'index.html'),'utf8');
 // The homepage and SEO metadata reflect the actual build-time catalogue, including imported previews.
 template=template.replace(/Explore \d+ digital artworks/,`Explore ${catalog.length} digital artworks`).replace(/collection of \d+ visual stories/,`collection of ${catalog.length} visual stories`).replace(/id="art-count">\d+<\/strong>/,`id="art-count">${catalog.length}</strong>`).replace(/id="end-number">\d+<\/span>/,`id="end-number">${catalog.length}</span>`);
@@ -41,7 +42,7 @@ const notes={
 };
 for(const collection of curation.collections){
  if(!/^[a-z0-9-]+$/.test(collection.id))throw Error('Invalid collection URL segment: '+collection.id);
- const works=catalog.filter(art=>collectionFor(art)===collection.id);
+ const works=catalog.filter(art=>collectionFor(art)===collection.id&&!curatedVariantIds.has(art.id));
  if(!works.length)throw Error('Empty public collection: '+collection.id);
  const url=domain+'/collections/'+collection.id+'/';
  const cover=collection.cover.replace('-thumb.webp','-view.webp');
