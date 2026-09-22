@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const cfg=window.ART_GALLERY_CONFIG;
-const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],variants:[],queue:[],busy:false};
+const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
 const MAX_FILE=50*1024*1024,MAX_ZIP=250*1024*1024,MAX_ITEMS=30;
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,75);
@@ -140,19 +140,22 @@ async function verifyAdmin(){
  await loadCatalogue();status('Administrator access verified. Ready for files.');
 }
 async function loadCatalogue(){
- const [styles,curation,works,variants]=await Promise.all([
+ const [styles,curation,works,variants,masters]=await Promise.all([
  fetch('/assets/styles.json').then(r=>r.json()),fetch('/assets/collections.json').then(r=>r.json()),
  api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
- api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000')
+ api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
+ api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes&limit=1000')
  ]);
- state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;
+ state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;
  for(const [element,entries] of [['collection-default',state.collections],['style-default',state.styles]]){
  const select=$(element),current=select.value;
  select.replaceChildren(new Option(element==='collection-default'?'Choose a collection…':'Choose an artistic style…',''));
  for(const entry of entries){const o=new Option(entry.name,entry.id);select.add(o)}
  if(current)select.value=current;
  }
- $('catalog-count').textContent=state.works.length;renderCatalogue();
+ $('catalog-count').textContent=state.works.length;
+ $('master-count').textContent=state.masters.length;
+ renderCatalogue();
 }
 function renderCatalogue(){
  const term=$('catalog-search').value.trim().toLowerCase();const matches=state.works.filter(w=>(w.title_en+' '+w.id).toLowerCase().includes(term)).slice(0,100);
@@ -162,8 +165,10 @@ function renderCatalogue(){
   const src=work.public_thumb_path?publicImage(work.public_thumb_path):work.legacy_thumb_url||'';
   const link=state.variants.find(v=>v.variant_id===work.id),children=state.variants.filter(v=>v.primary_id===work.id);
   const relation=link?' · Variant of '+(state.works.find(w=>w.id===link.primary_id)?.title_en||link.primary_id):children.length?' · Main artwork · '+children.length+' variant(s)':'';
-  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small></span>';
-  const button=document.createElement('button');button.type='button';button.textContent='Edit category';button.addEventListener('click',()=>editWork(work));el.append(button);const variantsButton=document.createElement('button');variantsButton.type='button';variantsButton.textContent=link?'Change variant':children.length?'Manage '+children.length+' variants':'Group as variant';variantsButton.addEventListener('click',()=>manageVariant(work));el.append(variantsButton);$('catalog-list').append(el);
+  const master=state.masters.find(m=>m.artwork_id===work.id);
+  const masterNote=master?(master.verified_at?' · Private master verified':' · Private master registered · not verified'):' · No private master registered';
+  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+esc(masterNote)+'</small></span>';
+  const button=document.createElement('button');button.type='button';button.textContent='Edit title & story';button.addEventListener('click',()=>editWork(work));el.append(button);const variantsButton=document.createElement('button');variantsButton.type='button';variantsButton.textContent=link?'Change variant':children.length?'Manage '+children.length+' variants':'Group as variant';variantsButton.addEventListener('click',()=>manageVariant(work));el.append(variantsButton);$('catalog-list').append(el);
  }
  if(matches.length===0)$('catalog-list').textContent='No matching artworks.';
 }
@@ -237,19 +242,32 @@ function manageVariant(work){
 }
 function publicImage(objectPath){return cfg.url+'/storage/v1/object/public/art-previews/'+objectPath.split('/').map(encodeURIComponent).join('/')}
 function editWork(work){
- const collection=$('collection-default'),style=$('style-default');collection.value=work.collection_id;style.value=work.style_id;
  if(!state.authorized)return;
- const prompt=document.createElement('div');prompt.className='panel';
- prompt.innerHTML='<h2>Edit '+esc(work.title_en)+'</h2><p>Choose the collection and artistic style above, then save below. You control both classifications.</p>';
- const title=document.createElement('input');title.value=work.title_en;title.maxLength=150;title.setAttribute('aria-label','Artwork title');prompt.append(title);
- const save=document.createElement('button');save.className='primary';save.textContent='Save title and chosen categories';save.addEventListener('click',async()=>{
-  try{if(!collection.value||!style.value||!title.value.trim())throw Error('Title, collection and style are required');
-   if(work.digital_available)throw Error('Existing active sale editions require a separate approved update.');
+ const prompt=document.createElement('div');prompt.className='panel artwork-editor';
+ const heading=document.createElement('h2');heading.textContent='Edit '+work.title_en;prompt.append(heading);
+ const note=document.createElement('p');note.textContent='Write a description that reflects this actual artwork: describe the subject, light and symbols before suggesting a feeling. Do not promise print materials, edition limits or physical signatures without a verified product.';prompt.append(note);
+ const field=(caption,control)=>{const label=document.createElement('label');label.textContent=caption;label.append(control);prompt.append(label);return control};
+ const title=document.createElement('input');title.value=work.title_en;title.maxLength=150;title.required=true;field('Title (English)',title);
+ const collection=document.createElement('select');for(const item of state.collections)collection.add(new Option(item.name,item.id));collection.value=work.collection_id;field('Collection',collection);
+ const style=document.createElement('select');for(const item of state.styles)style.add(new Option(item.name,item.id));style.value=work.style_id;field('Artistic style',style);
+ const desc=document.createElement('textarea');desc.value=work.description_en||'';desc.maxLength=1200;desc.rows=5;desc.placeholder='What is visible? Which symbols, contrasts or emotions give this work its character?';field('Story / product description (up to 1,200 characters)',desc);
+ const actions=document.createElement('div');actions.className='actions';
+ const save=document.createElement('button');save.className='primary';save.type='button';save.textContent='Save artwork details';
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';cancel.addEventListener('click',()=>prompt.remove());
+ actions.append(save,cancel);prompt.append(actions);
+ save.addEventListener('click',async()=>{
+  try{
+   if(!collection.value||!style.value||!title.value.trim())throw Error('Title, collection and style are required');
+   if(work.digital_available)throw Error('An existing active sale edition requires a separate approved update.');
    if(work.collection_id!==collection.value&&(isVariant(work.id)||isPrimary(work.id)))throw Error('Separate this artwork from its variant group before changing its collection.');
-   await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(work.id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({title_en:title.value.trim(),collection_id:collection.value,style_id:style.value,source:'admin-edit'})});
-   work.title_en=title.value.trim();work.collection_id=collection.value;work.style_id=style.value;prompt.remove();renderCatalogue();status('Updated '+work.title_en+'; the live gallery will use your new categories.');
-  }catch(e){status(e.message,true)}
- });prompt.append(save);$('catalog-list').prepend(prompt);prompt.scrollIntoView({behavior:'smooth',block:'start'});
+   save.disabled=true;
+   await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(work.id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({
+    title_en:title.value.trim(),description_en:desc.value.trim(),collection_id:collection.value,style_id:style.value,source:'admin-edit'
+   })});
+   work.title_en=title.value.trim();work.description_en=desc.value.trim();work.collection_id=collection.value;work.style_id=style.value;
+   prompt.remove();renderCatalogue();status('Saved the story and categories for '+work.title_en+'. The live gallery uses this description; existing static artwork page text and search snippets may require a separate content rebuild.');
+  }catch(e){status(e.message,true)}finally{save.disabled=false}
+ });$('catalog-list').prepend(prompt);prompt.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function titleFromName(name){return name.replace(/\.(png|jpe?g|webp)$/i,'').replace(/^\d{1,4}[_ -]+/,'').replace(/(?:[_ -](?:2x|retina|print|original|master|view|thumb|preview|web))+(?:[_ -]\d+x\d+)?$/ig,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b[a-z]/g,ch=>ch.toUpperCase()).slice(0,150)||'Untitled artwork'}
 function stem(name){return slug(titleFromName(name))}

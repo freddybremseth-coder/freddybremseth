@@ -323,3 +323,16 @@ test('full gallery audit keeps confirmed repeated admin uploads as variants',()=
   'art-20260921-gold-and-shadow-2c60c3c1'
  ])assert.ok(!variantPairs.some(row=>row.variant_id===id));
 });
+
+test('admin explains private masters and lets editors update image-specific descriptions without starting sales',()=>{
+ const html=fs.readFileSync(path.join(root,'admin/index.html'),'utf8');
+ const script=fs.readFileSync(path.join(root,'assets/js/admin.js'),'utf8');
+ assert.match(html,/id="file-workflow-title"/);
+ assert.match(html,/id="master-count"/);
+ assert.match(html,/300 DPI/);
+ assert.match(script,/art_gallery_masters\?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes/);
+ assert.match(script,/description_en:desc\.value\.trim\(\)/);
+ assert.match(script,/source:'admin-edit'/);
+ assert.match(script,/Existing active sale edition|existing active sale edition/);
+ assert.doesNotMatch(script,/digital_available:\s*true/);
+});

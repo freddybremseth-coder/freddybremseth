@@ -10,3 +10,20 @@
 .variant-owned span{flex:1;min-width:0;overflow-wrap:anywhere;font-size:13px}
 .variant-owned button{font-size:12px}
 @media(max-width:760px){.variant-owned{flex-wrap:wrap}.variant-owned button{margin-left:auto}}
+
+/* Clear gallery management guidance; never expose private artwork files. */
+.workflow-guide{margin:15px 0 22px;background:#fbfaf7;border-color:#d9d0c0}
+.workflow-guide .panel-head{margin-bottom:12px}
+.workflow-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.workflow-columns h3{font:normal 20px Georgia,serif;margin:4px 0 10px}
+.workflow-columns p,.workflow-guide details p{font-size:13px;line-height:1.65;color:#38423d}
+.workflow-guide code{overflow-wrap:anywhere}
+.workflow-guide summary{cursor:pointer;font-weight:600;padding:10px 0}
+.workflow-guide details{border-top:1px solid #ddd6cb;margin-top:14px}
+.intro .stat{display:flex;flex-direction:column;gap:5px}
+.intro .stat strong:not(:first-child){margin-top:7px}
+.artwork-editor{margin:12px 0;background:#fcfaf5;border:1px solid #b9ab91}
+.artwork-editor>label{display:block;margin:14px 0;font-size:13px;font-weight:600}
+.artwork-editor>label input,.artwork-editor>label select,.artwork-editor>label textarea{display:block;width:100%;margin-top:5px;font:inherit;font-weight:400;padding:10px;box-sizing:border-box}
+.artwork-editor textarea{min-height:115px;resize:vertical;line-height:1.5}
+@media(max-width:790px){.workflow-columns{grid-template-columns:minmax(0,1fr);gap:8px}}

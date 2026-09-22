@@ -3,42 +3,42 @@
     {
       "id": "human-condition",
       "name": "The Human Condition",
-      "description": "Love, fragility, identity, resilience and the choices that shape us. Figurative symbolism and dreamlike stories with a human heart.",
+      "description": "The fragile, beautiful business of being human. Portraits, gold-mended forms and dreamlike scenes explore love, loss, belonging and the courage to begin again.",
       "cover": "/assets/art/kintsugi-kyss-i-gull-og-marmor-thumb.webp",
       "featured": true
     },
     {
       "id": "words-that-matter",
       "name": "Words That Matter",
-      "description": "Urban energy, expressive faces and artworks with something to say. Some communicate through imagery rather than literal lettering.",
+      "description": "Images with something to say. Expressive faces, strong contrasts and visual metaphors give feeling a form — sometimes through painted words, sometimes without a single word.",
       "cover": "/assets/art/abstrakt-maleri-med-ansikter-og-ravner-thumb.webp",
       "featured": true
     },
     {
       "id": "symbolic-street-art",
       "name": "Symbolic Street Art",
-      "description": "Symbolic realism meets street art and pop-art energy: layered imagery, bold words and stories of vulnerability, resilience and hope.",
+      "description": "Where emotion meets the city wall. Symbolic figures, gold-lit fractures, graffiti and pop-art colour carry stories of grief, defiance, tenderness and the hope that survives.",
       "cover": "/assets/art/kongelig-gatekunst-hap-smerte-og-kjrlighet-thumb.webp",
       "featured": true
     },
     {
       "id": "mediterranean-soul",
       "name": "Mediterranean Soul",
-      "description": "Warm light, coastlines, terraces and imagined Mediterranean atmospheres. These are artistic interpretations, not specific documented locations.",
+      "description": "Light to return to. Imagined coastlines, terraces and quiet horizons hold the warmth of the Mediterranean and the feeling of a moment you wish would last.",
       "cover": "/assets/art/terrasse-i-solnedgang-ved-havet-thumb.webp",
       "featured": true
     },
     {
       "id": "earth-and-emotion",
       "name": "Earth & Emotion",
-      "description": "Earth colours, botanical forms, texture and pared-back compositions for an expressive yet calm interior.",
+      "description": "A quieter kind of intensity. Earth colours, botanical forms and tactile-looking digital textures create space for reflection, renewal and a little stillness.",
       "cover": "/assets/art/abstrakt-portal-i-jordtoner-thumb.webp",
       "featured": true
     },
     {
       "id": "studio-archive",
       "name": "Studio Archive",
-      "description": "Historical and stylistic studies from the wider studio, presented separately from the five signature collections.",
+      "description": "A wider view of the studio: experiments in period-inspired composition, abstraction and portraiture. Different styles, connected by an interest in atmosphere and human stories.",
       "cover": "/assets/art/art-nouveau-dronning-med-iris-og-svaner-thumb.webp",
       "featured": false
     }
