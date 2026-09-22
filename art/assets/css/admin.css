@@ -27,3 +27,18 @@
 .artwork-editor>label input,.artwork-editor>label select,.artwork-editor>label textarea{display:block;width:100%;margin-top:5px;font:inherit;font-weight:400;padding:10px;box-sizing:border-box}
 .artwork-editor textarea{min-height:115px;resize:vertical;line-height:1.5}
 @media(max-width:790px){.workflow-columns{grid-template-columns:minmax(0,1fr);gap:8px}}
+
+/* Read-only check of real private-storage presence, not just master metadata. */
+.master-audit-panel{margin:14px 0 22px;background:#faf9f5;border-color:#cbbfaa}
+.master-audit-panel p{font-size:13px;line-height:1.6}
+.master-audit-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:17px 0}
+.master-audit-stats>div{border:1px solid #dcd6c9;background:#fff;border-radius:7px;padding:12px}
+.master-audit-stats strong{display:block;font-size:30px;line-height:1.3}
+.master-audit-stats span{display:block;font-size:11px;line-height:1.5;color:#59615d}
+.catalog-toolbar{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;align-items:end}
+.catalog-toolbar label{min-width:0}
+.catalog-toolbar select{display:block;width:100%;min-height:40px;margin-top:5px}
+.catalog-toolbar input{box-sizing:border-box}
+.catalog-item .master-warning{color:#a24b22}
+@media(max-width:790px){.master-audit-stats{grid-template-columns:1fr 1fr}.catalog-toolbar{grid-template-columns:1fr}}
+@media(max-width:460px){.master-audit-stats{grid-template-columns:1fr}}

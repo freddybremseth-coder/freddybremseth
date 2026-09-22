@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const cfg=window.ART_GALLERY_CONFIG;
-const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],variants:[],queue:[],busy:false};
+const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],masterAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
 const MAX_FILE=50*1024*1024,MAX_ZIP=250*1024*1024,MAX_ITEMS=30;
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,75);
@@ -140,13 +140,14 @@ async function verifyAdmin(){
  await loadCatalogue();status('Administrator access verified. Ready for files.');
 }
 async function loadCatalogue(){
- const [styles,curation,works,variants,masters]=await Promise.all([
+ const [styles,curation,works,variants,masters,masterAudit]=await Promise.all([
  fetch('/assets/styles.json').then(r=>r.json()),fetch('/assets/collections.json').then(r=>r.json()),
  api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
  api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
- api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes&limit=1000')
+ api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes&limit=1000'),
+ api('/rest/v1/rpc/art_gallery_admin_master_status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
  ]);
- state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;
+ state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;state.masterAudit=masterAudit;
  for(const [element,entries] of [['collection-default',state.collections],['style-default',state.styles]]){
  const select=$(element),current=select.value;
  select.replaceChildren(new Option(element==='collection-default'?'Choose a collection…':'Choose an artistic style…',''));
@@ -155,22 +156,54 @@ async function loadCatalogue(){
  }
  $('catalog-count').textContent=state.works.length;
  $('master-count').textContent=state.masters.length;
+ const stored=masterAudit.filter(row=>row.storage_object_present).length;
+ const missing=masterAudit.length-stored;
+ $('master-stored').textContent=stored;
+ $('master-missing').textContent=missing;
+ $('master-verified').textContent=masterAudit.filter(row=>row.sale_verified).length;
+ $('master-audit-note').textContent=missing?missing+' artwork(s) need a private source file. Select a missing work below and upload only its private original; the public gallery stays unchanged.':'Every registered artwork has a matching private object. Print quality and sale delivery still require separate checks.';
  renderCatalogue();
 }
+function masterStatusFor(id){return state.masterAudit.find(row=>row.artwork_id===id)}
 function renderCatalogue(){
- const term=$('catalog-search').value.trim().toLowerCase();const matches=state.works.filter(w=>(w.title_en+' '+w.id).toLowerCase().includes(term)).slice(0,100);
+ const term=$('catalog-search').value.trim().toLowerCase();
+ const filter=$('master-filter').value;
+ const matches=state.works.filter(w=>{
+  const master=masterStatusFor(w.id);
+  return (w.title_en+' '+w.id).toLowerCase().includes(term)&&(
+   filter==='all'||
+   (filter==='needs-upload'&&!master?.storage_object_present)||
+   (filter==='stored'&&!!master?.storage_object_present)||
+   (filter==='verified'&&!!master?.sale_verified)
+  );
+ });
+ $('catalog-filter-count').textContent=matches.length+' matching artwork(s) · showing '+Math.min(matches.length,100)+' (use search to narrow results).';
  $('catalog-list').replaceChildren();
- for(const work of matches){
+ for(const work of matches.slice(0,100)){
   const el=document.createElement('div');el.className='catalog-item';
   const src=work.public_thumb_path?publicImage(work.public_thumb_path):work.legacy_thumb_url||'';
   const link=state.variants.find(v=>v.variant_id===work.id),children=state.variants.filter(v=>v.primary_id===work.id);
   const relation=link?' · Variant of '+(state.works.find(w=>w.id===link.primary_id)?.title_en||link.primary_id):children.length?' · Main artwork · '+children.length+' variant(s)':'';
-  const master=state.masters.find(m=>m.artwork_id===work.id);
-  const masterNote=master?(master.verified_at?' · Private master verified':' · Private master registered · not verified'):' · No private master registered';
-  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+esc(masterNote)+'</small></span>';
-  const button=document.createElement('button');button.type='button';button.textContent='Edit title & story';button.addEventListener('click',()=>editWork(work));el.append(button);const variantsButton=document.createElement('button');variantsButton.type='button';variantsButton.textContent=link?'Change variant':children.length?'Manage '+children.length+' variants':'Group as variant';variantsButton.addEventListener('click',()=>manageVariant(work));el.append(variantsButton);$('catalog-list').append(el);
+  const master=masterStatusFor(work.id);
+  const masterNote=master?.storage_object_present?(master.sale_verified?' · Private file present · digitally verified':' · Private file present · not sale/print verified'):(master?.master_registered?' · Master record exists but private file is missing':' · No private master uploaded');
+  const size=master?.storage_object_present&&master.pixel_width&&master.pixel_height?' · '+master.pixel_width+' × '+master.pixel_height+' px':'';
+  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+'</small></span>';
+  const edit=document.createElement('button');edit.type='button';edit.textContent='Edit title & story';edit.addEventListener('click',()=>editWork(work));el.append(edit);
+  const add=document.createElement('button');add.type='button';add.textContent=master?.storage_object_present?'Replace unverified private file':'Attach private file';
+  add.disabled=work.digital_available||!!master?.sale_verified;
+  add.title=add.disabled?'This work is protected by an active or verified sale master.':'Upload source only; keep the public artwork unchanged.';
+  add.addEventListener('click',()=>{
+   if(state.queue.length){status('Please finish or clear your current upload queue before selecting another artwork.',true);return}
+   state.pendingExistingId=work.id;
+   $('upload-mode').value='existing';
+   status('Selected '+work.title_en+'. Choose its best original image now. Public preview and artwork details will not be changed.');
+   $('source-files').click();
+  });
+  el.append(add);
+  const variantsButton=document.createElement('button');variantsButton.type='button';variantsButton.textContent=link?'Change variant':children.length?'Manage '+children.length+' variants':'Group as variant';variantsButton.addEventListener('click',()=>manageVariant(work));el.append(variantsButton);
+  $('catalog-list').append(el);
  }
- if(matches.length===0)$('catalog-list').textContent='No matching artworks.';
+ if(matches.length===0)$('catalog-list').textContent='No artworks match this search and file-status filter.';
 }
 function isVariant(id){return state.variants.some(row=>row.variant_id===id)}
 function isPrimary(id){return state.variants.some(row=>row.primary_id===id)}
@@ -318,34 +351,37 @@ async function gather(files){
   else if(validImage(f))selected.push({file:f,path:f.name});
   else throw Error('Unsupported file or image larger than 50 MB: '+f.name);
  }
+ if(state.pendingExistingId&&selected.length!==1)throw Error('Choose one image for the selected existing artwork, or use the regular upload tool for a batch.');
  const grouped=new Map();
  for(const item of selected){const key=stem(item.file.name);if(!key)continue;const prev=grouped.get(key);if(!prev||filePriority(item.file,item.path)>filePriority(prev.file,prev.path))grouped.set(key,item)}
  if(grouped.size>MAX_ITEMS||state.queue.length+grouped.size>MAX_ITEMS)throw Error('Maximum 30 artworks per batch. Clear the queue or split your archives.');
  const collection=$('collection-default').value,style=$('style-default').value;
  for(const item of grouped.values()){
-  const blobUrl=URL.createObjectURL(item.file),queueItem={...item,blobUrl,title:titleFromName(item.file.name),description:'',collection_id:collection,style_id:style,published:$('publish-default').checked,existing_id:'',variant_primary_id:'',price:'50',skip:false,progress:'Ready'};
+  const match=state.works.find(work=>work.id===state.pendingExistingId);
+  const blobUrl=URL.createObjectURL(item.file),queueItem={...item,blobUrl,title:match?.title_en||titleFromName(item.file.name),description:match?.description_en||'',collection_id:match?.collection_id||collection,style_id:match?.style_id||style,published:match?.published??$('publish-default').checked,existing_id:match?.id||'',variant_primary_id:'',price:'50',skip:false,progress:'Ready'};
   state.queue.push(queueItem);
  }
- renderQueue();status('Added '+grouped.size+' separate artwork(s) to review. Choose categories before uploading.');
+ state.pendingExistingId='';
+ renderQueue();status('Added '+grouped.size+' artwork source file(s). Existing artwork mode only updates the private file and keeps the public gallery unchanged.');
 }
 function rowSelect(entries,value,placeholder){return '<option value="">'+esc(placeholder)+'</option>'+entries.map(e=>'<option value="'+esc(e.id)+'"'+(value===e.id?' selected':'')+'>'+esc(e.name||e.title_en)+'</option>').join('')}
 function renderQueue(){
  $('review-panel').hidden=state.queue.length===0;$('queue-count').textContent=state.queue.length+' in queue';
  $('review-list').replaceChildren();const existing=$('upload-mode').value==='existing';
- for(const [i,item] of state.queue.entries()){
+ for(const item of state.queue){
   const row=document.createElement('div');row.className='art-row';
-  row.innerHTML='<img alt="Artwork preview" src="'+esc(item.blobUrl)+'"><div class="fields">'+
-  (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label>':'')+
-  '<label class="wide">English title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label>'+
-  '<label>Collection<select data-field="collection_id" required>'+rowSelect(state.collections,item.collection_id,'Choose collection…')+'</select></label>'+
-  '<label>Artistic style<select data-field="style_id" required>'+rowSelect(state.styles,item.style_id,'Choose style…')+'</select></label>'+
-  '<label class="wide">Description (optional)<textarea data-field="description" maxlength="1200">'+esc(item.description)+'</textarea></label>'+
-  (existing?'':'<label class="wide">This artwork is a variation of (optional)<select data-field="variant_primary_id">'+
+  row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields">'+
+   (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Only the private master file will be uploaded or replaced. This will NOT change the public preview, title, description, category or published status. Sales and physical prints stay disabled.</p>':
+   '<label class="wide">English title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label>'+
+   '<label>Collection<select data-field="collection_id" required>'+rowSelect(state.collections,item.collection_id,'Choose collection…')+'</select></label>'+
+   '<label>Artistic style<select data-field="style_id" required>'+rowSelect(state.styles,item.style_id,'Choose style…')+'</select></label>'+
+   '<label class="wide">Description (optional)<textarea data-field="description" maxlength="1200">'+esc(item.description)+'</textarea></label>'+
+   '<label class="wide">This artwork is a variation of (optional)<select data-field="variant_primary_id">'+
     rowSelect(state.works.filter(main=>main.collection_id===item.collection_id&&main.published&&!isVariant(main.id)&&!main.digital_available),item.variant_primary_id,'Show separately as its own artwork')+
-    '</select></label>')+
-  '<label>Planned digital price (€)<input data-field="price" type="number" min="1" max="100000" step="1" value="'+esc(item.price)+'"></label>'+
-  '<label class="check wide"><input type="checkbox" data-field="published" '+(item.published?'checked':'')+'><span>Publish gallery preview after uploading</span></label>'+
-  '<div class="row-tools"><label class="check"><input type="checkbox" data-field="skip" '+(item.skip?'checked':'')+'><span>Skip this artwork</span></label><span class="row-status">'+esc(item.progress)+'</span></div></div>';
+    '</select></label>'+
+   '<label>Planned digital price (€)<input data-field="price" type="number" min="1" max="100000" step="1" value="'+esc(item.price)+'"></label>'+
+   '<label class="check wide"><input type="checkbox" data-field="published" '+(item.published?'checked':'')+'><span>Publish gallery preview after uploading</span></label>')+
+   '<div class="row-tools"><label class="check"><input type="checkbox" data-field="skip" '+(item.skip?'checked':'')+'><span>Skip this artwork</span></label><span class="row-status">'+esc(item.progress)+'</span></div></div>';
   row.querySelectorAll('[data-field]').forEach(input=>input.addEventListener('change',()=>{const f=input.dataset.field;item[f]=input.type==='checkbox'?input.checked:input.value;if(f==='existing_id'&&item.existing_id){const match=state.works.find(a=>a.id===item.existing_id);if(match){item.title=match.title_en;item.collection_id=match.collection_id;item.style_id=match.style_id;renderQueue()}}if(f==='collection_id'){const main=state.works.find(w=>w.id===item.variant_primary_id);if(main?.collection_id!==item.collection_id)item.variant_primary_id='';renderQueue()}}));
   $('review-list').append(row);item.row=row;
  }
@@ -362,6 +398,12 @@ async function imagePreviews(file){
  });
  try{return {w,h,view:await render(1600,.82),thumb:await render(600,.76)}}finally{image.close()}
 }
+async function imageDimensions(file){
+ let img;try{img=await createImageBitmap(file)}catch{throw Error('Cannot decode source image '+file.name)}
+ const w=img.width,h=img.height;img.close();
+ if(w<280||h<280||w*h>125000000)throw Error('Source image dimensions are invalid or too large: '+w+' × '+h);
+ return {w,h};
+}
 async function uploadBlob(bucket,path,blob,mime){
  const response=await fetch(cfg.url+'/storage/v1/object/'+bucket+'/'+path.split('/').map(encodeURIComponent).join('/'),{
   method:'POST',headers:headers({'Content-Type':mime,'Cache-Control':bucket==='art-originals'?'private, max-age=0':'public, max-age=31536000','x-upsert':'false'}),body:blob
@@ -370,44 +412,54 @@ async function uploadBlob(bucket,path,blob,mime){
 }
 async function uploadOne(item){
  if(!state.authorized)throw Error('Administrator approval required');
- if(!item.collection_id||!item.style_id)throw Error('Choose the collection and style for '+item.title);
- if(!item.title.trim())throw Error('Enter an English title');
- if(!state.collections.some(c=>c.id===item.collection_id)||!state.styles.some(s=>s.id===item.style_id))throw Error('Invalid category selection');
+ if(item.file.size>MAX_FILE)throw Error('Image exceeds the 50 MB storage limit');
  const mode=$('upload-mode').value,existing=mode==='existing'?state.works.find(w=>w.id===item.existing_id):null;
  if(mode==='existing'&&!existing)throw Error('Choose the exact existing artwork for '+item.title);
- if(existing?.digital_available)throw Error('This work has a sale-enabled master. Replace it through a separate approved versioning workflow.');
- if(item.file.size>MAX_FILE)throw Error('Image exceeds the 50 MB storage limit');
- const main=item.variant_primary_id?state.works.find(w=>w.id===item.variant_primary_id):null;
+ if(existing?.digital_available)throw Error('This work is sale-enabled; replacing its file requires a separate approved versioning workflow.');
+ if(!existing){
+  if(!item.collection_id||!item.style_id||!item.title.trim())throw Error('Enter a title, collection and style for '+item.title);
+  if(!state.collections.some(c=>c.id===item.collection_id)||!state.styles.some(st=>st.id===item.style_id))throw Error('Invalid category selection');
+ }
+ const main=!existing&&item.variant_primary_id?state.works.find(w=>w.id===item.variant_primary_id):null;
  if(main&&(!main.published||main.collection_id!==item.collection_id||main.digital_available||isVariant(main.id)))throw Error('Choose a stand-alone main artwork in the same collection.');
  const id=existing?.id||'art-'+dateId()+'-'+slug(item.title).slice(0,48)+'-'+crypto.randomUUID().slice(0,8);
- const nonce=crypto.randomUUID(),folder=id+'/'+nonce;const suffix=extensions[masterType(item.file)];
- const publicData=await imagePreviews(item.file);
- item.progress='Uploading public preview…';item.row.querySelector('.row-status').textContent=item.progress;
- await uploadBlob('art-previews',folder+'/view.webp',publicData.view,'image/webp');
- await uploadBlob('art-previews',folder+'/thumb.webp',publicData.thumb,'image/webp');
+ // Reject protected existing masters BEFORE sending any new image bytes.
+ const current=existing?await api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at&artwork_id=eq.'+encodeURIComponent(id)+'&limit=1'):null;
+ if(current?.[0]?.verified_at)throw Error('Verified sale master exists; replacement requires a separate QA workflow.');
+ const nonce=crypto.randomUUID(),folder=id+'/'+nonce,suffix=extensions[masterType(item.file)];
+ const dimensions=existing?await imageDimensions(item.file):await imagePreviews(item.file);
+ if(!existing){
+  item.progress='Uploading public preview…';item.row.querySelector('.row-status').textContent=item.progress;
+  await uploadBlob('art-previews',folder+'/view.webp',dimensions.view,'image/webp');
+  await uploadBlob('art-previews',folder+'/thumb.webp',dimensions.thumb,'image/webp');
+ }
  item.progress='Uploading private master…';item.row.querySelector('.row-status').textContent=item.progress;
  await uploadBlob('art-originals',folder+'/master.'+suffix,item.file,masterType(item.file));
+ // Insert newly created artwork before the master metadata (which has a foreign key to the artwork).
+ if(!existing){
+ const price=Number(item.price);
+ if(!Number.isFinite(price)||price<1||price>100000)throw Error('Digital price must be between €1 and €100,000.');
  const saved={title_en:item.title.trim(),description_en:item.description.trim(),style_id:item.style_id,collection_id:item.collection_id,
-  orientation:publicData.w>publicData.h?'Landscape':publicData.w<publicData.h?'Portrait':'Square',
-  public_preview_path:folder+'/view.webp',public_thumb_path:folder+'/thumb.webp',pixel_width:publicData.w,pixel_height:publicData.h,published:item.published};
- item.progress='Registering in catalogue…';item.row.querySelector('.row-status').textContent=item.progress;
- if(existing){
-  await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({...saved,source:'admin-upload'})});
- }else{
-  const price=Number(item.price);
-  if(!Number.isFinite(price)||price<1||price>100000)throw Error('Digital price must be between €1 and €100,000.');
-  await api('/rest/v1/art_gallery_works',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({
-   id,...saved,price_cents:Math.round(price*100),currency:'eur',digital_available:false,review_status:'pending',source:'admin-upload'
-  })});
+  orientation:dimensions.w>dimensions.h?'Landscape':dimensions.w<dimensions.h?'Portrait':'Square',
+  public_preview_path:folder+'/view.webp',public_thumb_path:folder+'/thumb.webp',pixel_width:dimensions.w,pixel_height:dimensions.h,published:item.published};
+ await api('/rest/v1/art_gallery_works',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({
+  id,...saved,price_cents:Math.round(price*100),currency:'eur',digital_available:false,review_status:'pending',source:'admin-upload'
+ })});
  }
+ item.progress='Registering private file…';item.row.querySelector('.row-status').textContent=item.progress;
  const record={artwork_id:id,bucket_name:'art-originals',object_path:folder+'/master.'+suffix,
-  file_bytes:item.file.size,pixel_width:publicData.w,pixel_height:publicData.h,source_archive:item.path};
- const current=existing?await api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at&artwork_id=eq.'+encodeURIComponent(id)+'&limit=1'):null;
- if(current?.[0]?.verified_at)throw Error('Verified sale master exists; replacement requires separate QA.');
+  file_bytes:item.file.size,pixel_width:dimensions.w,pixel_height:dimensions.h,source_archive:item.path};
  if(current?.length)await api('/rest/v1/art_gallery_masters?artwork_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
  else await api('/rest/v1/art_gallery_masters',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
+ // Existing artworks are intentionally private-file-only: never rewrite public image, story,
+ // category, legacy ID, or publication status when restoring a missing high-res master.
+ if(existing){
+  item.progress='Complete · Private master uploaded · Public gallery unchanged · '+id;
+  item.row.querySelector('.row-status').textContent=item.progress;
+  return id;
+ }
  let groupingIssue=false;
- if(!existing&&main){
+ if(main){
   try{
    await api('/rest/v1/art_gallery_variants',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify({variant_id:id,primary_id:main.id,sort_order:state.variants.filter(row=>row.primary_id===main.id).length+1})});
@@ -420,7 +472,7 @@ async function uploadOne(item){
 async function uploadAll(){
  if(state.busy)return;if(!state.authorized)throw Error('Not an approved administrator');
  if(!state.queue.length)throw Error('Select images or ZIP files first.');
- if(!confirm('Upload '+state.queue.filter(item=>!item.skip).length+' artwork(s) to Supabase? Public previews will be published where selected; private masters will NOT be enabled for sale.'))return;
+ if(!confirm('Upload '+state.queue.filter(item=>!item.skip).length+' artwork(s) to Supabase? '+($('upload-mode').value==='existing'?'Existing gallery images and descriptions will remain unchanged.':'New artwork previews will be published where selected.')+' Private masters remain unavailable for sale until separately verified.'))return;
  state.busy=true;$('upload-all').disabled=true;$('clear-queue').disabled=true;
  let success=0,failed=0;
  try{
@@ -451,6 +503,8 @@ $('publish-default').addEventListener('change',()=>{for(const item of state.queu
 $('upload-all').addEventListener('click',withErrors(uploadAll));
 $('clear-queue').addEventListener('click',()=>{if(state.busy)return;for(const item of state.queue)URL.revokeObjectURL(item.blobUrl);state.queue=[];renderQueue();status('Queue cleared.')});
 $('catalog-search').addEventListener('input',renderCatalogue);
+$('master-filter').addEventListener('change',renderCatalogue);
+$('show-missing').addEventListener('click',()=>{$('master-filter').value='needs-upload';renderCatalogue();$('catalog-search').value='';renderCatalogue();$('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});});
 dropEvents();
 (async()=>{if(!cfg?.url||!cfg?.anonKey)throw Error('Missing gallery configuration');const fromLink=await acceptCallback();if(!state.session){try{state.session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}}if(state.session)await verifyAdmin();else if(!fromLink)status('Private gallery: sign in to continue. If an email link brought you back to this login screen, see the Magic Link template help below.');})().catch(e=>status(e.message,true));
 })();
