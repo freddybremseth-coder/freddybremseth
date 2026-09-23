@@ -39,12 +39,6 @@ for (const file of walk(root)) {
       '<script src="/assets/books-app.js"></script>\n  <script src="/assets/books-sample-links.js"></script>',
     );
   }
-  if (html.includes('/assets/books-app.js') && !html.includes('/assets/books-latest.js')) {
-    html = html.replace(
-      '<script src="/assets/books-app.js"></script>',
-      '<script src="/assets/books-app.js"></script>\n  <script src="/assets/books-latest.js"></script>',
-    );
-  }
 
   if (html !== before) {
     fs.writeFileSync(file, html);
