@@ -90,7 +90,7 @@
   }
   function footer() {
     return '<footer class="site-footer"><div class="container">' +
-      '<img class="footer-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier">' +
+      '<img class="footer-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier" loading="lazy" decoding="async">' +
       '<span class="footer-line">' + esc(t('footerLine')) + '</span>' +
       '<nav aria-label="Freddy Bremseth websites">' +
       '<a href="https://www.freddybremseth.com/">Freddy Bremseth</a> · ' +
@@ -100,7 +100,7 @@
   }
 
   function coverCell(s, b, viewClass) {
-    var inner = b.cover ? '<img src="' + esc(asset(b.cover)) + '" alt="' + esc(b.title) + '" loading="lazy">' : '<span class="ph">' + esc(b.title) + '</span>';
+    var inner = b.cover ? '<img src="' + esc(asset(b.cover)) + '" alt="' + esc(b.title) + '" loading="lazy" decoding="async" width="320" height="480">' : '<span class="ph">' + esc(b.title) + '</span>';
     return '<a href="' + href('book', b.id) + '" class="book-cell"><div class="cover">' + inner + '</div>' +
       (b.subtitle ? '<div class="sub">' + esc(b.subtitle) + '</div>' : '<div class="sub">&nbsp;</div>') +
       '<h3>' + esc(b.title) + '</h3></a>';
@@ -116,7 +116,7 @@
 
   function seriesCard(s) {
     var topCls = 'top' + (s.coverFit === 'contain' ? ' fit-contain' : '') + (s.coverBg ? ' bg-' + s.coverBg : '');
-    var top = s.cover ? '<div class="' + topCls + '"><img src="' + esc(asset(s.cover)) + '" alt="" loading="lazy"></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
+    var top = s.cover ? '<div class="' + topCls + '"><img src="' + esc(asset(s.cover)) + '" alt="" loading="lazy" decoding="async" width="360" height="200"></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
     return '<a class="series-card" href="' + href('series', s.id) + '">' + top +
       '<div class="body"><span class="tag">' + esc(pick(s.tag)) + '</span>' +
       '<h3>' + esc(pick(s.title)) + '</h3>' +
@@ -126,23 +126,47 @@
 
   /* ---------- views ---------- */
   function viewHome() {
-    var featured = findBook('hvem-eier-virkeligheten');
-    var gallery = shuffle(booksWithCovers()).map(function (o) {
-      return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy"><span>' + esc(o.b.title) + '</span></a>';
+    // Build the latest releases in the first render. The old implementation
+    // fetched an unrelated featured cover and then replaced the whole section
+    // in books-latest.js after DOMContentLoaded, causing unnecessary work and
+    // potentially two rounds of image downloads on a simulated mobile device.
+    var releases = [];
+    SERIES.forEach(function (s) {
+      (s.books || []).forEach(function (b) {
+        if (b.addedAt) releases.push({ b: b, ts: Date.parse(b.addedAt) || 0 });
+      });
+    });
+    releases.sort(function (a, b) { return b.ts - a.ts; });
+    releases = releases.slice(0, 3);
+    var latestLabels = LANG === 'en'
+      ? { kicker: 'New releases', title: 'Latest books' }
+      : LANG === 'es'
+        ? { kicker: 'Novedades', title: 'Últimos libros' }
+        : { kicker: 'Nye utgivelser', title: 'Siste bøker' };
+    var latest = '';
+    if (releases.length) {
+      var latestCards = releases.map(function (o) {
+        var b = o.b;
+        var cover = b.cover
+          ? '<img src="' + esc(asset(b.cover)) + '" alt="' + esc(b.title) + '" loading="lazy" decoding="async" width="320" height="480">'
+          : '<span class="ph">' + esc(b.title) + '</span>';
+        return '<a href="' + href('book', b.id) + '" class="book-cell">' +
+          '<div class="cover">' + cover + '</div>' +
+          (b.subtitle ? '<div class="sub">' + esc(b.subtitle) + '</div>' : '<div class="sub">&nbsp;</div>') +
+          '<h3>' + esc(b.title) + '</h3></a>';
+      }).join('');
+      latest = '<section><div class="container">' +
+        '<p class="kicker">' + esc(latestLabels.kicker) + '</p>' +
+        '<h2 class="serif" style="font-size:30px;margin-bottom:24px">' + esc(latestLabels.title) + '</h2>' +
+        '<div class="book-grid">' + latestCards + '</div></div></section>';
+    }
+    // The complete, searchable catalogue remains available from /library.
+    // Limit the homepage's decorative horizontal gallery so the first render
+    // does not create one image node for every catalogue record.
+    var gallery = shuffle(booksWithCovers()).slice(0, 18).map(function (o) {
+      return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy" decoding="async" width="150" height="225"><span>' + esc(o.b.title) + '</span></a>';
     }).join('');
     var allSeriesCards = SERIES.map(seriesCard).join('');
-
-    var feat = '';
-    if (featured) {
-      var b = featured.book;
-      feat = '<section><div class="container"><div class="featured">' +
-        '<div>' + (b.cover ? '<img src="' + esc(asset(b.cover)) + '" alt="' + esc(b.title) + '">' : '') + '</div>' +
-        '<div><p class="kicker">' + esc(t('featuredKicker')) + '</p>' +
-        '<h2>' + esc(t('featuredTitle')) + '</h2>' +
-        '<p>' + esc(t('featuredBlurbShort')) + '</p>' +
-        '<a class="btn btn-primary" href="' + href('book', b.id) + '">' + esc(t('ctaReadMore')) + '</a></div>' +
-        '</div></div></section>';
-    }
 
     return '' +
       '<section class="hero"><div class="hero-inner">' +
@@ -152,9 +176,9 @@
       '<div class="btns"><a class="btn btn-primary" href="' + href('library') + '">' + esc(t('ctaBrowse')) + '</a>' +
       '<a class="btn btn-secondary" href="' + href('about') + '">' + esc(t('ctaAbout')) + '</a></div>' +
       '</div></section>' +
-      feat +
+      latest +
       '<section><div class="container"><h2 class="serif" style="font-size:26px">' + esc(t('galleryTitle')) + '</h2>' +
-      galleryBlock(gallery) + '</div></section>' +
+      galleryBlock(gallery) + '<p><a href="' + href('library') + '">' + esc(t('ctaBrowse')) + '</a></p></div></section>' +
       '<section class="section-tint"><div class="container">' +
       '<h2 class="serif center" style="font-size:30px">' + esc(t('pillarsTitle')) + '</h2>' +
       '<div class="series-grid">' + allSeriesCards + '</div></div></section>' +
