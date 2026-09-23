@@ -13,7 +13,7 @@ assert.ok(urls.length >= 90, "Unexpectedly sparse book sitemap");
 
 const rules = cfg.routes.filter(rule =>
   rule.has?.some(condition => condition.type === "host" && condition.value === "books.freddybremseth.com") &&
-  rule.dest?.startsWith("/books/seo/")
+  rule.dest?.startsWith("/books/seo/") && rule.src.includes("/book/")
 );
 assert.equal(rules.length, 2, "Expected one localized and one Norwegian book route");
 
