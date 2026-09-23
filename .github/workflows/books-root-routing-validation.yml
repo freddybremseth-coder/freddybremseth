@@ -1,0 +1,27 @@
+name: Root Books public canonical and route validation
+on:
+  pull_request:
+    paths:
+      - "vercel.json"
+      - "books/seo/**"
+      - "books/sitemap.xml"
+      - "scripts/test-books-root-routing.mjs"
+      - ".github/workflows/books-root-routing-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "vercel.json"
+      - "books/seo/**"
+      - "books/sitemap.xml"
+      - "scripts/test-books-root-routing.mjs"
+      - ".github/workflows/books-root-routing-validation.yml"
+jobs:
+  root-books-routing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/test-books-root-routing.mjs
