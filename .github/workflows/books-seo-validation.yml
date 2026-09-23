@@ -5,6 +5,7 @@ on:
       - 'books/**'
       - 'vercel.json'
       - 'scripts/test-books-root-routes.mjs'
+      - 'scripts/test-books-root-routing.mjs'
       - '.github/workflows/books-seo-validation.yml'
   schedule:
     # Read-only build validation on the default branch; no deployment or SEO publishing.
@@ -14,6 +15,9 @@ on:
     branches: [main]
     paths:
       - 'books/**'
+      - 'vercel.json'
+      - 'scripts/test-books-root-routes.mjs'
+      - 'scripts/test-books-root-routing.mjs'
       - '.github/workflows/books-seo-validation.yml'
 jobs:
   books-generated-pages:
@@ -26,6 +30,8 @@ jobs:
           node-version: '22'
       - name: Root Vercel book-host canonical routing
         run: node --test scripts/test-books-root-routes.mjs
+      - name: Verify every Books sitemap URL resolves to its own canonical HTML on shared-root deployment
+        run: node scripts/test-books-root-routing.mjs
       - name: Build entire books catalogue and verify generated SEO pages
         working-directory: books
         run: npm run build
