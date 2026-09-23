@@ -47,6 +47,56 @@
           "value": "books.freddybremseth.com"
         }
       ],
+      "src": "/(en|es)/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you)/?",
+      "dest": "/books/seo/$1/series/$2.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you)/?",
+      "dest": "/books/seo/no/series/$1.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/(en|es)/(about|library|contact)/?",
+      "dest": "/books/seo/$1/$2.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/(about|library|contact)/?",
+      "dest": "/books/seo/no/$1.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/(en|es)/?",
+      "dest": "/books/seo/$1/index.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
       "src": "/(.*)",
       "dest": "/books/index.html"
     },
