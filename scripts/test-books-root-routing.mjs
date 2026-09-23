@@ -61,3 +61,10 @@ for (const pagePath of nonBookUrls) {
   assert.ok(html.includes('<script src="/assets/books-app.js"></script>'), "Books JS app changed " + pagePath);
 }
 console.log("PASS root Books non-book sitemap routing:", nonBookUrls.length, "canonical pages");
+
+for (const notYetStatic of ["/book/guide-polop-en", "/en/book/unlisted-valid-slug"]) {
+  const matched = hostRules.find(rule => new RegExp("^" + rule.src + "$").test(notYetStatic));
+  assert.equal(matched?.dest, "/books/index.html",
+    "Do not route catalog-only book URLs to nonexistent committed SEO files: " + notYetStatic);
+}
+console.log("PASS unlisted Books slugs preserve the existing catalogue fallback, not a missing-file rewrite");

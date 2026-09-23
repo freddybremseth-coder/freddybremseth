@@ -27,7 +27,7 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/(en|es)/book/([a-z0-9-]+)/?",
+      "src": "/(en|es)/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants|the-hollow-witness|the-black-archive|the-unseen-trial|the-badge-and-the-blade|the-last-exhibition|mannen-som-dode-to-ganger|huset-uten-navn|rommet-med-knoklene|den-siste-passasjeren|de-dode-signerer-ikke|den-levende-graven|navnene-vi-begravde|den-siste-identifikasjonen|krig-kapital|hvem-eier-virkeligheten|vapenmakten|mistankens-maskin|the-suspicion-machine|arms-power|la-maquina-de-la-sospecha|the-olive-oil-cure|birokt-og-oliven|fra-jord-til-bord|polyfenolens-kraft|kunsten-a-hoste-tidlig|lev-100-ar|premium-olive-oil-processing|growing-premium-olives|olive-oil-cookbook|jeg-er-ikke-et-eksempel|my-journey-as-a-father|time-mastery|declutter-digital-life|relationship-blueprint|let-me-explain-you|spania-2030)/?",
       "dest": "/books/seo/$1/$2.html"
     },
     {
@@ -37,7 +37,7 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/book/([a-z0-9-]+)/?",
+      "src": "/book/(the-facade-of-justice|shadows-of-the-past|the-ascendants|the-hollow-witness|the-black-archive|the-unseen-trial|the-badge-and-the-blade|the-last-exhibition|mannen-som-dode-to-ganger|huset-uten-navn|rommet-med-knoklene|den-siste-passasjeren|de-dode-signerer-ikke|den-levende-graven|navnene-vi-begravde|den-siste-identifikasjonen|krig-kapital|hvem-eier-virkeligheten|vapenmakten|mistankens-maskin|the-suspicion-machine|arms-power|la-maquina-de-la-sospecha|the-olive-oil-cure|birokt-og-oliven|fra-jord-til-bord|polyfenolens-kraft|kunsten-a-hoste-tidlig|lev-100-ar|premium-olive-oil-processing|growing-premium-olives|olive-oil-cookbook|jeg-er-ikke-et-eksempel|my-journey-as-a-father|time-mastery|declutter-digital-life|relationship-blueprint|let-me-explain-you|spania-2030)/?",
       "dest": "/books/seo/no/$1.html"
     },
     {
@@ -47,7 +47,7 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/(en|es)/series/([a-z0-9-]+)/?",
+      "src": "/(en|es)/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you)/?",
       "dest": "/books/seo/$1/series/$2.html"
     },
     {
@@ -57,7 +57,7 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/series/([a-z0-9-]+)/?",
+      "src": "/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you)/?",
       "dest": "/books/seo/no/series/$1.html"
     },
     {
