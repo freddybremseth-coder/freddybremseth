@@ -32,6 +32,8 @@ jobs:
         run: node --test scripts/test-books-root-routes.mjs
       - name: Verify every Books sitemap URL resolves to its own canonical HTML on shared-root deployment
         run: node scripts/test-books-root-routing.mjs
+      - name: Verify lightweight multilingual homepage and full catalogue navigation
+        run: node --test books/scripts/test-home-performance.mjs
       - name: Build entire books catalogue and verify generated SEO pages
         working-directory: books
         run: npm run build
