@@ -13,7 +13,7 @@ assert.ok(urls.length >= 90, "Unexpectedly sparse book sitemap");
 
 const rules = cfg.routes.filter(rule =>
   rule.has?.some(condition => condition.type === "host" && condition.value === "books.freddybremseth.com") &&
-  rule.dest?.startsWith("/books/seo/")
+  rule.dest?.startsWith("/books/seo/") && rule.src.includes("/book/")
 );
 assert.equal(rules.length, 2, "Expected one localized and one Norwegian book route");
 
@@ -34,3 +34,30 @@ for (const pagePath of urls) {
 }
 assert.equal(new Set(urls).size, urls.length, "Duplicate book URL in sitemap");
 console.log("PASS root Books public routing:", urls.length, "indexable book URLs have exact checked-in SEO HTML, canonical and UI scripts");
+
+
+const nonBookUrls = [...sitemap.matchAll(/<loc>https:\/\/books\.freddybremseth\.com([^<]+)<\/loc>/g)]
+  .map(match => match[1]).filter(pagePath => !pagePath.includes("/book/"));
+assert.equal(nonBookUrls.length, 33, "Unexpected home, series and info sitemap routes");
+const hostRules = cfg.routes.filter(rule =>
+  rule.has?.some(condition => condition.type === "host" && condition.value === "books.freddybremseth.com"));
+const fallbackIndex = hostRules.findIndex(rule => rule.dest === "/books/index.html");
+assert.ok(fallbackIndex > 0, "Books fallback is missing");
+for (const pagePath of nonBookUrls) {
+  const matches = hostRules.slice(0, fallbackIndex)
+    .map(rule => ({ rule, match: pagePath.match(new RegExp("^" + rule.src + "$")) }))
+    .filter(item => item.match);
+  if (pagePath === "/") assert.equal(matches.length, 0, "Root Books should use its existing index");
+  else assert.equal(matches.length, 1, "Missing indexable static route " + pagePath);
+  const exact = matches[0];
+  const dest = exact ? exact.rule.dest.replace(/\$(\d+)/g,
+    (_placeholder, index) => exact.match[Number(index)]) : "/books/index.html";
+  const file = path.join(root, dest.slice(1));
+  assert.ok(fs.existsSync(file), "Missing indexed Books static HTML: " + pagePath);
+  const html = fs.readFileSync(file, "utf8");
+  assert.ok(html.includes('<link rel="canonical" href="' + origin + pagePath + '"'),
+    "Wrong canonical on Books public route " + pagePath);
+  assert.ok(/<h1>[^<]+<\/h1>/.test(html), "Missing visible HTML heading " + pagePath);
+  assert.ok(html.includes('<script src="/assets/books-app.js"></script>'), "Books JS app changed " + pagePath);
+}
+console.log("PASS root Books non-book sitemap routing:", nonBookUrls.length, "canonical pages");
