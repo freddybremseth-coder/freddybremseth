@@ -89,13 +89,13 @@ function translateMarked(html, dict, warn) {
 }
 
 function translateAltAttributes(html, dict, warn) {
-  return html.replace(/<img\\b[^>]*data-i18n-alt="([^"]+)"[^>]*>/g, (tag, key) => {
+  return html.replace(/<img\b[^>]*data-i18n-alt="([^"]+)"[^>]*>/g, (tag, key) => {
     if (dict[key] == null) {
       warn(key);
       return tag;
     }
     const value = String(dict[key]).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
-    return tag.replace(/\\balt="[^"]*"/, `alt="${value}"`);
+    return tag.replace(/\balt="[^"]*"/, `alt="${value}"`);
   });
 }
 
