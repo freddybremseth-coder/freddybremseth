@@ -7,6 +7,9 @@
  */
 window.FB_DICT = {
   en: {
+    ig_art_t: "Freddy Bremseth Art",
+    ig_art_p: "Digital art, visual stories and curated collections.",
+    ig_art_alt: "Kintsugi kiss in gold and marble — Freddy Bremseth Art",
     art_img_alt: "Marble bust with gold cracks and a butterfly — Freddy Bremseth Art",
     pg_home_title: "Freddy Bremseth | Property, AI, books, art and projects",
     pg_home_desc: "Freddy Bremseth's personal hub: property in Spain, AI and strategy, books, digital art, music and projects.",
@@ -82,6 +85,9 @@ window.FB_DICT = {
     n_none_purchase: "No books found on your purchase — contact post@chatgenius.pro."
   },
   fr: {
+    ig_art_t: "Freddy Bremseth Art",
+    ig_art_p: "Art numérique, récits visuels et collections soigneusement sélectionnées.",
+    ig_art_alt: "Baiser kintsugi en or et marbre — Freddy Bremseth Art",
     art_img_alt: "Buste en marbre aux fissures dorées et papillon — Freddy Bremseth Art",
     pg_home_title: "Freddy Bremseth | Immobilier, IA, livres, art et projets",
     pg_home_desc: "Le site personnel de Freddy Bremseth : immobilier en Espagne, IA et stratégie, livres, art numérique, musique et projets.",
@@ -157,6 +163,9 @@ window.FB_DICT = {
     n_none_purchase: "Aucun livre trouvé sur votre achat — contactez post@chatgenius.pro."
   },
   es: {
+    ig_art_t: "Freddy Bremseth Art",
+    ig_art_p: "Arte digital, historias visuales y colecciones seleccionadas.",
+    ig_art_alt: "Beso kintsugi en oro y mármol — Freddy Bremseth Art",
     art_img_alt: "Busto de mármol con grietas doradas y mariposa — Freddy Bremseth Art",
     pg_home_title: "Freddy Bremseth | Inmuebles, IA, libros, arte y proyectos",
     pg_home_desc: "La web personal de Freddy Bremseth: inmuebles en España, IA y estrategia, libros, arte digital, música y proyectos.",
@@ -232,6 +241,9 @@ window.FB_DICT = {
     n_none_purchase: "No se encontraron libros en tu compra — contacta post@chatgenius.pro."
   },
   de: {
+    ig_art_t: "Freddy Bremseth Art",
+    ig_art_p: "Digitale Kunst, visuelle Geschichten und kuratierte Sammlungen.",
+    ig_art_alt: "Kintsugi-Kuss aus Gold und Marmor — Freddy Bremseth Art",
     art_img_alt: "Marmorbüste mit goldenen Rissen und Schmetterling — Freddy Bremseth Art",
     pg_home_title: "Freddy Bremseth | Immobilien, KI, Bücher, Kunst und Projekte",
     pg_home_desc: "Freddy Bremseths persönliche Website: Immobilien in Spanien, KI und Strategie, Bücher, digitale Kunst, Musik und Projekte.",
@@ -307,6 +319,9 @@ window.FB_DICT = {
     n_none_purchase: "Keine Bücher zu Ihrem Kauf gefunden — kontaktieren Sie post@chatgenius.pro."
   },
   ru: {
+    ig_art_t: "Freddy Bremseth Art",
+    ig_art_p: "Цифровое искусство, визуальные истории и тщательно отобранные коллекции.",
+    ig_art_alt: "Поцелуй кинцуги из золота и мрамора — Freddy Bremseth Art",
     art_img_alt: "Мраморный бюст с золотыми трещинами и бабочкой — Freddy Bremseth Art",
     pg_home_title: "Фредди Бремсет | Недвижимость, ИИ, книги, искусство и проекты",
     pg_home_desc: "Личный сайт Фредди Бремсета: недвижимость в Испании, ИИ и стратегия, книги, цифровое искусство, музыка и проекты.",
