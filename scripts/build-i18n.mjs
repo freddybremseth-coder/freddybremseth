@@ -88,6 +88,17 @@ function translateMarked(html, dict, warn) {
   return out;
 }
 
+function translateAltAttributes(html, dict, warn) {
+  return html.replace(/<img\\b[^>]*data-i18n-alt="([^"]+)"[^>]*>/g, (tag, key) => {
+    if (dict[key] == null) {
+      warn(key);
+      return tag;
+    }
+    const value = String(dict[key]).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+    return tag.replace(/\\balt="[^"]*"/, `alt="${value}"`);
+  });
+}
+
 function rewritePaths(html, lang) {
   for (const link of LOCALIZED_LINKS) {
     html = html.replaceAll(`href="${link}"`, `href="/${lang}${link}"`);
@@ -141,6 +152,7 @@ for (const page of PAGES) {
       html = html.replace(/(<meta property="og:description" content=")[^"]*(" \/?>|">)/, `$1${d[`pg_${page.id}_desc`].replace(/"/g, "&quot;")}$2`);
     }
     html = translateMarked(html, d, warn);
+    html = translateAltAttributes(html, d, warn);
     html = rewritePaths(html, lang);
     const langUrl = page.urlPath === "/" ? `/${lang}/` : `/${lang}${page.urlPath}`;
     // Share previews and structured data should identify the locale URL,
