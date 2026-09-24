@@ -16,6 +16,9 @@ on:
       - 'foredrag-og-radgivning.html'
       - 'olivenolje-og-dona-anna.html'
       - 'scripts/test-root-search-discovery.mjs'
+      - 'scripts/test-art-hub-locales.mjs'
+      - 'scripts/build-i18n.mjs'
+      - 'assets/i18n-dict.js'
       - '.github/workflows/freddy-discovery-validation.yml'
   push:
     branches: [main]
@@ -27,6 +30,9 @@ on:
       - 'de/index.html'
       - 'ru/index.html'
       - 'scripts/test-root-search-discovery.mjs'
+      - 'scripts/test-art-hub-locales.mjs'
+      - 'scripts/build-i18n.mjs'
+      - 'assets/i18n-dict.js'
       - '.github/workflows/freddy-discovery-validation.yml'
 
 jobs:
@@ -40,3 +46,5 @@ jobs:
           node-version: '22'
       - name: Public-root and multilingual search/AI attribution privacy contracts
         run: node --test scripts/test-root-search-discovery.mjs
+      - name: Validate localized personal hub and artwork links
+        run: node scripts/build-i18n.mjs && node --test scripts/test-art-hub-locales.mjs
