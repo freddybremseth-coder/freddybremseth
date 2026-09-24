@@ -143,6 +143,13 @@ for (const page of PAGES) {
     html = translateMarked(html, d, warn);
     html = rewritePaths(html, lang);
     const langUrl = page.urlPath === "/" ? `/${lang}/` : `/${lang}${page.urlPath}`;
+    // Share previews and structured data should identify the locale URL,
+    // not the Norwegian canonical source page.
+    html = html.replace(
+      /(<meta property="og:url" content=")[^"]*(" \/?>|">)/,
+      `$1${SITE}${langUrl}$2`
+    );
+    html = html.replace('"inLanguage":"no"', `"inLanguage":"${lang}"`);
     const langBlock = `  <link rel="canonical" href="${SITE}${langUrl}">\n${hreflangBlock(page.urlPath)}`;
     html = injectHead(html, langBlock);
 
