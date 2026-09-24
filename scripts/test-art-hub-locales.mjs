@@ -28,6 +28,12 @@ for (const [lang, info] of Object.entries(languages)) {
     assert.ok(html.includes(`src="${art}assets/art/marmorbyste-med-gullsprekker-og-sommerfugl-view.webp"`));
     assert.ok(html.includes(`data-i18n-alt="art_img_alt"`));
     assert.ok(html.includes(`data-i18n="panel_art"`));
+    const projects = html.slice(html.indexOf('data-i18n="proj_label"'), html.indexOf('class="art-feature"'));
+    assert.ok(projects.includes('data-i18n="ig_art_t">Freddy Bremseth Art</h3>'), "art is also shown within Projects");
+    assert.ok(projects.includes('data-i18n="ig_art_p"'), "localized art project description");
+    assert.ok(projects.includes('data-i18n-alt="ig_art_alt"'), "localized artwork alt text");
+    assert.ok(projects.includes('kintsugi-kyss-i-gull-og-marmor-view.webp'), "use a different artwork from the main art feature");
+    assert.equal((projects.match(/class="image-card"/g) || []).length, 6, "projects section has six cards");
     assert.ok(html.includes(`<link rel="canonical" href="https://www.freddybremseth.com/${lang === "no" ? "" : lang + "/"}">`));
     assert.equal(html.split('class="art-feature"').length - 1, 1, "one feature section per language");
     assert.equal(html.split("search-discovery.js").length - 1, 1, "preserve the existing analytics script");
