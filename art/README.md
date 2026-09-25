@@ -134,6 +134,24 @@ The public catalog has 63 distinct compositions. 37 overlapping variants, lower-
 The editorial homepage displays Marmorbyste med gullsprekker og sommerfugl as the main image rather than repeating the adjacent The Human Condition cover. Five additional newly imported preview-only artwork titles repeat established catalogue images and are excluded before publication: Impresjonistisk hagefest ved innsjøen; Romantisk solnedgang på verandaen; Stormlys over det gamle fjordlandskapet; Modig bykvinne i graffitiunivers; Renessansebibliotek med lærde og solnedgang. Their five original counterparts, existing URLs and digital purchase mappings remain intact. The public gallery contains 63 established and 50 unique imported works: **113** in total.
 
 
+## Smart ZIP asset routing (25 September 2026)
+
+The authenticated gallery admin can now treat one ZIP as an artwork package instead of choosing only one file per artwork. Folder names and filenames are classified into four roles: **MASTER/ORIGINAL**, **DIGITAL/RETINA/2X**, **PRINT/300DPI**, and **WEB/PORTFOLIO/PREVIEW**. Master, digital and print assets are uploaded to the private `art-originals` bucket; the web source is converted into reduced public WebP view/thumb files in `art-previews`. Role metadata lives in `public.art_gallery_assets`, while `art_gallery_masters` remains the compatibility record used by the existing digital-checkout path.
+
+Smart ZIP does **not** approve a print product or activate a digital sale. All imported role records are unverified by default. Existing verified masters are protected from replacement, and an explicitly supplied web version only changes an existing public preview when that artwork is not already sale-enabled. The browser continues to extract ZIPs locally, so no Supabase service-role credential is exposed in the admin client.
+
+A recommended package is:
+
+```text
+Artwork-Name/
+  master/Artwork-Name_MASTER.png
+  digital/Artwork-Name_RETINA.jpg
+  print/Artwork-Name_PRINT_300DPI.jpg
+  web/Artwork-Name_WEB.jpg
+```
+
+Flat filenames with the same role tokens are also supported. Current per-file and ZIP size limits remain in force.
+
 ## Artwork files and descriptions in `/admin/` (September 2026)
 
 The admin accepts a JPEG, PNG, WebP or ZIP of these files (at most 50 MB per image, 250 MB per ZIP, 30 artworks per batch). For an existing artwork, choose **Attach or replace an existing artwork's source files**, then select the exact artwork in the review list. Uploading creates a reduced public WebP preview in `art-previews` and registers the full uploaded image privately in `art-originals` with `art_gallery_masters` metadata. A registration does not prove the private file has been audited or is fit for large prints. The catalogue now displays the private-master registration state and lets administrators edit each work's description without re-uploading an image.
