@@ -21,6 +21,10 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(js,/art_gallery_assets/);
  assert.match(js,/Smart ZIP ready/);
  assert.match(js,/assetRole/);
+ assert.match(js,/logical artworks, not to raw image-variant count/);
+ assert.match(js,/groups\.size>MAX_ITEMS/);
+ assert.match(js,/const chosen=\[\.\.\.groups\.values\(\)\]/);
+ assert.doesNotMatch(js,/Too many image variants\. Use a smaller batch/);
  assert.match(js,/Print \/ 300 DPI/);
  assert.match(js,/Digital sale \/ Retina/);
  assert.match(html,/Smart ZIP · automatic file placement/);
@@ -159,4 +163,18 @@ test('curation outage fallback keeps the batch classifiable without auto-publish
  assert.match(admin,/studio-archive/);
  assert.match(admin,/symbolic-realism/);
  assert.match(admin,/Ready · AI fallback · draft/);
+});
+
+test('Smart ZIP preselects role variants before decompression and limits logical artworks',()=>{
+ const admin=read('assets/js/admin.js');
+ const zipStart=admin.indexOf('function zipMembers(file)');
+ const gatherStart=admin.indexOf('async function gather(files)');
+ const block=admin.slice(zipStart,gatherStart);
+ assert.match(block,/const groups=new Map\(\)/);
+ assert.match(block,/const role=assetRole\(name\)/);
+ assert.match(block,/filePriority\(\{size:entry\.size,name:entry\.base\}/);
+ assert.match(block,/if\(groups\.size>MAX_ITEMS\)/);
+ assert.match(block,/for\(const entry of chosen\)/);
+ assert.ok(block.indexOf('const chosen=')<block.indexOf("new DecompressionStream('deflate-raw')"),'Variant selection must happen before decompression');
+ assert.doesNotMatch(block,/members\.length>MAX_ITEMS\*4/);
 });
