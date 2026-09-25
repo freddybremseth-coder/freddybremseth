@@ -331,6 +331,54 @@ async function normalizeTitlesToEnglish(queueItems){
   newItems[i].title=title;
  }
 }
+function blobToBase64(blob){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');
+  reader.onerror=()=>reject(Error('Could not prepare artwork for visual analysis.'));
+  reader.readAsDataURL(blob);
+ });
+}
+async function analysisImage(file){
+ let image;try{image=await createImageBitmap(file)}catch{throw Error('Cannot decode artwork for visual analysis: '+file.name)}
+ const w=image.width,h=image.height,scale=Math.min(1,900/Math.max(w,h)),canvas=document.createElement('canvas');
+ canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));
+ const ctx=canvas.getContext('2d');if(!ctx){image.close();throw Error('Canvas unavailable for artwork analysis.')}
+ ctx.drawImage(image,0,0,canvas.width,canvas.height);image.close();
+ const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('Could not create artwork analysis image.')),'image/jpeg',.76));
+ return {image:await blobToBase64(blob),mimeType:'image/jpeg'};
+}
+async function classifyArtwork(item){
+ const source=item.files?.portfolio||item.files?.master||item.files?.digital||item.files?.print;
+ if(!source?.file)throw Error('No artwork image available for visual analysis.');
+ const prepared=await analysisImage(source.file);
+ const result=await api('/functions/v1/art-curate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+  title:item.title,
+  ...prepared,
+  collections:state.collections.map(({id,name,description})=>({id,name,description})),
+  styles:state.styles.map(({id,name,description})=>({id,name,description}))
+ })});
+ if(!state.collections.some(entry=>entry.id===result?.collection_id)||!state.styles.some(entry=>entry.id===result?.style_id))throw Error('AI curation returned an invalid category.');
+ item.collection_id=result.collection_id;
+ item.style_id=result.style_id;
+ item.ai_curation={collection_id:result.collection_id,style_id:result.style_id,confidence:Number(result.confidence)||0,reason:String(result.reason||'').trim(),manual_override:false};
+}
+async function classifyQueuedArtworks(queueItems){
+ if(!$('auto-curate-default')?.checked)return;
+ const targets=queueItems.filter(item=>!item.existing_id&&!item.ai_curation);
+ if(!targets.length)return;
+ let cursor=0,done=0;
+ const worker=async()=>{
+  while(cursor<targets.length){
+   const item=targets[cursor++];
+   status('Analyzing artwork '+(done+1)+' of '+targets.length+' · choosing collection and style…');
+   try{await classifyArtwork(item)}
+   catch(error){item.ai_curation={error:error.message||String(error),manual_override:false}}
+   done++;
+  }
+ };
+ await Promise.all(Array.from({length:Math.min(3,targets.length)},worker));
+}
 function stem(name){return slug(titleFromName(name))}
 function roleFolder(name){
  const key=name.toLowerCase().replace(/[^a-z0-9]+/g,'');
@@ -429,13 +477,14 @@ async function gather(files){
   const blobUrl=URL.createObjectURL(previewSource.file);
   const queueItem={files:group.files,members:group.members,file:masterSource.file,path:group.members.map(member=>member.path).join(' | '),blobUrl,
    title:match?.title_en||titleFromName(group.label),description:match?.description_en||'',collection_id:match?.collection_id||collection,
-   style_id:match?.style_id||style,published:match?.published??$('publish-default').checked,existing_id:match?.id||'',variant_primary_id:'',price:'50',skip:false,progress:'Ready'};
+   style_id:match?.style_id||style,published:match?.published??$('publish-default').checked,existing_id:match?.id||'',variant_primary_id:'',price:'50',skip:false,progress:'Ready',ai_curation:null};
   state.queue.push(queueItem);
  }
  state.pendingExistingId='';
  if(state.queue.length){
   status('Checking artwork titles · English is the master language…');
   await normalizeTitlesToEnglish(state.queue);
+  await classifyQueuedArtworks(state.queue);
  }
  renderQueue();
  const roleCounts={master:0,digital:0,print:0,portfolio:0};
@@ -449,9 +498,17 @@ function renderQueue(){
  for(const item of state.queue){
   const row=document.createElement('div');row.className='art-row';
   const roleSummary=Object.entries(item.files||{}).map(([role,entry])=>ROLE_LABELS[role]+': '+entry.file.name).join(' · ');
+  const aiCollection=state.collections.find(entry=>entry.id===item.ai_curation?.collection_id)?.name||item.ai_curation?.collection_id||'';
+  const aiStyle=state.styles.find(entry=>entry.id===item.ai_curation?.style_id)?.name||item.ai_curation?.style_id||'';
+  const confidence=Math.round(Math.max(0,Math.min(1,Number(item.ai_curation?.confidence)||0))*100);
+  const curationNote=item.ai_curation?.error
+   ?'<p class="wide subtle"><strong>AI curation:</strong> unavailable · '+esc(item.ai_curation.error)+' · choose collection and style manually.</p>'
+   :item.ai_curation
+    ?'<p class="wide subtle"><strong>AI curation:</strong> '+esc(aiCollection)+' · '+esc(aiStyle)+' · '+confidence+'% confidence'+(item.ai_curation.manual_override?' · manually adjusted':'')+(item.ai_curation.reason?' · '+esc(item.ai_curation.reason):'')+'</p>'
+    :'';
   row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields"><p class="wide subtle"><strong>Smart ZIP mapping:</strong> '+esc(roleSummary||'Master/original')+'</p>'+
    (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Master/original, digital-sale and print files are stored privately. An explicitly named WEB/portfolio file updates the public preview only when the artwork is not already sale-enabled. Title, description and category stay unchanged. Uploading never enables sales automatically.</p>':
-   '<label class="wide">English title · master title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label><p class="wide subtle">The catalogue title is always English. English source titles stay English; Norwegian source titles are converted to English before upload.</p>'+
+   '<label class="wide">English title · master title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label><p class="wide subtle">The catalogue title is always English. English source titles stay English; Norwegian source titles are converted to English before upload.</p>'+curationNote+
    '<label>Collection<select data-field="collection_id" required>'+rowSelect(state.collections,item.collection_id,'Choose collection…')+'</select></label>'+
    '<label>Artistic style<select data-field="style_id" required>'+rowSelect(state.styles,item.style_id,'Choose style…')+'</select></label>'+
    '<label class="wide">Description (optional)<textarea data-field="description" maxlength="1200">'+esc(item.description)+'</textarea></label>'+
@@ -461,7 +518,7 @@ function renderQueue(){
    '<label>Planned digital price (€)<input data-field="price" type="number" min="1" max="100000" step="1" value="'+esc(item.price)+'"></label>'+
    '<label class="check wide"><input type="checkbox" data-field="published" '+(item.published?'checked':'')+'><span>Publish gallery preview after uploading</span></label>')+
    '<div class="row-tools"><label class="check"><input type="checkbox" data-field="skip" '+(item.skip?'checked':'')+'><span>Skip this artwork</span></label><span class="row-status">'+esc(item.progress)+'</span></div></div>';
-  row.querySelectorAll('[data-field]').forEach(input=>input.addEventListener('change',()=>{const f=input.dataset.field;item[f]=input.type==='checkbox'?input.checked:input.value;if(f==='existing_id'&&item.existing_id){const match=state.works.find(a=>a.id===item.existing_id);if(match){item.title=match.title_en;item.collection_id=match.collection_id;item.style_id=match.style_id;renderQueue()}}if(f==='collection_id'){const main=state.works.find(w=>w.id===item.variant_primary_id);if(main?.collection_id!==item.collection_id)item.variant_primary_id='';renderQueue()}}));
+  row.querySelectorAll('[data-field]').forEach(input=>input.addEventListener('change',()=>{const f=input.dataset.field;item[f]=input.type==='checkbox'?input.checked:input.value;if(f==='existing_id'&&item.existing_id){const match=state.works.find(a=>a.id===item.existing_id);if(match){item.title=match.title_en;item.collection_id=match.collection_id;item.style_id=match.style_id;renderQueue()}}if((f==='collection_id'||f==='style_id')&&item.ai_curation)item.ai_curation.manual_override=true;if(f==='collection_id'){const main=state.works.find(w=>w.id===item.variant_primary_id);if(main?.collection_id!==item.collection_id)item.variant_primary_id='';renderQueue()}else if(f==='style_id'&&item.ai_curation)renderQueue()}));
   $('review-list').append(row);item.row=row;
  }
 }
@@ -619,8 +676,8 @@ $('send-link').addEventListener('click',withErrors(sendLink));
 $('code-form').addEventListener('submit',withErrors(verifyCode));
 $('sign-out').addEventListener('click',withErrors(async()=>{if(state.session)await fetch(cfg.url+'/auth/v1/logout',{method:'POST',headers:headers()}).catch(()=>{});sessionStorage.removeItem('art-admin-session');location.replace('/admin/')}));
 $('upload-mode').addEventListener('change',()=>renderQueue());
-$('collection-default').addEventListener('change',()=>{for(const item of state.queue)if(!item.existing_id)item.collection_id=$('collection-default').value;renderQueue()});
-$('style-default').addEventListener('change',()=>{for(const item of state.queue)if(!item.existing_id)item.style_id=$('style-default').value;renderQueue()});
+$('collection-default').addEventListener('change',()=>{for(const item of state.queue)if(!item.existing_id){item.collection_id=$('collection-default').value;if(item.ai_curation)item.ai_curation.manual_override=true}renderQueue()});
+$('style-default').addEventListener('change',()=>{for(const item of state.queue)if(!item.existing_id){item.style_id=$('style-default').value;if(item.ai_curation)item.ai_curation.manual_override=true}renderQueue()});
 $('publish-default').addEventListener('change',()=>{for(const item of state.queue)item.published=$('publish-default').checked;renderQueue()});
 $('upload-all').addEventListener('click',withErrors(uploadAll));
 $('clear-queue').addEventListener('click',()=>{if(state.busy)return;for(const item of state.queue)URL.revokeObjectURL(item.blobUrl);state.queue=[];renderQueue();status('Queue cleared.')});

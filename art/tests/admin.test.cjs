@@ -30,6 +30,12 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(js,/art-title-english/);
  assert.match(js,/Artwork titles must be English/);
  assert.match(html,/Artwork titles are English only/);
+ assert.match(html,/auto-curate-default/);
+ assert.match(html,/Analyse each new artwork and choose collection \+ artistic style automatically/);
+ assert.match(js,/art-curate/);
+ assert.match(js,/classifyArtwork/);
+ assert.match(js,/classifyQueuedArtworks/);
+ assert.match(js,/manual_override/);
  assert.match(css,/@media/);
  for(const script of ['assets/js/admin.js','assets/js/gallery-config.js','assets/js/collection-sync.js','assets/js/app.js','api/artwork-page.js']){
   const check=spawnSync(process.execPath,['--check',script],{cwd:root,encoding:'utf8'});
@@ -101,5 +107,17 @@ test('English title normalizer is admin-only and never asks for Norwegian output
  assert.match(fn,/If an input title is already English, return it unchanged/);
  assert.match(fn,/If an input title is Norwegian, translate it into concise, natural English/);
  assert.match(fn,/Never translate an English title into Norwegian/);
+ assert.match(fn,/responseMimeType:'application\/json'/);
+});
+
+test('AI artwork curator is authenticated and constrained to the gallery taxonomy',()=>{
+ const fn=read('supabase/functions/art-curate/index.ts');
+ assert.match(fn,/client\.auth\.getUser/);
+ assert.match(fn,/art_gallery_admin_users/);
+ assert.match(fn,/Choose exactly ONE collection and exactly ONE artistic style/);
+ assert.match(fn,/Do not invent new IDs or categories/);
+ assert.match(fn,/collectionIds\.has\(collection_id\)/);
+ assert.match(fn,/styleIds\.has\(style_id\)/);
+ assert.match(fn,/inline_data/);
  assert.match(fn,/responseMimeType:'application\/json'/);
 });
