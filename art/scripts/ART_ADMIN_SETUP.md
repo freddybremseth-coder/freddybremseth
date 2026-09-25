@@ -11,8 +11,11 @@ The page at https://art.freddybremseth.com/admin/ uses Supabase Auth and a stric
 
 5. Refresh /admin/ and authenticate again. The page then displays upload, ZIP review, existing catalogue editing and manual category controls.
 
-Upload workflow: select collection and style yourself; drop JPG, PNG, WebP or a ZIP (maximum 250 MB compressed / 30 works and 50 MB per original); review each title and category; press Upload. The browser extracts the ZIP locally, produces reduced WebP view/thumb files, and uploads the original to PRIVATE art-originals. New works can be published as previews in the gallery immediately; every new work remains NOT available for sale until a separate Stripe, provenance, print quality and download review.
+Upload workflow: select collection and style yourself; drop JPG, PNG, WebP or a ZIP (maximum 250 MB compressed / 30 works and 50 MB per image); review each title and category; press Upload. Smart ZIP recognizes MASTER/ORIGINAL, DIGITAL/RETINA/2X, PRINT/300DPI and WEB/PORTFOLIO/PREVIEW in folder names or filenames. Master, digital and print files go to PRIVATE art-originals. The chosen web source is converted to reduced WebP view/thumb files in public art-previews. The role mapping is recorded in public.art_gallery_assets. New works can be published as previews immediately, but every new work remains NOT available for sale until a separate Stripe, provenance, print-quality and download review.
 
 New admin works appear in the live homepage and their manually selected collection, with their own /artwork/<id>/ page. Existing /verk/ URLs and existing checkout mappings stay unchanged. Public Supabase publishable API keys may be in browser files; NEVER put the Supabase service-role secret in GitHub, chat, a ZIP or a browser.
 
 To revoke access, remove the person's row from public.art_gallery_admin_users. The private upload authorization uses storage RLS and the same allowlist, not a hidden /admin/ URL.
+
+
+The production schema for Smart ZIP role metadata is recorded in `scripts/ART_SMART_ZIP_ASSETS.sql`. Do not make `art-originals` public and do not expose a service-role key to the admin browser.
