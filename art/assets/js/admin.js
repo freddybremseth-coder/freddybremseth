@@ -315,20 +315,36 @@ function looksNorwegianTitle(title){
 async function normalizeTitlesToEnglish(queueItems){
  const newItems=queueItems.filter(item=>!item.existing_id);
  if(!newItems.length)return;
- const original=newItems.map(item=>item.title.trim());
+ // English is already the catalogue language. Do not spend AI quota rewriting titles
+ // that are already English; only send titles that actually look Norwegian.
+ const targets=newItems.filter(item=>looksNorwegianTitle(item.title));
+ if(!targets.length)return;
+ const original=targets.map(item=>item.title.trim());
  let data;
  try{
   data=await api('/functions/v1/art-title-english',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titles:original})});
  }catch(error){
-  if(original.some(looksNorwegianTitle))throw Error('The title could not be converted to English. '+error.message);
+  for(const item of targets){
+   item.skip=true;
+   item.progress='Needs English title · translation temporarily unavailable';
+   item.title_issue='Translation temporarily unavailable: '+(error.message||String(error));
+  }
   return;
  }
- if(!Array.isArray(data?.titles)||data.titles.length!==original.length)throw Error('English-title service returned an invalid result.');
- for(let i=0;i<newItems.length;i++){
+ if(!Array.isArray(data?.titles)||data.titles.length!==original.length){
+  for(const item of targets){item.skip=true;item.progress='Needs English title · translation response invalid';item.title_issue='English-title service returned an invalid result.'}
+  return;
+ }
+ for(let i=0;i<targets.length;i++){
   const title=String(data.titles[i]||'').trim();
-  if(!title||title.length>150)throw Error('English-title service returned an invalid title.');
-  if(looksNorwegianTitle(title))throw Error('A title still appears to be Norwegian: '+title+'. Enter an English title before upload.');
-  newItems[i].title=title;
+  if(!title||title.length>150||looksNorwegianTitle(title)){
+   targets[i].skip=true;
+   targets[i].progress='Needs English title · check manually';
+   targets[i].title_issue='The translated title still needs manual English review.';
+   continue;
+  }
+  targets[i].title=title;
+  targets[i].title_provider=String(data.translation_provider||'AI');
  }
 }
 function blobToBase64(blob){
@@ -408,7 +424,7 @@ function fallbackCuration(item,error){
 }
 async function classifyQueuedArtworks(queueItems){
  if(!$('auto-curate-default')?.checked)return;
- const targets=queueItems.filter(item=>!item.existing_id&&!item.ai_curation);
+ const targets=queueItems.filter(item=>!item.existing_id&&!item.ai_curation&&!item.skip);
  if(!targets.length)return;
  for(let i=0;i<targets.length;i++){
   const item=targets[i];
@@ -557,7 +573,7 @@ function renderQueue(){
      :'';
   row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields"><p class="wide subtle"><strong>Smart ZIP mapping:</strong> '+esc(roleSummary||'Master/original')+'</p>'+
    (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Master/original, digital-sale and print files are stored privately. An explicitly named WEB/portfolio file updates the public preview only when the artwork is not already sale-enabled. Title, description and category stay unchanged. Uploading never enables sales automatically.</p>':
-   '<label class="wide">English title · master title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label><p class="wide subtle">The catalogue title is always English. English source titles stay English; Norwegian source titles are converted to English before upload.</p>'+curationNote+
+   '<label class="wide">English title · master title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label><p class="wide subtle">The catalogue title is always English. English source titles stay English and are not sent to the translation service; only titles detected as Norwegian are translated before upload.</p>'+(item.title_issue?'<p class="wide master-warning"><strong>Title check:</strong> '+esc(item.title_issue)+' Edit the title in English, then uncheck “Skip this artwork” to include it.</p>':'')+curationNote+
    '<label>Collection<select data-field="collection_id" required>'+rowSelect(state.collections,item.collection_id,'Choose collection…')+'</select></label>'+
    '<label>Artistic style<select data-field="style_id" required>'+rowSelect(state.styles,item.style_id,'Choose style…')+'</select></label>'+
    '<label class="wide">Description (optional)<textarea data-field="description" maxlength="1200">'+esc(item.description)+'</textarea></label>'+
