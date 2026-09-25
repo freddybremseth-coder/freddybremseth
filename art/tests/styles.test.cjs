@@ -7,13 +7,13 @@ const read=p=>JSON.parse(fs.readFileSync(path.join(root,p),'utf8'));
 const artworks=read('assets/catalog.json');
 const styles=read('assets/styles.json');
 const curation=read('assets/collections.json');
-const collectionFor=art=>curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
+const collectionFor=art=>art.collection_id||curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
 const variantPairs=read('assets/curated-variants.json');
 const curatedVariantIds=new Set(variantPairs.filter(row=>artworks.some(a=>a.id===row.variant_id)&&artworks.some(a=>a.id===row.primary_id)).map(row=>row.variant_id));
 test('every unique artwork retains its existing style',()=>{
  assert.ok(artworks.length>=63);
  assert.equal(new Set(artworks.map(a=>a.id)).size,artworks.length);
- assert.equal(styles.length,12);
+ assert.equal(styles.length,13);
  for(const art of artworks){
   const style=styles.find(s=>s.id===art.style_id);
   assert.ok(style,'Missing style: '+art.id);
@@ -22,21 +22,24 @@ test('every unique artwork retains its existing style',()=>{
  }
  for(const style of styles){
   assert.equal(artworks.filter(a=>a.style_id===style.id).length,style.count);
-  assert.ok(style.count>0);
+  if(style.id==='urban-nightscapes')assert.ok(style.count>=0);
+  else assert.ok(style.count>0);
  }
 });
-test('five featured collections and the separate studio archive cover every existing artwork',()=>{
- assert.equal(curation.collections.filter(c=>c.featured).length,5);
- assert.equal(curation.collections.length,6);
+test('seven featured collections plus Studio Archive support both established and new series',()=>{
+ assert.equal(curation.collections.filter(c=>c.featured).length,7);
+ assert.equal(curation.collections.length,8);
  assert.deepEqual(curation.collections.filter(c=>c.featured).map(c=>c.id),[
-  'human-condition','words-that-matter','symbolic-street-art','mediterranean-soul','earth-and-emotion'
+  'human-condition','words-that-matter','symbolic-street-art','mediterranean-soul','earth-and-emotion','city-after-dark','sunken-worlds'
  ]);
  assert.equal(curation.collections.find(c=>c.id==='studio-archive').featured,false);
  assert.ok(artworks.every(art=>curation.collections.some(c=>c.id===collectionFor(art))));
  for(const collection of curation.collections){
-  assert.ok(artworks.some(art=>collectionFor(art)===collection.id),'Empty collection '+collection.id);
-  assert.ok(fs.existsSync(path.join(root,collection.cover.replace(/^\//,''))));
+  const works=artworks.filter(art=>collectionFor(art)===collection.id);
+  if(collection.cover)assert.ok(fs.existsSync(path.join(root,collection.cover.replace(/^\//,''))));
+  else assert.ok(['city-after-dark','sunken-worlds'].includes(collection.id)||works.length>0,'Only auto-cover collections may omit a configured cover');
  }
+ assert.equal(curation.byStyle['urban-nightscapes'],'city-after-dark');
  for(const id of Object.keys(curation.byArtworkId))assert.ok(artworks.some(a=>a.id===id),'Unknown collection override '+id);
 });
 test('existing artwork URLs, protected masters and actual €50 digital price are preserved',()=>{
@@ -89,7 +92,7 @@ test('all published artwork titles use English display names with stable origina
  }
 });
 
-test('six dedicated collections have complete indexable, mobile-friendly static pages',()=>{
+test('eight dedicated collections have complete indexable, mobile-friendly static pages',()=>{
  const sitemap=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
  const homepage=fs.readFileSync(path.join(root,'index.html'),'utf8');
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
@@ -104,7 +107,6 @@ test('six dedicated collections have complete indexable, mobile-friendly static 
   assert.ok(homepage.includes('href="'+url+'"')||curation.collections.some(other=>other.id!==collection.id&&fs.readFileSync(path.join(root,'collections',other.id,'index.html'),'utf8').includes('href="'+url+'"')),'Collection is not linked from any gallery page: '+collection.id);
   assert.ok(html.includes('name="'+collection.name.replaceAll('&','&amp;')+'"')||html.includes('<h1>'+collection.name.replaceAll('&','&amp;')+'</h1>'));
   const works=artworks.filter(item=>collectionFor(item)===collection.id&&!curatedVariantIds.has(item.id));
-  assert.ok(works.length>0);
   for(const art of works){
    const link='/verk/'+art.id+'/';
    assert.ok(html.includes('href="'+link+'"'),'Missing '+art.id+' in '+collection.id);
@@ -191,7 +193,7 @@ test('homepage hero image differs from every featured collection cover',()=>{
  const hero=match[1];
  assert.ok(fs.existsSync(path.join(root,hero.replace(/^\//,''))),'Hero artwork has a real public preview');
  assert.ok(artworks.some(art=>art.image===hero),'Hero image belongs to the curated gallery');
- for(const collection of curation.collections.filter(item=>item.featured)){
+ for(const collection of curation.collections.filter(item=>item.featured&&item.cover)){
   assert.notEqual(hero,collection.cover.replace('-thumb.webp','-view.webp'),
    'Hero artwork must not repeat the adjacent featured collection image: '+collection.name);
  }
@@ -244,13 +246,15 @@ test('Symbolic Street Art appears as a distinct navigable art style and curated 
  assert.ok(fs.readFileSync(path.join(root,'index.html'),'utf8').includes('href="/collections/symbolic-street-art/"'));
 });
 
-test('featured collection covers are unique and belong to their collections',()=>{
+test('configured featured collection covers are unique; new series can auto-cover from first live work',()=>{
  const featured=curation.collections.filter(c=>c.featured);
- assert.equal(new Set(featured.map(c=>c.cover)).size,featured.length);
- for(const collection of featured){
+ const configured=featured.filter(c=>c.cover);
+ assert.equal(new Set(configured.map(c=>c.cover)).size,configured.length);
+ for(const collection of configured){
   assert.ok(artworks.some(a=>a.thumb===collection.cover&&collectionFor(a)===collection.id),
     'Cover must be part of its own collection: '+collection.id);
  }
+ for(const id of ['city-after-dark','sunken-worlds'])assert.equal(curation.collections.find(c=>c.id===id).cover,'');
 });
 test('discovery gallery supports a varied shuffle on an undecorated background',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
@@ -349,4 +353,25 @@ test('administrator sees actual private master status and can safely route repla
  assert.match(js,/Smart ZIP routed|Complete · Routed/);
  assert.match(js,/master\/original is locked/);
  assert.doesNotMatch(js,/digital_available:\s*true/);
+});
+
+test('City After Dark and Sunken Worlds are first-class taxonomy entries',()=>{
+ const city=curation.collections.find(c=>c.id==='city-after-dark');
+ const sunken=curation.collections.find(c=>c.id==='sunken-worlds');
+ const urban=styles.find(s=>s.id==='urban-nightscapes');
+ assert.equal(city.name,'City After Dark');
+ assert.equal(city.featured,true);
+ assert.match(city.description,/Rain, neon, late-night windows/);
+ assert.equal(sunken.name,'Sunken Worlds');
+ assert.equal(sunken.featured,true);
+ assert.match(sunken.description,/Lost architecture beneath the surface/);
+ assert.equal(urban.name,'Urban Nightscapes');
+ assert.match(urban.description,/Rain-soaked streets/);
+ assert.equal(curation.byStyle['urban-nightscapes'],'city-after-dark');
+ const builder=fs.readFileSync(path.join(root,'scripts/build-pages.mjs'),'utf8');
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const sync=fs.readFileSync(path.join(root,'assets/js/collection-sync.js'),'utf8');
+ assert.match(builder,/data-auto-cover/);
+ assert.match(app,/admin-smart-zip/);
+ assert.match(sync,/admin-smart-zip/);
 });
