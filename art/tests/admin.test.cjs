@@ -116,7 +116,7 @@ test('AI artwork curator is authenticated and constrained to the gallery taxonom
  assert.match(fn,/client\.auth\.getUser/);
  assert.match(fn,/art_gallery_admin_users/);
  assert.match(fn,/Choose exactly ONE collection and exactly ONE artistic style/);
- assert.match(fn,/Do not invent new IDs or categories/);
+ assert.match(fn,/Do not invent new IDs for collection_id or style_id/);
  assert.match(fn,/collectionIds\.has\(collection_id\)/);
  assert.match(fn,/styleIds\.has\(style_id\)/);
  assert.match(fn,/new_collection_suggested/);
