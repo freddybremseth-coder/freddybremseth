@@ -337,7 +337,7 @@ test('admin explains private masters and lets editors update image-specific desc
  assert.doesNotMatch(script,/digital_available:\s*true/);
 });
 
-test('administrator sees actual private master status and can fill missing files without changing public artwork',()=>{
+test('administrator sees actual private master status and can safely route replacement role files',()=>{
  const html=fs.readFileSync(path.join(root,'admin/index.html'),'utf8');
  const js=fs.readFileSync(path.join(root,'assets/js/admin.js'),'utf8');
  assert.match(html,/id="master-audit-title"/);
@@ -346,6 +346,7 @@ test('administrator sees actual private master status and can fill missing files
  assert.match(js,/rpc\/art_gallery_admin_master_status/);
  assert.match(js,/storage_object_present/);
  assert.match(js,/master_status/);
- assert.match(js,/Private master uploaded/);
+ assert.match(js,/Smart ZIP routed|Complete · Routed/);
+ assert.match(js,/master\/original is locked/);
  assert.doesNotMatch(js,/digital_available:\s*true/);
 });
