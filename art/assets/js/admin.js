@@ -514,7 +514,7 @@ async function uploadOne(item){
  }else if(preview&&item.files?.portfolio){
   await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({
    public_preview_path:folder+'/view.webp',public_thumb_path:folder+'/thumb.webp',pixel_width:preview.w,pixel_height:preview.h,
-   orientation:preview.w>preview.h?'Landscape':preview.w<preview.h?'Portrait':'Square',source:'admin-smart-zip'
+   orientation:preview.w>preview.h?'Landscape':preview.w<preview.h?'Portrait':'Square',review_status:'pending',source:'admin-smart-zip'
   })});
  }
  const saveAsset=async(role,bucket,objectPath,source,dimensions,mime,fileBytes)=>{
