@@ -36,6 +36,20 @@
       "featured": true
     },
     {
+      "id": "city-after-dark",
+      "name": "City After Dark",
+      "description": "Rain, neon, late-night windows and the private lives of cities after daylight disappears.",
+      "cover": "",
+      "featured": true
+    },
+    {
+      "id": "sunken-worlds",
+      "name": "Sunken Worlds",
+      "description": "Lost architecture beneath the surface — temples, libraries, statues and imagined civilizations reclaimed by the sea.",
+      "cover": "",
+      "featured": true
+    },
+    {
       "id": "studio-archive",
       "name": "Studio Archive",
       "description": "A wider view of the studio: experiments in period-inspired composition, abstraction and portraiture. Different styles, connected by an interest in atmosphere and human stories.",
@@ -55,7 +69,8 @@
     "renaissance-baroque": "studio-archive",
     "art-nouveau": "studio-archive",
     "cubism": "studio-archive",
-    "symbolic-street-art": "symbolic-street-art"
+    "symbolic-street-art": "symbolic-street-art",
+    "urban-nightscapes": "city-after-dark"
   },
   "byArtworkId": {
     "gylden-sol-over-stille-hav": "mediterranean-soul",

@@ -25,7 +25,7 @@ function makeCard(art){
   fetch(cfg.url+'/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&limit=1000',{headers:{apikey:cfg.anonKey}}).catch(()=>null)
  ]);
  if(!res.ok)return;
- const rows=await res.json(),edited=rows.filter(art=>['admin-upload','admin-edit'].includes(art.source));
+ const rows=await res.json(),edited=rows.filter(art=>['admin-upload','admin-edit','admin-smart-zip'].includes(art.source));
  const variants=groupsRes?.ok?await groupsRes.json():[];
  const variantsById=new Map(variants.map(row=>[row.variant_id,row]));
  const variantsByPrimary=new Map();
@@ -60,5 +60,16 @@ function makeCard(art){
  }
  const total=grid.querySelectorAll('article.art-card').length;
  const count=document.querySelector('.collection-gallery-header p');if(count)count.textContent=total+' artworks · Physical prints are not on sale yet';
+ const heroCount=document.getElementById('collection-work-count');if(heroCount)heroCount.textContent=String(total);
+ const empty=document.getElementById('collection-empty-note');if(empty&&total)empty.remove();
+ const figure=document.getElementById('collection-cover-figure'),hero=document.getElementById('collection-cover-img');
+ if(figure?.dataset.autoCover==='true'&&hero){
+  const candidate=edited.find(art=>art.collection_id===collection&&!variantsById.has(art.id)&&(art.public_thumb_path||art.legacy_thumb_url));
+  if(candidate){
+   hero.src=candidate.public_thumb_path?publicImage(candidate.public_thumb_path):candidate.legacy_thumb_url;
+   hero.alt=candidate.title_en+' — selected work from this collection';
+   figure.hidden=false;
+  }
+ }
 })().catch(()=>{});
 })();

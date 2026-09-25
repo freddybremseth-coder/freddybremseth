@@ -82,5 +82,12 @@
     "description": "Places shaped by weather, horizon and silence, from coastal light to mountain distance.",
     "count": 3,
     "cover": "/assets/art/melankolsk-solnedgang-ved-havet-thumb.webp"
+  },
+  {
+    "id": "urban-nightscapes",
+    "name": "Urban Nightscapes",
+    "description": "Rain-soaked streets, illuminated skylines, nocturnal interiors and cinematic city light.",
+    "count": 0,
+    "cover": ""
   }
 ]

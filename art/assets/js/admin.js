@@ -361,7 +361,16 @@ async function classifyArtwork(item){
  if(!state.collections.some(entry=>entry.id===result?.collection_id)||!state.styles.some(entry=>entry.id===result?.style_id))throw Error('AI curation returned an invalid category.');
  item.collection_id=result.collection_id;
  item.style_id=result.style_id;
- item.ai_curation={collection_id:result.collection_id,style_id:result.style_id,confidence:Number(result.confidence)||0,reason:String(result.reason||'').trim(),manual_override:false};
+ item.ai_curation={
+  collection_id:result.collection_id,style_id:result.style_id,confidence:Number(result.confidence)||0,
+  reason:String(result.reason||'').trim(),manual_override:false,
+  new_collection_suggested:result.new_collection_suggested===true,
+  suggested_collection_name:String(result.suggested_collection_name||'').trim(),
+  suggested_collection_description:String(result.suggested_collection_description||'').trim(),
+  new_style_suggested:result.new_style_suggested===true,
+  suggested_style_name:String(result.suggested_style_name||'').trim(),
+  suggested_style_description:String(result.suggested_style_description||'').trim()
+ };
 }
 async function classifyQueuedArtworks(queueItems){
  if(!$('auto-curate-default')?.checked)return;
@@ -501,10 +510,17 @@ function renderQueue(){
   const aiCollection=state.collections.find(entry=>entry.id===item.ai_curation?.collection_id)?.name||item.ai_curation?.collection_id||'';
   const aiStyle=state.styles.find(entry=>entry.id===item.ai_curation?.style_id)?.name||item.ai_curation?.style_id||'';
   const confidence=Math.round(Math.max(0,Math.min(1,Number(item.ai_curation?.confidence)||0))*100);
+  const taxonomySuggestion=item.ai_curation&&!item.ai_curation.error&&(
+    item.ai_curation.new_collection_suggested||item.ai_curation.new_style_suggested
+   )?'<p class="wide master-warning"><strong>Taxonomy suggestion:</strong> '+
+     (item.ai_curation.new_collection_suggested?'New collection candidate: '+esc(item.ai_curation.suggested_collection_name)+(item.ai_curation.suggested_collection_description?' — '+esc(item.ai_curation.suggested_collection_description):''):'')+
+     (item.ai_curation.new_collection_suggested&&item.ai_curation.new_style_suggested?' · ':'')+
+     (item.ai_curation.new_style_suggested?'New style candidate: '+esc(item.ai_curation.suggested_style_name)+(item.ai_curation.suggested_style_description?' — '+esc(item.ai_curation.suggested_style_description):''):'')+
+     '. The artwork keeps the closest existing category until the gallery taxonomy is intentionally extended.</p>':'';
   const curationNote=item.ai_curation?.error
    ?'<p class="wide subtle"><strong>AI curation:</strong> unavailable · '+esc(item.ai_curation.error)+' · choose collection and style manually.</p>'
    :item.ai_curation
-    ?'<p class="wide subtle"><strong>AI curation:</strong> '+esc(aiCollection)+' · '+esc(aiStyle)+' · '+confidence+'% confidence'+(item.ai_curation.manual_override?' · manually adjusted':'')+(item.ai_curation.reason?' · '+esc(item.ai_curation.reason):'')+'</p>'
+    ?'<p class="wide subtle"><strong>AI curation:</strong> '+esc(aiCollection)+' · '+esc(aiStyle)+' · '+confidence+'% confidence'+(item.ai_curation.manual_override?' · manually adjusted':'')+(item.ai_curation.reason?' · '+esc(item.ai_curation.reason):'')+'</p>'+taxonomySuggestion
     :'';
   row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields"><p class="wide subtle"><strong>Smart ZIP mapping:</strong> '+esc(roleSummary||'Master/original')+'</p>'+
    (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Master/original, digital-sale and print files are stored privately. An explicitly named WEB/portfolio file updates the public preview only when the artwork is not already sale-enabled. Title, description and category stay unchanged. Uploading never enables sales automatically.</p>':

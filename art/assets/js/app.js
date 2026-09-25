@@ -23,16 +23,19 @@
   $('collection').scrollIntoView({behavior:'smooth',block:'start'});
  }
  function makeCollections(){
+  const visible=visibleArt();
   const host=$('categories');host.replaceChildren();
-  const all=document.createElement('button');all.type='button';all.className='chip';all.dataset.category='all';all.textContent='All collections ('+visibleArt().length+')';host.appendChild(all);
-  for(const collection of state.collections){const button=document.createElement('button');button.type='button';button.className='chip';button.dataset.category=collection.id;button.textContent=collection.name+' ('+visibleArt().filter(a=>a.collection_id===collection.id).length+')';host.appendChild(button)}
+  const all=document.createElement('button');all.type='button';all.className='chip';all.dataset.category='all';all.textContent='All collections ('+visible.length+')';host.appendChild(all);
+  for(const collection of state.collections){const button=document.createElement('button');button.type='button';button.className='chip';button.dataset.category=collection.id;button.textContent=collection.name+' ('+visible.filter(a=>a.collection_id===collection.id).length+')';host.appendChild(button)}
   const styleSelect=$('style-filter');styleSelect.replaceChildren(new Option('All artistic styles','all'));
-  for(const style of state.styles){if(visibleArt().some(a=>a.style_id===style.id))styleSelect.add(new Option(style.name,style.id))}
+  for(const style of state.styles){if(visible.some(a=>a.style_id===style.id))styleSelect.add(new Option(style.name,style.id))}
   const cardsHost=$('collection-cards');cardsHost.replaceChildren();
   for(const collection of state.collections.filter(c=>c.featured)){
-   const count=visibleArt().filter(a=>a.collection_id===collection.id).length;
+   const works=visible.filter(a=>a.collection_id===collection.id),count=works.length;
+   const cover=collection.cover||works[0]?.thumb||works[0]?.image||'';
+   if(!count&&!cover)continue;
    const button=document.createElement('a');button.href='/collections/'+encodeURIComponent(collection.id)+'/';button.className='collection-tile';
-   const image=document.createElement('img');image.src=collection.cover;image.alt='Artwork preview for '+collection.name;image.loading='lazy';
+   const image=document.createElement('img');image.src=cover;image.alt='Artwork preview for '+collection.name;image.loading='lazy';
    const text=document.createElement('span');text.className='collection-tile-copy';
    const title=document.createElement('strong');title.textContent=collection.name;
    const intro=document.createElement('span');intro.textContent=collection.description;
@@ -120,7 +123,7 @@
   grid.classList.toggle('gallery-discover',state.sort==='discover'&&!grouped);
   for(const chip of $('categories').querySelectorAll('.chip')){const active=chip.dataset.category===state.category;chip.classList.toggle('active',active);chip.setAttribute('aria-pressed',String(active))}
   $('result-count').textContent=state.filtered.length+' artworks'+(collection?' · '+collection.name:grouped?' · five signature collections + studio archive':'');
-  $('active-style-description').textContent=collection?collection.description:'Five signature collections plus our studio archive. Explore a varied mix or refine by style, motif, colour, orientation and price.';
+  $('active-style-description').textContent=collection?collection.description:'Seven signature collections plus our studio archive. Explore a varied mix or refine by style, motif, colour, orientation and price.';
   $('load-more').hidden=true;
   if(grouped){
    const narrowed=!!(state.search||state.style!=='all'||state.orientation!=='all'||state.motif!=='all'||state.colour!=='all'||state.price!=='all');
@@ -238,12 +241,12 @@
  }
  const publicPreview=(cfg,path)=>cfg.url+'/storage/v1/object/public/art-previews/'+path.split('/').map(encodeURIComponent).join('/');
  function mergedCatalogue(catalog,rows,styles,curation){
-  const cfg=window.ART_GALLERY_CONFIG,byId=new Map(catalog.map(a=>[a.id,{...a,collection_id:curation.byArtworkId[a.id]||curation.byStyle[a.style_id]}]));
+  const cfg=window.ART_GALLERY_CONFIG,byId=new Map(catalog.map(a=>[a.id,{...a,collection_id:a.collection_id||curation.byArtworkId[a.id]||curation.byStyle[a.style_id]}]));
   const styleById=new Map(styles.map(s=>[s.id,s]));
   let number=Math.max(0,...catalog.map(a=>a.number));
   for(const row of rows){
    if(!/^[a-z0-9-]+$/.test(row.id)||!styleById.has(row.style_id)||!curation.collections.some(collection=>collection.id===row.collection_id))continue;
-   const old=byId.get(row.id),updated=['admin-upload','admin-edit'].includes(row.source);
+   const old=byId.get(row.id),updated=['admin-upload','admin-edit','admin-smart-zip'].includes(row.source);
    if(old&&!updated)continue;
    const style=styleById.get(row.style_id);
    const image=row.public_preview_path&&/^[-a-z0-9/]+\.webp$/.test(row.public_preview_path)?publicPreview(cfg,row.public_preview_path):old?.image;
