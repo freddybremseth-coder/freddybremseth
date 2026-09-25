@@ -18,6 +18,7 @@ styles=[
  {'id':'symbolic-realism','name':'Symbolic Realism','description':'Detailed figurative imagery where objects, gestures and contrasts suggest meanings beyond the visible.'},
  {'id':'conceptual','name':'Contemporary Conceptual','description':'Digital-era imagery that explores identity, technology, consumerism and modern social pressures.'},
  {'id':'landscape','name':'Atmospheric Landscapes','description':'Places shaped by weather, horizon and silence, from coastal light to mountain distance.'},
+ {'id':'urban-nightscapes','name':'Urban Nightscapes','description':'Rain-soaked streets, illuminated skylines, nocturnal interiors and cinematic city light.'},
 ]
 byid={s['id']:s for s in styles}
 assign={}
@@ -67,7 +68,7 @@ for a in catalog:
 (root/'assets/catalog.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
 for s in styles:
  s['count']=sum(a['style_id']==s['id'] for a in catalog)
- s['cover']=next(a['thumb'] for a in catalog if a['style_id']==s['id'])
+ s['cover']=next((a['thumb'] for a in catalog if a['style_id']==s['id']),'')
 (root/'assets/styles.json').write_text(json.dumps(styles,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
 print('CURATED_WORKS',len(catalog),'STYLE_GROUPS',len(styles))
 for s in styles:print(s['id'],s['count'])
