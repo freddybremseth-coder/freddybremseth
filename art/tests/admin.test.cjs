@@ -60,6 +60,7 @@ test('collection builder includes live manually selected categories',()=>{
  assert.match(sync,/collection_id!==collection/);
  assert.match(sync,/admin-upload/);
  assert.match(sync,/admin-edit/);
+ assert.match(sync,/admin-smart-zip/);
 });
 
 test('email sign-in preserves actionable Supabase Auth response without revealing credentials',()=>{
@@ -118,6 +119,13 @@ test('AI artwork curator is authenticated and constrained to the gallery taxonom
  assert.match(fn,/Do not invent new IDs or categories/);
  assert.match(fn,/collectionIds\.has\(collection_id\)/);
  assert.match(fn,/styleIds\.has\(style_id\)/);
+ assert.match(fn,/new_collection_suggested/);
+ assert.match(fn,/new_style_suggested/);
+ assert.match(fn,/Avoid creating near-duplicates or one-off folders/);
  assert.match(fn,/inline_data/);
  assert.match(fn,/responseMimeType:'application\/json'/);
+ const admin=read('assets/js/admin.js');
+ assert.match(admin,/Taxonomy suggestion/);
+ assert.match(admin,/suggested_collection_name/);
+ assert.match(admin,/suggested_style_name/);
 });
