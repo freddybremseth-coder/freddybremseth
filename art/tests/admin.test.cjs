@@ -26,6 +26,10 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(html,/Smart ZIP · automatic file placement/);
  assert.match(html,/PRINT_300DPI/);
  assert.match(html,/RETINA/);
+ assert.match(js,/looksNorwegianTitle/);
+ assert.match(js,/art-title-english/);
+ assert.match(js,/Artwork titles must be English/);
+ assert.match(html,/Artwork titles are English only/);
  assert.match(css,/@media/);
  for(const script of ['assets/js/admin.js','assets/js/gallery-config.js','assets/js/collection-sync.js','assets/js/app.js','api/artwork-page.js']){
   const check=spawnSync(process.execPath,['--check',script],{cwd:root,encoding:'utf8'});
@@ -88,4 +92,14 @@ test('smart ZIP schema records private and public roles without auto-enabling sa
  const admin=read('assets/js/admin.js');
  assert.match(admin,/digital_available:false/);
  assert.ok(!/DIGITAL_SALES_ENABLED\s*=\s*true/.test(admin));
+});
+
+test('English title normalizer is admin-only and never asks for Norwegian output',()=>{
+ const fn=read('supabase/functions/art-title-english/index.ts');
+ assert.match(fn,/art_gallery_admin_users/);
+ assert.match(fn,/client\.auth\.getUser/);
+ assert.match(fn,/If an input title is already English, return it unchanged/);
+ assert.match(fn,/If an input title is Norwegian, translate it into concise, natural English/);
+ assert.match(fn,/Never translate an English title into Norwegian/);
+ assert.match(fn,/responseMimeType:'application\/json'/);
 });
