@@ -192,9 +192,9 @@ function renderCatalogue(){
   const roleNote=roles.length?' · Files: '+roles.map(role=>ROLE_LABELS[role]||role).join(', '):'';
   el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+esc(roleNote)+'</small></span>';
   const edit=document.createElement('button');edit.type='button';edit.textContent='Edit title & story';edit.addEventListener('click',()=>editWork(work));el.append(edit);
-  const add=document.createElement('button');add.type='button';add.textContent=master?.storage_object_present?'Replace unverified private file':'Attach private file';
-  add.disabled=work.digital_available||!!master?.sale_verified;
-  add.title=add.disabled?'This work is protected by an active or verified sale master.':'Upload source only; keep the public artwork unchanged.';
+  const add=document.createElement('button');add.type='button';add.textContent='Add / replace source files';
+  add.disabled=false;
+  add.title=master?.sale_verified||work.digital_available?'You may add print or other role files, but the active/verified master is protected from replacement.':'Upload one file or a Smart ZIP package for this artwork.';
   add.addEventListener('click',()=>{
    if(state.queue.length){status('Please finish or clear your current upload queue before selecting another artwork.',true);return}
    state.pendingExistingId=work.id;
@@ -482,6 +482,7 @@ async function uploadOne(item){
   if(item.files?.[role]&&byRole.get(role)?.verified_at)throw Error((ROLE_LABELS[role]||role)+' is already verified and cannot be replaced from a ZIP.');
  }
  const explicitMaster=item.files?.master;
+ if(existing?.digital_available&&explicitMaster)throw Error('This artwork is already sale-enabled. Its master/original is locked; add PRINT, DIGITAL or WEB role files instead.');
  if(explicitMaster&&currentMaster?.verified_at)throw Error('Verified sale master exists; its master/original cannot be replaced from a ZIP.');
  const needMaster=!existing||!audit?.storage_object_present||!!explicitMaster;
  const masterSource=needMaster?(explicitMaster||item.files?.digital||item.files?.print||item.files?.portfolio):null;
