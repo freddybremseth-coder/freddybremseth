@@ -369,24 +369,54 @@ async function classifyArtwork(item){
   suggested_collection_description:String(result.suggested_collection_description||'').trim(),
   new_style_suggested:result.new_style_suggested===true,
   suggested_style_name:String(result.suggested_style_name||'').trim(),
-  suggested_style_description:String(result.suggested_style_description||'').trim()
+  suggested_style_description:String(result.suggested_style_description||'').trim(),
+  analysis_provider:String(result.analysis_provider||'AI')
  };
+}
+function fallbackCuration(item,error){
+ const text=(item.title+' '+item.path).toLowerCase();
+ const hasCollection=id=>state.collections.some(entry=>entry.id===id);
+ const hasStyle=id=>state.styles.some(entry=>entry.id===id);
+ let collection_id=$('collection-default').value,style_id=$('style-default').value;
+ if(/(?:city|night|neon|rooftop|jazz|diner|tokyo|street|avenue|penthouse|bridge|fire escape|skyline)/i.test(text)){
+  collection_id=collection_id||'city-after-dark';style_id=style_id||'urban-nightscapes';
+ }else if(/(?:sunken|underwater|atlantis|beneath|submerged|ocean ruins|under the sea|temple|lost library)/i.test(text)){
+  collection_id=collection_id||'sunken-worlds';style_id=style_id||'surrealism';
+ }else if(/(?:graffiti|street art|pop art|urban wall)/i.test(text)){
+  collection_id=collection_id||'symbolic-street-art';style_id=style_id||'symbolic-street-art';
+ }else if(/(?:mediterranean|terrace|coast|coastal|sunset|seaside|harbour|olive grove)/i.test(text)){
+  collection_id=collection_id||'mediterranean-soul';style_id=style_id||'landscape';
+ }else if(/(?:botanical|roots|earth|ceramic|lemon|kintsugi|flower|soil|terracotta)/i.test(text)){
+  collection_id=collection_id||'earth-and-emotion';style_id=style_id||'symbolic-realism';
+ }else if(/(?:portrait|woman|man|human|heart|grief|love|memory|between yes and no)/i.test(text)){
+  collection_id=collection_id||'human-condition';style_id=style_id||'symbolic-realism';
+ }else if(/(?:letter|letters|words|message|sent|unsent|voice|truth|say|said)/i.test(text)){
+  collection_id=collection_id||'words-that-matter';style_id=style_id||'conceptual';
+ }else{
+  collection_id=collection_id||'studio-archive';style_id=style_id||'symbolic-realism';
+ }
+ if(!hasCollection(collection_id))collection_id=hasCollection('studio-archive')?'studio-archive':state.collections[0]?.id||'';
+ if(!hasStyle(style_id))style_id=hasStyle('symbolic-realism')?'symbolic-realism':state.styles[0]?.id||'';
+ item.collection_id=collection_id;item.style_id=style_id;
+ item.published=false;
+ item.ai_curation={
+  error:error.message||String(error),fallback:true,manual_override:false,confidence:0.2,
+  collection_id,style_id,reason:'AI providers were unavailable. A low-confidence fallback was assigned and the artwork was kept as a draft.',
+  analysis_provider:'Local fallback'
+ };
+ item.progress='Ready · AI fallback · draft';
 }
 async function classifyQueuedArtworks(queueItems){
  if(!$('auto-curate-default')?.checked)return;
  const targets=queueItems.filter(item=>!item.existing_id&&!item.ai_curation);
  if(!targets.length)return;
- let cursor=0,done=0;
- const worker=async()=>{
-  while(cursor<targets.length){
-   const item=targets[cursor++];
-   status('Analyzing artwork '+(done+1)+' of '+targets.length+' · choosing collection and style…');
-   try{await classifyArtwork(item)}
-   catch(error){item.ai_curation={error:error.message||String(error),manual_override:false}}
-   done++;
-  }
- };
- await Promise.all(Array.from({length:Math.min(3,targets.length)},worker));
+ for(let i=0;i<targets.length;i++){
+  const item=targets[i];
+  status('Analyzing artwork '+(i+1)+' of '+targets.length+' · choosing collection and style…');
+  try{await classifyArtwork(item)}
+  catch(error){fallbackCuration(item,error)}
+  if(i<targets.length-1)await new Promise(resolve=>setTimeout(resolve,650));
+ }
 }
 function stem(name){return slug(titleFromName(name))}
 function roleFolder(name){
@@ -517,11 +547,14 @@ function renderQueue(){
      (item.ai_curation.new_collection_suggested&&item.ai_curation.new_style_suggested?' · ':'')+
      (item.ai_curation.new_style_suggested?'New style candidate: '+esc(item.ai_curation.suggested_style_name)+(item.ai_curation.suggested_style_description?' — '+esc(item.ai_curation.suggested_style_description):''):'')+
      '. The artwork keeps the closest existing category until the gallery taxonomy is intentionally extended.</p>':'';
-  const curationNote=item.ai_curation?.error
-   ?'<p class="wide subtle"><strong>AI curation:</strong> unavailable · '+esc(item.ai_curation.error)+' · choose collection and style manually.</p>'
-   :item.ai_curation
-    ?'<p class="wide subtle"><strong>AI curation:</strong> '+esc(aiCollection)+' · '+esc(aiStyle)+' · '+confidence+'% confidence'+(item.ai_curation.manual_override?' · manually adjusted':'')+(item.ai_curation.reason?' · '+esc(item.ai_curation.reason):'')+'</p>'+taxonomySuggestion
-    :'';
+  const provider=item.ai_curation?.analysis_provider?' · via '+esc(item.ai_curation.analysis_provider):'';
+  const curationNote=item.ai_curation?.fallback
+   ?'<p class="wide master-warning"><strong>AI curation fallback:</strong> '+esc(aiCollection)+' · '+esc(aiStyle)+' · draft only'+(item.ai_curation.reason?' · '+esc(item.ai_curation.reason):'')+' You can change both fields before upload.</p>'
+   :item.ai_curation?.error
+    ?'<p class="wide subtle"><strong>AI curation:</strong> unavailable · '+esc(item.ai_curation.error)+' · choose collection and style manually.</p>'
+    :item.ai_curation
+     ?'<p class="wide subtle"><strong>AI curation:</strong> '+esc(aiCollection)+' · '+esc(aiStyle)+' · '+confidence+'% confidence'+provider+(item.ai_curation.manual_override?' · manually adjusted':'')+(item.ai_curation.reason?' · '+esc(item.ai_curation.reason):'')+'</p>'+taxonomySuggestion
+     :'';
   row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields"><p class="wide subtle"><strong>Smart ZIP mapping:</strong> '+esc(roleSummary||'Master/original')+'</p>'+
    (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Master/original, digital-sale and print files are stored privately. An explicitly named WEB/portfolio file updates the public preview only when the artwork is not already sale-enabled. Title, description and category stay unchanged. Uploading never enables sales automatically.</p>':
    '<label class="wide">English title · master title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label><p class="wide subtle">The catalogue title is always English. English source titles stay English; Norwegian source titles are converted to English before upload.</p>'+curationNote+

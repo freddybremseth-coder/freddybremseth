@@ -12,6 +12,8 @@ function requiredEnv(name:string){
   if(!value)throw new Error(name+' is required');
   return value;
 }
+function optionalEnv(name:string){return Deno.env.get(name)||''}
+const sleep=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms));
 function cleanModelText(text:string){
   return String(text||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
 }
@@ -25,6 +27,73 @@ function cleanOptions(value:unknown,max:number):Option[]{
     if(!/^[a-z0-9-]{2,80}$/.test(id)||!name||name.length>150)throw new Error('Invalid classification option');
     return {id,name,description};
   });
+}
+async function callGemini(prompt:string,image:string,mimeType:string){
+  const key=optionalEnv('FAMILYHUB_GEMINI_API_KEY');
+  if(!key)return {ok:false,status:0,text:'Gemini key unavailable'};
+  let lastStatus=0,lastText='';
+  for(let attempt=0;attempt<3;attempt++){
+    const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{role:'user',parts:[{text:prompt},{inline_data:{mime_type:mimeType,data:image}}]}],
+        generationConfig:{temperature:0.1,responseMimeType:'application/json'}
+      })
+    });
+    if(response.ok){
+      const result=await response.json();
+      return {ok:true,status:response.status,text:result?.candidates?.[0]?.content?.parts?.map((part:any)=>part?.text||'').join('')||'',provider:'Gemini'};
+    }
+    lastStatus=response.status;lastText=(await response.text()).slice(0,500);
+    if(response.status!==429&&response.status<500)break;
+    if(attempt<2){
+      const retryAfter=Math.min(5000,Math.max(900,Number(response.headers.get('retry-after')||0)*1000||[1200,2800][attempt]));
+      await sleep(retryAfter);
+    }
+  }
+  return {ok:false,status:lastStatus,text:lastText||'Gemini request failed'};
+}
+async function callOpenAI(prompt:string,image:string,mimeType:string){
+  const key=optionalEnv('FAMILYHUB_OPENAI_API_KEY');
+  if(!key)return {ok:false,status:0,text:'OpenAI key unavailable'};
+  const response=await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({
+      model:'gpt-4o',
+      messages:[{role:'user',content:[
+        {type:'text',text:prompt},
+        {type:'image_url',image_url:{url:'data:'+mimeType+';base64,'+image}}
+      ]}],
+      response_format:{type:'json_object'},
+      temperature:0.1,
+      max_tokens:900
+    })
+  });
+  if(!response.ok)return {ok:false,status:response.status,text:(await response.text()).slice(0,500)};
+  const result=await response.json();
+  return {ok:true,status:response.status,text:result?.choices?.[0]?.message?.content||'',provider:'OpenAI'};
+}
+async function callClaude(prompt:string,image:string,mimeType:string){
+  const key=optionalEnv('FAMILYHUB_CLAUDE_API_KEY');
+  if(!key)return {ok:false,status:0,text:'Claude key unavailable'};
+  const response=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({
+      model:'claude-sonnet-5',
+      max_tokens:900,
+      temperature:0.1,
+      messages:[{role:'user',content:[
+        {type:'text',text:prompt},
+        {type:'image',source:{type:'base64',media_type:mimeType,data:image}}
+      ]}]
+    })
+  });
+  if(!response.ok)return {ok:false,status:response.status,text:(await response.text()).slice(0,500)};
+  const result=await response.json();
+  return {ok:true,status:response.status,text:result?.content?.map((part:any)=>part?.text||'').join('')||'',provider:'Claude'};
 }
 
 serve(async(req)=>{
@@ -50,7 +119,6 @@ serve(async(req)=>{
     if(!/^(image\/jpeg|image\/png|image\/webp)$/.test(mimeType))throw new Error('Unsupported analysis image type');
     if(!/^[A-Za-z0-9+/=]+$/.test(image)||image.length<1000||image.length>6000000)throw new Error('Invalid analysis image');
 
-    const key=requiredEnv('FAMILYHUB_GEMINI_API_KEY');
     const prompt=[
       'You are the visual curator for Freddy Bremseth Art, an English-language fine-art catalogue.',
       'Study the supplied artwork image itself. The title is supporting context only.',
@@ -70,20 +138,17 @@ serve(async(req)=>{
       'Styles: '+JSON.stringify(styles)
     ].join('\n');
 
-    const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{role:'user',parts:[
-          {text:prompt},
-          {inline_data:{mime_type:mimeType,data:image}}
-        ]}],
-        generationConfig:{temperature:0.1,responseMimeType:'application/json'}
-      })
-    });
-    if(!response.ok)throw new Error('Artwork analysis service failed ('+response.status+')');
-    const result=await response.json();
-    const modelText=result?.candidates?.[0]?.content?.parts?.map((part:any)=>part?.text||'').join('')||'';
+    let providerResult=await callGemini(prompt,image,mimeType);
+    if(!providerResult.ok)providerResult=await callOpenAI(prompt,image,mimeType);
+    if(!providerResult.ok)providerResult=await callClaude(prompt,image,mimeType);
+    if(!providerResult.ok){
+      const status=providerResult.status===429?429:503;
+      return new Response(JSON.stringify({error:'All artwork-analysis providers are temporarily unavailable',provider_status:providerResult.status}),{
+        status,
+        headers:{...corsHeaders,'Content-Type':'application/json','Retry-After':status===429?'4':'2'}
+      });
+    }
+    const modelText=providerResult.text;
     let parsed:any;
     try{parsed=JSON.parse(cleanModelText(modelText))}catch{throw new Error('Artwork analysis returned invalid JSON')}
 
@@ -104,7 +169,7 @@ serve(async(req)=>{
     if(new_collection_suggested&&(!suggested_collection_name||!suggested_collection_description))throw new Error('Artwork analysis returned an incomplete collection suggestion');
     if(new_style_suggested&&(!suggested_style_name||!suggested_style_description))throw new Error('Artwork analysis returned an incomplete style suggestion');
 
-    return new Response(JSON.stringify({collection_id,style_id,confidence,reason,new_collection_suggested,suggested_collection_name,suggested_collection_description,new_style_suggested,suggested_style_name,suggested_style_description}),{
+    return new Response(JSON.stringify({collection_id,style_id,confidence,reason,new_collection_suggested,suggested_collection_name,suggested_collection_description,new_style_suggested,suggested_style_name,suggested_style_description,analysis_provider:providerResult.provider}),{
       headers:{...corsHeaders,'Content-Type':'application/json'}
     });
   }catch(error:any){

@@ -122,10 +122,31 @@ test('AI artwork curator is authenticated and constrained to the gallery taxonom
  assert.match(fn,/new_collection_suggested/);
  assert.match(fn,/new_style_suggested/);
  assert.match(fn,/Avoid creating near-duplicates or one-off folders/);
+ assert.match(fn,/callGemini/);
+ assert.match(fn,/callOpenAI/);
+ assert.match(fn,/callClaude/);
+ assert.match(fn,/retry-after/);
+ assert.match(fn,/analysis_provider/);
  assert.match(fn,/inline_data/);
  assert.match(fn,/responseMimeType:'application\/json'/);
  const admin=read('assets/js/admin.js');
  assert.match(admin,/Taxonomy suggestion/);
  assert.match(admin,/suggested_collection_name/);
  assert.match(admin,/suggested_style_name/);
+ assert.match(admin,/fallbackCuration/);
+ assert.match(admin,/AI curation fallback/);
+ assert.match(admin,/Local fallback/);
+ assert.match(admin,/setTimeout\(resolve,650\)/);
+ assert.doesNotMatch(admin,/Math\.min\(3,targets\.length\)/);
+});
+
+test('curation outage fallback keeps the batch classifiable without auto-publishing',()=>{
+ const admin=read('assets/js/admin.js');
+ assert.match(admin,/item\.published=false/);
+ assert.match(admin,/city-after-dark/);
+ assert.match(admin,/urban-nightscapes/);
+ assert.match(admin,/sunken-worlds/);
+ assert.match(admin,/studio-archive/);
+ assert.match(admin,/symbolic-realism/);
+ assert.match(admin,/Ready · AI fallback · draft/);
 });
