@@ -59,7 +59,11 @@ serve(async(req)=>{
       'Collection should reflect the work\'s theme, emotional intent and subject matter.',
       'Style should reflect the dominant visual language and technique.',
       'If several styles overlap, select the single closest dominant style.',
-      'Return ONLY a JSON object with: collection_id, style_id, confidence, reason.',
+      'Return ONLY a JSON object with: collection_id, style_id, confidence, reason, new_collection_suggested, suggested_collection_name, suggested_collection_description, new_style_suggested, suggested_style_name, suggested_style_description.',
+      'collection_id and style_id must ALWAYS be valid existing option IDs, even if you recommend a new taxonomy entry as a better future fit.',
+      'Set new_collection_suggested=true only when the artwork has a clear visual/theme identity that is genuinely poorly represented by every current collection. Avoid creating near-duplicates or one-off folders.',
+      'Set new_style_suggested=true only when the dominant visual language is genuinely missing from every current style.',
+      'Suggested names must be concise English gallery names; descriptions must be one concise English sentence. Otherwise use false and empty strings.',
       'confidence must be a number from 0 to 1. reason must be one concise English sentence of at most 180 characters.',
       'Artwork title: '+title,
       'Collections: '+JSON.stringify(collections),
@@ -89,10 +93,18 @@ serve(async(req)=>{
     const style_id=String(parsed?.style_id||'');
     const confidence=Math.max(0,Math.min(1,Number(parsed?.confidence)||0));
     const reason=String(parsed?.reason||'').trim().slice(0,180);
+    const new_collection_suggested=parsed?.new_collection_suggested===true;
+    const suggested_collection_name=new_collection_suggested?String(parsed?.suggested_collection_name||'').trim().slice(0,80):'';
+    const suggested_collection_description=new_collection_suggested?String(parsed?.suggested_collection_description||'').trim().slice(0,220):'';
+    const new_style_suggested=parsed?.new_style_suggested===true;
+    const suggested_style_name=new_style_suggested?String(parsed?.suggested_style_name||'').trim().slice(0,80):'';
+    const suggested_style_description=new_style_suggested?String(parsed?.suggested_style_description||'').trim().slice(0,220):'';
     if(!collectionIds.has(collection_id)||!styleIds.has(style_id))throw new Error('Artwork analysis returned an unknown category');
     if(!reason)throw new Error('Artwork analysis returned no reason');
+    if(new_collection_suggested&&(!suggested_collection_name||!suggested_collection_description))throw new Error('Artwork analysis returned an incomplete collection suggestion');
+    if(new_style_suggested&&(!suggested_style_name||!suggested_style_description))throw new Error('Artwork analysis returned an incomplete style suggestion');
 
-    return new Response(JSON.stringify({collection_id,style_id,confidence,reason}),{
+    return new Response(JSON.stringify({collection_id,style_id,confidence,reason,new_collection_suggested,suggested_collection_name,suggested_collection_description,new_style_suggested,suggested_style_name,suggested_style_description}),{
       headers:{...corsHeaders,'Content-Type':'application/json'}
     });
   }catch(error:any){
