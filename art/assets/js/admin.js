@@ -307,6 +307,30 @@ function editWork(work){
 }
 const ROLE_LABELS={master:'Master/original',digital:'Digital sale / Retina',print:'Print / 300 DPI',portfolio:'Web / portfolio'};
 function titleFromName(name){return name.replace(/\.(png|jpe?g|webp)$/i,'').replace(/^\d{1,4}[_ -]+/,'').replace(/\b\d{3,5}x\d{3,5}\b/ig,' ').replace(/(?:^|[_ -])(?:2x|retina|print|300\s*-?\s*dpi|digital|sale|download|original|master|source|portfolio|website|view|thumb|preview|web)(?=$|[_ -])/ig,' ').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b[a-z]/g,ch=>ch.toUpperCase()).slice(0,150)||'Untitled artwork'}
+function looksNorwegianTitle(title){
+ const t=' '+String(title||'').toLowerCase().normalize('NFC').replace(/[_-]+/g,' ')+' ';
+ if(/[æøå]/i.test(t))return true;
+ return /\b(?:og|ved|med|mellom|uten|kvinne|dronning|måne|manen|måneskinn|maneskinn|drøm|drømmer|drm|drmmer|solnedgang|havet|innsjø|innsjøen|innsjen|fjord|fjorden|gylden|gyllent|gyldne|forgylt|hjerte|hjertet|blomster|stillehet|frihet|lyset|verden|landskap|ruiner|speil|stormen|håp|hap|smerte|kjærlighet|kjrlighet|jordtoner|olivengreiner|katedral|skjønnhet|skjnnhet|vandreren|tiden|tidens|portalen)\b/i.test(t);
+}
+async function normalizeTitlesToEnglish(queueItems){
+ const newItems=queueItems.filter(item=>!item.existing_id);
+ if(!newItems.length)return;
+ const original=newItems.map(item=>item.title.trim());
+ let data;
+ try{
+  data=await api('/functions/v1/art-title-english',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titles:original})});
+ }catch(error){
+  if(original.some(looksNorwegianTitle))throw Error('The title could not be converted to English. '+error.message);
+  return;
+ }
+ if(!Array.isArray(data?.titles)||data.titles.length!==original.length)throw Error('English-title service returned an invalid result.');
+ for(let i=0;i<newItems.length;i++){
+  const title=String(data.titles[i]||'').trim();
+  if(!title||title.length>150)throw Error('English-title service returned an invalid title.');
+  if(looksNorwegianTitle(title))throw Error('A title still appears to be Norwegian: '+title+'. Enter an English title before upload.');
+  newItems[i].title=title;
+ }
+}
 function stem(name){return slug(titleFromName(name))}
 function roleFolder(name){
  const key=name.toLowerCase().replace(/[^a-z0-9]+/g,'');
@@ -409,6 +433,10 @@ async function gather(files){
   state.queue.push(queueItem);
  }
  state.pendingExistingId='';
+ if(state.queue.length){
+  status('Checking artwork titles · English is the master language…');
+  await normalizeTitlesToEnglish(state.queue);
+ }
  renderQueue();
  const roleCounts={master:0,digital:0,print:0,portfolio:0};
  for(const item of state.queue)for(const role of Object.keys(item.files||{}))roleCounts[role]++;
@@ -423,7 +451,7 @@ function renderQueue(){
   const roleSummary=Object.entries(item.files||{}).map(([role,entry])=>ROLE_LABELS[role]+': '+entry.file.name).join(' · ');
   row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields"><p class="wide subtle"><strong>Smart ZIP mapping:</strong> '+esc(roleSummary||'Master/original')+'</p>'+
    (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Master/original, digital-sale and print files are stored privately. An explicitly named WEB/portfolio file updates the public preview only when the artwork is not already sale-enabled. Title, description and category stay unchanged. Uploading never enables sales automatically.</p>':
-   '<label class="wide">English title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label>'+
+   '<label class="wide">English title · master title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label><p class="wide subtle">The catalogue title is always English. English source titles stay English; Norwegian source titles are converted to English before upload.</p>'+
    '<label>Collection<select data-field="collection_id" required>'+rowSelect(state.collections,item.collection_id,'Choose collection…')+'</select></label>'+
    '<label>Artistic style<select data-field="style_id" required>'+rowSelect(state.styles,item.style_id,'Choose style…')+'</select></label>'+
    '<label class="wide">Description (optional)<textarea data-field="description" maxlength="1200">'+esc(item.description)+'</textarea></label>'+
@@ -466,7 +494,8 @@ async function uploadOne(item){
  const mode=$('upload-mode').value,existing=mode==='existing'?state.works.find(w=>w.id===item.existing_id):null;
  if(mode==='existing'&&!existing)throw Error('Choose the exact existing artwork for '+item.title);
  if(!existing){
-  if(!item.collection_id||!item.style_id||!item.title.trim())throw Error('Enter a title, collection and style for '+item.title);
+  if(!item.collection_id||!item.style_id||!item.title.trim())throw Error('Enter an English title, collection and style for '+item.title);
+  if(looksNorwegianTitle(item.title))throw Error('Artwork titles must be English. Change the Norwegian title before upload: '+item.title);
   if(!state.collections.some(c=>c.id===item.collection_id)||!state.styles.some(st=>st.id===item.style_id))throw Error('Invalid category selection');
  }
  const main=!existing&&item.variant_primary_id?state.works.find(w=>w.id===item.variant_primary_id):null;
