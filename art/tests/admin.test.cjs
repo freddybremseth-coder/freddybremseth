@@ -18,6 +18,14 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(js,/digital_available:false/);
  assert.match(js,/DecompressionStream/);
  assert.match(js,/collection_id:item.collection_id/);
+ assert.match(js,/art_gallery_assets/);
+ assert.match(js,/Smart ZIP ready/);
+ assert.match(js,/assetRole/);
+ assert.match(js,/Print \/ 300 DPI/);
+ assert.match(js,/Digital sale \/ Retina/);
+ assert.match(html,/Smart ZIP · automatic file placement/);
+ assert.match(html,/PRINT_300DPI/);
+ assert.match(html,/RETINA/);
  assert.match(css,/@media/);
  for(const script of ['assets/js/admin.js','assets/js/gallery-config.js','assets/js/collection-sync.js','assets/js/app.js','api/artwork-page.js']){
   const check=spawnSync(process.execPath,['--check',script],{cwd:root,encoding:'utf8'});
@@ -68,4 +76,16 @@ test('magic-link callback is handled explicitly and no email OTP is required',()
  assert.match(html,/\{\{ \.ConfirmationURL \}\}/);
  assert.match(html,/art\.freddybremseth\.com\/admin\//);
  assert.ok(!html.includes('<form id="code-form" hidden>'));
+});
+
+test('smart ZIP schema records private and public roles without auto-enabling sales',()=>{
+ const sql=read('scripts/ART_SMART_ZIP_ASSETS.sql');
+ assert.match(sql,/art_gallery_assets/);
+ assert.match(sql,/asset_role in \('master','digital','print','portfolio'\)/);
+ assert.match(sql,/asset_role = 'portfolio' and bucket_name = 'art-previews'/);
+ assert.match(sql,/asset_role <> 'portfolio' and bucket_name = 'art-originals'/);
+ assert.match(sql,/verified_at is null/);
+ const admin=read('assets/js/admin.js');
+ assert.match(admin,/digital_available:false/);
+ assert.ok(!/DIGITAL_SALES_ENABLED\s*=\s*true/.test(admin));
 });
