@@ -473,7 +473,13 @@ function zipMembers(file){
   if(end<0)throw Error('Not a valid ZIP archive');
   const count=u16(end+10);if(count>900)throw Error('ZIP contains too many entries; split into smaller archives.');
   if(count===65535)throw Error('ZIP64 archives are not supported; unzip locally and upload image files.');
-  let pos=u32(end+16),total=0;const members=[];
+
+  // Read the ZIP directory first. A Smart ZIP may contain many alternate
+  // renderings of the same work; choose only the best file per artwork role
+  // before decompressing anything. The batch limit therefore applies to
+  // logical artworks, not to raw image-variant count.
+  let pos=u32(end+16);
+  const groups=new Map();
   for(let i=0;i<count;i++){
    if(pos+46>dv.byteLength||u32(pos)!==0x02014b50)throw Error('ZIP directory is invalid');
    const flags=u16(pos+8),method=u16(pos+10),compressed=u32(pos+20),size=u32(pos+24),
@@ -484,24 +490,40 @@ function zipMembers(file){
    if(name.endsWith('/')||name.includes('__MACOSX')||/\.(?:ds_store|txt|json)$/i.test(name))continue;
    if(!/\.(?:png|jpe?g|webp)$/i.test(name))continue;
    if(flags&1)throw Error('Password-protected ZIP entries are not supported');
+   if(method!==0&&method!==8)throw Error('Unsupported ZIP compression method: '+method);
    if(size>MAX_FILE||compressed>MAX_FILE)throw Error('Image in ZIP exceeds the 50 MB limit: '+name);
-   total+=size;if(total>MAX_ITEMS*4*MAX_FILE)throw Error('ZIP expands to too many image bytes; split it.');
+   const key=stem(artworkLabel(name));if(!key)continue;
+   const role=assetRole(name),base=name.split('/').pop();
+   const candidate={name,base,flags,method,compressed,size,local,role,key};
+   const byRole=groups.get(key)||new Map();
+   const previous=byRole.get(role);
+   const score=entry=>filePriority({size:entry.size,name:entry.base},entry.name,entry.role);
+   if(!previous||score(candidate)>score(previous))byRole.set(role,candidate);
+   groups.set(key,byRole);
+  }
+  if(groups.size>MAX_ITEMS)throw Error('Maximum 30 artworks per batch. This ZIP contains '+groups.size+' logical artworks; split the archive.');
+
+  const chosen=[...groups.values()].flatMap(byRole=>[...byRole.values()]);
+  const total=chosen.reduce((sum,entry)=>sum+entry.size,0);
+  if(total>MAX_ITEMS*4*MAX_FILE)throw Error('Selected Smart ZIP sources expand to too many image bytes; split the archive.');
+
+  const members=[];
+  for(const entry of chosen){
+   const {name,base,method,compressed,size,local}=entry;
    if(local+30>dv.byteLength||u32(local)!==0x04034b50)throw Error('ZIP local entry is invalid');
    const payloadStart=local+30+u16(local+26)+u16(local+28);
    if(payloadStart+compressed>dv.byteLength)throw Error('ZIP image is incomplete');
    const source=new Blob([new Uint8Array(buf,payloadStart,compressed)]);
    let data;
    if(method===0)data=await source.arrayBuffer();
-   else if(method===8){
+   else{
     if(typeof DecompressionStream==='undefined')throw Error('Your browser cannot unzip this archive. Unzip it locally and upload images.');
     try{data=await new Response(source.stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()}catch{throw Error('Cannot decompress this ZIP. Unzip it locally and upload images.')}
-   }else throw Error('Unsupported ZIP compression method: '+method);
+   }
    if(data.byteLength!==size)throw Error('ZIP image size does not match: '+name);
-   const base=name.split('/').pop();
    const extracted=new File([data],base,{type:base.toLowerCase().endsWith('.png')?'image/png':base.toLowerCase().endsWith('.webp')?'image/webp':'image/jpeg'});
    if(!validImage(extracted))throw Error('Invalid image file in ZIP: '+name);
    members.push({file:extracted,path:name});
-   if(members.length>MAX_ITEMS*4)throw Error('Too many image variants. Use a smaller batch.');
   }
   return members;
  });
