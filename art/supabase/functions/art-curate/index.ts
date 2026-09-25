@@ -55,7 +55,7 @@ serve(async(req)=>{
       'You are the visual curator for Freddy Bremseth Art, an English-language fine-art catalogue.',
       'Study the supplied artwork image itself. The title is supporting context only.',
       'Choose exactly ONE collection and exactly ONE artistic style from the supplied options.',
-      'Use the option descriptions as the taxonomy. Do not invent new IDs or categories.',
+      'Use the option descriptions as the taxonomy. Do not invent new IDs for collection_id or style_id. Suggested future taxonomy entries may use names and descriptions only.',
       'Collection should reflect the work\'s theme, emotional intent and subject matter.',
       'Style should reflect the dominant visual language and technique.',
       'If several styles overlap, select the single closest dominant style.',
