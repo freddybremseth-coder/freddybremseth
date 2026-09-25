@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const cfg=window.ART_GALLERY_CONFIG;
 const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],assets:[],masterAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
-const MAX_FILE=50*1024*1024,MAX_ZIP=250*1024*1024,MAX_ITEMS=30;
+const MAX_FILE=50*1024*1024,MAX_ZIP=250*1024*1024,MAX_ITEMS=100;
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,75);
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const status=(message,bad=false)=>{$('status').textContent=message;$('status').style.background=bad?'#87382e':'#213738'};
@@ -501,7 +501,7 @@ function zipMembers(file){
    if(!previous||score(candidate)>score(previous))byRole.set(role,candidate);
    groups.set(key,byRole);
   }
-  if(groups.size>MAX_ITEMS)throw Error('Maximum 30 artworks per batch. This ZIP contains '+groups.size+' logical artworks; split the archive.');
+  if(groups.size>MAX_ITEMS)throw Error('Maximum 100 artworks per batch. This ZIP contains '+groups.size+' logical artworks; split the archive.');
 
   const chosen=[...groups.values()].flatMap(byRole=>[...byRole.values()]);
   const total=chosen.reduce((sum,entry)=>sum+entry.size,0);
@@ -544,7 +544,7 @@ async function gather(files){
   group.members.push(candidate);grouped.set(key,group);
  }
  if(state.pendingExistingId&&grouped.size!==1)throw Error('The selected existing artwork needs one logical artwork package. Put its master/digital/print/web versions in one ZIP or upload one image.');
- if(grouped.size>MAX_ITEMS||state.queue.length+grouped.size>MAX_ITEMS)throw Error('Maximum 30 artworks per batch. Clear the queue or split your archives.');
+ if(grouped.size>MAX_ITEMS||state.queue.length+grouped.size>MAX_ITEMS)throw Error('Maximum 100 artworks per batch. Clear the queue or split your archives.');
  const collection=$('collection-default').value,style=$('style-default').value;
  for(const group of grouped.values()){
   const match=state.works.find(work=>work.id===state.pendingExistingId);
