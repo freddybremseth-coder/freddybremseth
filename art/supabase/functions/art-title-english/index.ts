@@ -104,8 +104,8 @@ serve(async(req)=>{
 
     const body=await req.json().catch(()=>({}));
     const titles=Array.isArray(body?.titles)?body.titles.map((v:unknown)=>String(v??'').trim()):[];
-    if(!titles.length||titles.length>30||titles.some((title:string)=>!title||title.length>150)){
-      return new Response(JSON.stringify({error:'Provide 1-30 non-empty titles of at most 150 characters'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}});
+    if(!titles.length||titles.length>100||titles.some((title:string)=>!title||title.length>150)){
+      return new Response(JSON.stringify({error:'Provide 1-100 non-empty titles of at most 150 characters'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}});
     }
 
     const prompt=[

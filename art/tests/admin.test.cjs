@@ -22,6 +22,9 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(js,/Smart ZIP ready/);
  assert.match(js,/assetRole/);
  assert.match(js,/logical artworks, not to raw image-variant count/);
+ assert.match(js,/MAX_ITEMS=100/);
+ assert.match(js,/Maximum 100 artworks per batch/);
+ assert.match(html,/Up to 100 works per batch/);
  assert.match(js,/groups\.size>MAX_ITEMS/);
  assert.match(js,/const chosen=\[\.\.\.groups\.values\(\)\]/);
  assert.doesNotMatch(js,/Too many image variants\. Use a smaller batch/);
@@ -118,6 +121,8 @@ test('English title normalizer is admin-only, rate-limit resilient and skips AI 
  assert.match(fn,/callClaude/);
  assert.match(fn,/retry-after/);
  assert.match(fn,/translation_provider/);
+ assert.match(fn,/titles\.length>100/);
+ assert.match(fn,/Provide 1-100 non-empty titles/);
  assert.match(fn,/responseMimeType:'application\/json'/);
  assert.match(admin,/filter\(item=>looksNorwegianTitle\(item\.title\)\)/);
  assert.match(admin,/English source titles stay English and are not sent to the translation service/);
