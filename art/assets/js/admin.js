@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const cfg=window.ART_GALLERY_CONFIG;
-const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],masterAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
+const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],assets:[],masterAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
 const MAX_FILE=50*1024*1024,MAX_ZIP=250*1024*1024,MAX_ITEMS=30;
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,75);
@@ -140,14 +140,15 @@ async function verifyAdmin(){
  await loadCatalogue();status('Administrator access verified. Ready for files.');
 }
 async function loadCatalogue(){
- const [styles,curation,works,variants,masters,masterAudit]=await Promise.all([
+ const [styles,curation,works,variants,masters,assets,masterAudit]=await Promise.all([
  fetch('/assets/styles.json').then(r=>r.json()),fetch('/assets/collections.json').then(r=>r.json()),
  api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
  api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
  api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes&limit=1000'),
+ api('/rest/v1/art_gallery_assets?select=artwork_id,asset_role,bucket_name,object_path,verified_at,original_filename,pixel_width,pixel_height,file_bytes&order=artwork_id.asc,asset_role.asc&limit=2000'),
  api('/rest/v1/rpc/art_gallery_admin_master_status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
  ]);
- state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;state.masterAudit=masterAudit;
+ state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;state.assets=assets;state.masterAudit=masterAudit;
  for(const [element,entries] of [['collection-default',state.collections],['style-default',state.styles]]){
  const select=$(element),current=select.value;
  select.replaceChildren(new Option(element==='collection-default'?'Choose a collection…':'Choose an artistic style…',''));
@@ -187,7 +188,9 @@ function renderCatalogue(){
   const master=masterStatusFor(work.id);
   const masterNote=master?.storage_object_present?(master.sale_verified?' · Private file present · digitally verified':' · Private file present · not sale/print verified'):(master?.master_registered?' · Master record exists but private file is missing':' · No private master uploaded');
   const size=master?.storage_object_present&&master.pixel_width&&master.pixel_height?' · '+master.pixel_width+' × '+master.pixel_height+' px':'';
-  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+'</small></span>';
+  const roles=state.assets.filter(asset=>asset.artwork_id===work.id).map(asset=>asset.asset_role);
+  const roleNote=roles.length?' · Files: '+roles.map(role=>ROLE_LABELS[role]||role).join(', '):'';
+  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+esc(roleNote)+'</small></span>';
   const edit=document.createElement('button');edit.type='button';edit.textContent='Edit title & story';edit.addEventListener('click',()=>editWork(work));el.append(edit);
   const add=document.createElement('button');add.type='button';add.textContent=master?.storage_object_present?'Replace unverified private file':'Attach private file';
   add.disabled=work.digital_available||!!master?.sale_verified;
@@ -302,9 +305,40 @@ function editWork(work){
   }catch(e){status(e.message,true)}finally{save.disabled=false}
  });$('catalog-list').prepend(prompt);prompt.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function titleFromName(name){return name.replace(/\.(png|jpe?g|webp)$/i,'').replace(/^\d{1,4}[_ -]+/,'').replace(/(?:[_ -](?:2x|retina|print|original|master|view|thumb|preview|web))+(?:[_ -]\d+x\d+)?$/ig,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b[a-z]/g,ch=>ch.toUpperCase()).slice(0,150)||'Untitled artwork'}
+const ROLE_LABELS={master:'Master/original',digital:'Digital sale / Retina',print:'Print / 300 DPI',portfolio:'Web / portfolio'};
+function titleFromName(name){return name.replace(/\.(png|jpe?g|webp)$/i,'').replace(/^\d{1,4}[_ -]+/,'').replace(/\b\d{3,5}x\d{3,5}\b/ig,' ').replace(/(?:^|[_ -])(?:2x|retina|print|300\s*-?\s*dpi|digital|sale|download|original|master|source|portfolio|website|view|thumb|preview|web)(?=$|[_ -])/ig,' ').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b[a-z]/g,ch=>ch.toUpperCase()).slice(0,150)||'Untitled artwork'}
 function stem(name){return slug(titleFromName(name))}
-function filePriority(file,path){return (/print|retina|2x|original|master/i.test(path)?100:0)+(/\.png$/i.test(file.name)?10:0)+Math.min(file.size/10000000,10)-(/thumb|preview|web_1x/i.test(path)?80:0)}
+function roleFolder(name){
+ const key=name.toLowerCase().replace(/[^a-z0-9]+/g,'');
+ return ['master','original','originals','source','digital','sale','download','retina','2x','print','300dpi','print300dpi','giclee','fineart','web','website','portfolio','preview','view','thumb','screen'].includes(key);
+}
+function artworkLabel(path){
+ const parts=String(path||'').replace(/\\/g,'/').split('/').filter(Boolean);
+ if(!parts.length)return '';
+ const dirs=parts.slice(0,-1);
+ const idx=dirs.findIndex(roleFolder);
+ if(idx>0)return dirs[idx-1];
+ return parts[parts.length-1];
+}
+function assetRole(path){
+ const p=String(path||'').toLowerCase().replace(/\\/g,'/');
+ const bounded=(pattern)=>new RegExp('(^|[\\\\/_. -])(?:'+pattern+')(?=[\\\\/_. -]|$)','i').test(p);
+ if(bounded('print|300\\\\s*-?\\\\s*dpi|gicl[eé]e|fine[-_ ]?art'))return 'print';
+ if(bounded('digital|sale|download|licen[cs]e|retina|2x'))return 'digital';
+ if(bounded('web|website|portfolio|preview|view|thumb|screen'))return 'portfolio';
+ if(bounded('master|originals?|source'))return 'master';
+ return 'master';
+}
+function filePriority(file,path,role){
+ let score=Math.min(file.size/1000000,80)+(/\.png$/i.test(file.name)?8:0);
+ if(role==='portfolio'){
+  if(/(?:^|[_. -])(view|portfolio|web)(?:[_. -]|$)/i.test(path))score+=40;
+  if(/(?:^|[_. -])thumb(?:[_. -]|$)/i.test(path))score-=80;
+ }else{
+  if(/(?:^|[_. -])(original|master|retina|2x|print|300dpi)(?:[_. -]|$)/i.test(path))score+=25;
+ }
+ return score;
+}
 function zipMembers(file){
  return file.arrayBuffer().then(async buf=>{
   const dv=new DataView(buf),u16=o=>dv.getUint16(o,true),u32=o=>dv.getUint32(o,true);
@@ -324,7 +358,7 @@ function zipMembers(file){
    if(!/\.(?:png|jpe?g|webp)$/i.test(name))continue;
    if(flags&1)throw Error('Password-protected ZIP entries are not supported');
    if(size>MAX_FILE||compressed>MAX_FILE)throw Error('Image in ZIP exceeds the 50 MB limit: '+name);
-   total+=size;if(total>MAX_ITEMS*MAX_FILE)throw Error('ZIP expands to too many image bytes; split it.');
+   total+=size;if(total>MAX_ITEMS*4*MAX_FILE)throw Error('ZIP expands to too many image bytes; split it.');
    if(local+30>dv.byteLength||u32(local)!==0x04034b50)throw Error('ZIP local entry is invalid');
    const payloadStart=local+30+u16(local+26)+u16(local+28);
    if(payloadStart+compressed>dv.byteLength)throw Error('ZIP image is incomplete');
@@ -351,18 +385,34 @@ async function gather(files){
   else if(validImage(f))selected.push({file:f,path:f.name});
   else throw Error('Unsupported file or image larger than 50 MB: '+f.name);
  }
- if(state.pendingExistingId&&selected.length!==1)throw Error('Choose one image for the selected existing artwork, or use the regular upload tool for a batch.');
  const grouped=new Map();
- for(const item of selected){const key=stem(item.file.name);if(!key)continue;const prev=grouped.get(key);if(!prev||filePriority(item.file,item.path)>filePriority(prev.file,prev.path))grouped.set(key,item)}
+ for(const item of selected){
+  const key=stem(artworkLabel(item.path));if(!key)continue;
+  const role=assetRole(item.path);
+  const group=grouped.get(key)||{key,label:artworkLabel(item.path),files:{},members:[]};
+  const prev=group.files[role],candidate={...item,role};
+  if(!prev||filePriority(item.file,item.path,role)>filePriority(prev.file,prev.path,role))group.files[role]=candidate;
+  group.members.push(candidate);grouped.set(key,group);
+ }
+ if(state.pendingExistingId&&grouped.size!==1)throw Error('The selected existing artwork needs one logical artwork package. Put its master/digital/print/web versions in one ZIP or upload one image.');
  if(grouped.size>MAX_ITEMS||state.queue.length+grouped.size>MAX_ITEMS)throw Error('Maximum 30 artworks per batch. Clear the queue or split your archives.');
  const collection=$('collection-default').value,style=$('style-default').value;
- for(const item of grouped.values()){
+ for(const group of grouped.values()){
   const match=state.works.find(work=>work.id===state.pendingExistingId);
-  const blobUrl=URL.createObjectURL(item.file),queueItem={...item,blobUrl,title:match?.title_en||titleFromName(item.file.name),description:match?.description_en||'',collection_id:match?.collection_id||collection,style_id:match?.style_id||style,published:match?.published??$('publish-default').checked,existing_id:match?.id||'',variant_primary_id:'',price:'50',skip:false,progress:'Ready'};
+  const previewSource=group.files.portfolio||group.files.master||group.files.digital||group.files.print;
+  const masterSource=group.files.master||group.files.digital||group.files.print||group.files.portfolio;
+  if(!previewSource||!masterSource)continue;
+  const blobUrl=URL.createObjectURL(previewSource.file);
+  const queueItem={files:group.files,members:group.members,file:masterSource.file,path:group.members.map(member=>member.path).join(' | '),blobUrl,
+   title:match?.title_en||titleFromName(group.label),description:match?.description_en||'',collection_id:match?.collection_id||collection,
+   style_id:match?.style_id||style,published:match?.published??$('publish-default').checked,existing_id:match?.id||'',variant_primary_id:'',price:'50',skip:false,progress:'Ready'};
   state.queue.push(queueItem);
  }
  state.pendingExistingId='';
- renderQueue();status('Added '+grouped.size+' artwork source file(s). Existing artwork mode only updates the private file and keeps the public gallery unchanged.');
+ renderQueue();
+ const roleCounts={master:0,digital:0,print:0,portfolio:0};
+ for(const item of state.queue)for(const role of Object.keys(item.files||{}))roleCounts[role]++;
+ status('Smart ZIP ready: '+grouped.size+' artwork(s). Routed roles — master '+roleCounts.master+', digital '+roleCounts.digital+', print '+roleCounts.print+', web '+roleCounts.portfolio+'.');
 }
 function rowSelect(entries,value,placeholder){return '<option value="">'+esc(placeholder)+'</option>'+entries.map(e=>'<option value="'+esc(e.id)+'"'+(value===e.id?' selected':'')+'>'+esc(e.name||e.title_en)+'</option>').join('')}
 function renderQueue(){
@@ -370,8 +420,9 @@ function renderQueue(){
  $('review-list').replaceChildren();const existing=$('upload-mode').value==='existing';
  for(const item of state.queue){
   const row=document.createElement('div');row.className='art-row';
-  row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields">'+
-   (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Only the private master file will be uploaded or replaced. This will NOT change the public preview, title, description, category or published status. Sales and physical prints stay disabled.</p>':
+  const roleSummary=Object.entries(item.files||{}).map(([role,entry])=>ROLE_LABELS[role]+': '+entry.file.name).join(' · ');
+  row.innerHTML='<img alt="Artwork source preview" src="'+esc(item.blobUrl)+'"><div class="fields"><p class="wide subtle"><strong>Smart ZIP mapping:</strong> '+esc(roleSummary||'Master/original')+'</p>'+
+   (existing?'<label class="wide">Existing artwork (required)<select data-field="existing_id">'+rowSelect(state.works,item.existing_id,'Choose the exact artwork…')+'</select></label><p class="wide subtle">Master/original, digital-sale and print files are stored privately. An explicitly named WEB/portfolio file updates the public preview only when the artwork is not already sale-enabled. Title, description and category stay unchanged. Uploading never enables sales automatically.</p>':
    '<label class="wide">English title<input data-field="title" maxlength="150" value="'+esc(item.title)+'" required></label>'+
    '<label>Collection<select data-field="collection_id" required>'+rowSelect(state.collections,item.collection_id,'Choose collection…')+'</select></label>'+
    '<label>Artistic style<select data-field="style_id" required>'+rowSelect(state.styles,item.style_id,'Choose style…')+'</select></label>'+
@@ -412,10 +463,8 @@ async function uploadBlob(bucket,path,blob,mime){
 }
 async function uploadOne(item){
  if(!state.authorized)throw Error('Administrator approval required');
- if(item.file.size>MAX_FILE)throw Error('Image exceeds the 50 MB storage limit');
  const mode=$('upload-mode').value,existing=mode==='existing'?state.works.find(w=>w.id===item.existing_id):null;
  if(mode==='existing'&&!existing)throw Error('Choose the exact existing artwork for '+item.title);
- if(existing?.digital_available)throw Error('This work is sale-enabled; replacing its file requires a separate approved versioning workflow.');
  if(!existing){
   if(!item.collection_id||!item.style_id||!item.title.trim())throw Error('Enter a title, collection and style for '+item.title);
   if(!state.collections.some(c=>c.id===item.collection_id)||!state.styles.some(st=>st.id===item.style_id))throw Error('Invalid category selection');
@@ -423,38 +472,81 @@ async function uploadOne(item){
  const main=!existing&&item.variant_primary_id?state.works.find(w=>w.id===item.variant_primary_id):null;
  if(main&&(!main.published||main.collection_id!==item.collection_id||main.digital_available||isVariant(main.id)))throw Error('Choose a stand-alone main artwork in the same collection.');
  const id=existing?.id||'art-'+dateId()+'-'+slug(item.title).slice(0,48)+'-'+crypto.randomUUID().slice(0,8);
- // Reject protected existing masters BEFORE sending any new image bytes.
- const current=existing?await api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at&artwork_id=eq.'+encodeURIComponent(id)+'&limit=1'):null;
- if(current?.[0]?.verified_at)throw Error('Verified sale master exists; replacement requires a separate QA workflow.');
- const nonce=crypto.randomUUID(),folder=id+'/'+nonce,suffix=extensions[masterType(item.file)];
- const dimensions=existing?await imageDimensions(item.file):await imagePreviews(item.file);
- if(!existing){
-  item.progress='Uploading public preview…';item.row.querySelector('.row-status').textContent=item.progress;
-  await uploadBlob('art-previews',folder+'/view.webp',dimensions.view,'image/webp');
-  await uploadBlob('art-previews',folder+'/thumb.webp',dimensions.thumb,'image/webp');
+ const [currentMasters,currentAssets]=existing?await Promise.all([
+  api('/rest/v1/art_gallery_masters?select=artwork_id,object_path,verified_at&artwork_id=eq.'+encodeURIComponent(id)+'&limit=1'),
+  api('/rest/v1/art_gallery_assets?select=asset_role,object_path,verified_at&artwork_id=eq.'+encodeURIComponent(id)+'&limit=10')
+ ]):[[],[]];
+ const currentMaster=currentMasters?.[0],audit=existing?masterStatusFor(id):null;
+ const byRole=new Map((currentAssets||[]).map(row=>[row.asset_role,row]));
+ for(const role of ['master','digital','print','portfolio']){
+  if(item.files?.[role]&&byRole.get(role)?.verified_at)throw Error((ROLE_LABELS[role]||role)+' is already verified and cannot be replaced from a ZIP.');
  }
- item.progress='Uploading private master…';item.row.querySelector('.row-status').textContent=item.progress;
- await uploadBlob('art-originals',folder+'/master.'+suffix,item.file,masterType(item.file));
- // Insert newly created artwork before the master metadata (which has a foreign key to the artwork).
- if(!existing){
- const price=Number(item.price);
- if(!Number.isFinite(price)||price<1||price>100000)throw Error('Digital price must be between €1 and €100,000.');
- const saved={title_en:item.title.trim(),description_en:item.description.trim(),style_id:item.style_id,collection_id:item.collection_id,
-  orientation:dimensions.w>dimensions.h?'Landscape':dimensions.w<dimensions.h?'Portrait':'Square',
-  public_preview_path:folder+'/view.webp',public_thumb_path:folder+'/thumb.webp',pixel_width:dimensions.w,pixel_height:dimensions.h,published:item.published};
- await api('/rest/v1/art_gallery_works',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({
-  id,...saved,price_cents:Math.round(price*100),currency:'eur',digital_available:false,review_status:'pending',source:'admin-upload'
- })});
+ const explicitMaster=item.files?.master;
+ if(explicitMaster&&currentMaster?.verified_at)throw Error('Verified sale master exists; its master/original cannot be replaced from a ZIP.');
+ const needMaster=!existing||!audit?.storage_object_present||!!explicitMaster;
+ const masterSource=needMaster?(explicitMaster||item.files?.digital||item.files?.print||item.files?.portfolio):null;
+ const portfolioSource=item.files?.portfolio||(!existing?(masterSource||item.files?.digital||item.files?.print):null);
+ if(!existing&&!masterSource)throw Error('No usable master, digital, print or web file was found for '+item.title);
+ const nonce=crypto.randomUUID(),folder=id+'/'+nonce;
+ let preview=null,portfolioSkipped=false;
+ if(portfolioSource){
+  if(existing?.digital_available&&item.files?.portfolio)portfolioSkipped=true;
+  else preview=await imagePreviews(portfolioSource.file);
  }
- item.progress='Registering private file…';item.row.querySelector('.row-status').textContent=item.progress;
- const record={artwork_id:id,bucket_name:'art-originals',object_path:folder+'/master.'+suffix,
-  file_bytes:item.file.size,pixel_width:dimensions.w,pixel_height:dimensions.h,source_archive:item.path};
- if(current?.length)await api('/rest/v1/art_gallery_masters?artwork_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
- else await api('/rest/v1/art_gallery_masters',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
- // Existing artworks are intentionally private-file-only: never rewrite public image, story,
- // category, legacy ID, or publication status when restoring a missing high-res master.
+ let masterDimensions=null;
+ if(masterSource)masterDimensions=await imageDimensions(masterSource.file);
+ if(preview){
+  item.progress='Uploading web / portfolio preview…';item.row.querySelector('.row-status').textContent=item.progress;
+  await uploadBlob('art-previews',folder+'/view.webp',preview.view,'image/webp');
+  await uploadBlob('art-previews',folder+'/thumb.webp',preview.thumb,'image/webp');
+ }
+ if(!existing){
+  const price=Number(item.price);
+  if(!Number.isFinite(price)||price<1||price>100000)throw Error('Digital price must be between €1 and €100,000.');
+  const d=preview||masterDimensions;
+  const saved={title_en:item.title.trim(),description_en:item.description.trim(),style_id:item.style_id,collection_id:item.collection_id,
+   orientation:d.w>d.h?'Landscape':d.w<d.h?'Portrait':'Square',
+   public_preview_path:folder+'/view.webp',public_thumb_path:folder+'/thumb.webp',pixel_width:d.w,pixel_height:d.h,published:item.published};
+  await api('/rest/v1/art_gallery_works',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({
+   id,...saved,price_cents:Math.round(price*100),currency:'eur',digital_available:false,review_status:'pending',source:'admin-smart-zip'
+  })});
+ }else if(preview&&item.files?.portfolio){
+  await api('/rest/v1/art_gallery_works?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({
+   public_preview_path:folder+'/view.webp',public_thumb_path:folder+'/thumb.webp',pixel_width:preview.w,pixel_height:preview.h,
+   orientation:preview.w>preview.h?'Landscape':preview.w<preview.h?'Portrait':'Square',source:'admin-smart-zip'
+  })});
+ }
+ const saveAsset=async(role,bucket,objectPath,source,dimensions,mime,fileBytes)=>{
+  const record={artwork_id:id,asset_role:role,bucket_name:bucket,object_path:objectPath,
+   original_filename:source?.file?.name||null,source_archive:source?.path||item.path||null,mime_type:mime||null,
+   file_bytes:fileBytes??source?.file?.size??null,pixel_width:dimensions?.w||null,pixel_height:dimensions?.h||null,updated_at:new Date().toISOString()};
+  const current=byRole.get(role);
+  if(current)await api('/rest/v1/art_gallery_assets?artwork_id=eq.'+encodeURIComponent(id)+'&asset_role=eq.'+encodeURIComponent(role),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
+  else await api('/rest/v1/art_gallery_assets',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
+ };
+ if(preview){
+  await saveAsset('portfolio','art-previews',folder+'/view.webp',portfolioSource,preview,'image/webp',preview.view.size);
+ }
+ if(masterSource){
+  const suffix=extensions[masterType(masterSource.file)],objectPath=folder+'/master.'+suffix;
+  item.progress='Uploading private master / original…';item.row.querySelector('.row-status').textContent=item.progress;
+  await uploadBlob('art-originals',objectPath,masterSource.file,masterType(masterSource.file));
+  const record={artwork_id:id,bucket_name:'art-originals',object_path:objectPath,file_bytes:masterSource.file.size,
+   pixel_width:masterDimensions.w,pixel_height:masterDimensions.h,source_archive:masterSource.path};
+  if(currentMaster)await api('/rest/v1/art_gallery_masters?artwork_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
+  else await api('/rest/v1/art_gallery_masters',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(record)});
+  await saveAsset('master','art-originals',objectPath,masterSource,masterDimensions,masterType(masterSource.file),masterSource.file.size);
+ }
+ for(const role of ['digital','print']){
+  const source=item.files?.[role];if(!source)continue;
+  const dimensions=await imageDimensions(source.file),suffix=extensions[masterType(source.file)],objectPath=folder+'/'+role+'.'+suffix;
+  item.progress='Uploading '+ROLE_LABELS[role]+'…';item.row.querySelector('.row-status').textContent=item.progress;
+  await uploadBlob('art-originals',objectPath,source.file,masterType(source.file));
+  await saveAsset(role,'art-originals',objectPath,source,dimensions,masterType(source.file),source.file.size);
+ }
  if(existing){
-  item.progress='Complete · Private master uploaded · Public gallery unchanged · '+id;
+  const routed=Object.keys(item.files||{}).map(role=>ROLE_LABELS[role]||role).join(', ');
+  item.progress='Complete · Routed: '+routed+(portfolioSkipped?' · WEB preview staged was skipped because this artwork is sale-enabled':'')+' · '+id;
   item.row.querySelector('.row-status').textContent=item.progress;
   return id;
  }
@@ -463,16 +555,16 @@ async function uploadOne(item){
   try{
    await api('/rest/v1/art_gallery_variants',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify({variant_id:id,primary_id:main.id,sort_order:state.variants.filter(row=>row.primary_id===main.id).length+1})});
-  }catch(error){groupingIssue=true;console.warn('Private master uploaded but variant grouping needs review:',error.message)}
+  }catch(error){groupingIssue=true;console.warn('Private files uploaded but variant grouping needs review:',error.message)}
  }
- item.progress='Complete · '+id+(groupingIssue?' · Grouping needs manual review in Catalogue':'');
+ item.progress='Complete · Smart ZIP routed · '+id+(groupingIssue?' · Grouping needs manual review in Catalogue':'');
  item.row.querySelector('.row-status').textContent=item.progress;
  return id;
 }
 async function uploadAll(){
  if(state.busy)return;if(!state.authorized)throw Error('Not an approved administrator');
  if(!state.queue.length)throw Error('Select images or ZIP files first.');
- if(!confirm('Upload '+state.queue.filter(item=>!item.skip).length+' artwork(s) to Supabase? '+($('upload-mode').value==='existing'?'Existing gallery images and descriptions will remain unchanged.':'New artwork previews will be published where selected.')+' Private masters remain unavailable for sale until separately verified.'))return;
+ if(!confirm('Upload '+state.queue.filter(item=>!item.skip).length+' artwork(s) to Supabase? Smart ZIP roles will be routed automatically to private master/digital/print storage and public web previews. Uploading never enables digital or print sales by itself.'))return;
  state.busy=true;$('upload-all').disabled=true;$('clear-queue').disabled=true;
  let success=0,failed=0;
  try{
