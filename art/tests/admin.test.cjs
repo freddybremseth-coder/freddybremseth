@@ -101,14 +101,24 @@ test('smart ZIP schema records private and public roles without auto-enabling sa
  assert.ok(!/DIGITAL_SALES_ENABLED\s*=\s*true/.test(admin));
 });
 
-test('English title normalizer is admin-only and never asks for Norwegian output',()=>{
+test('English title normalizer is admin-only, rate-limit resilient and skips AI for English titles',()=>{
  const fn=read('supabase/functions/art-title-english/index.ts');
+ const admin=read('assets/js/admin.js');
  assert.match(fn,/art_gallery_admin_users/);
  assert.match(fn,/client\.auth\.getUser/);
  assert.match(fn,/If an input title is already English, return it unchanged/);
  assert.match(fn,/If an input title is Norwegian, translate it into concise, natural English/);
  assert.match(fn,/Never translate an English title into Norwegian/);
+ assert.match(fn,/callGemini/);
+ assert.match(fn,/callOpenAI/);
+ assert.match(fn,/callClaude/);
+ assert.match(fn,/retry-after/);
+ assert.match(fn,/translation_provider/);
  assert.match(fn,/responseMimeType:'application\/json'/);
+ assert.match(admin,/filter\(item=>looksNorwegianTitle\(item\.title\)\)/);
+ assert.match(admin,/English source titles stay English and are not sent to the translation service/);
+ assert.match(admin,/Needs English title · translation temporarily unavailable/);
+ assert.match(admin,/!item\.skip/);
 });
 
 test('AI artwork curator is authenticated and constrained to the gallery taxonomy',()=>{
