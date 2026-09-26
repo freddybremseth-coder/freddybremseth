@@ -23,8 +23,11 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(js,/assetRole/);
  assert.match(js,/logical artworks, not to raw image-variant count/);
  assert.match(js,/MAX_ITEMS=100/);
+ assert.match(js,/MAX_ZIP=500\*1024\*1024/);
+ assert.match(js,/ZIP exceeds 500 MB/);
  assert.match(js,/Maximum 100 artworks per batch/);
  assert.match(html,/Up to 100 works per batch/);
+ assert.match(html,/500 MB per ZIP/);
  assert.match(js,/groups\.size>MAX_ITEMS/);
  assert.match(js,/const chosen=\[\.\.\.groups\.values\(\)\]/);
  assert.doesNotMatch(js,/Too many image variants\. Use a smaller batch/);
