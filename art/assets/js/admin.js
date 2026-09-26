@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const cfg=window.ART_GALLERY_CONFIG;
 const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],assets:[],masterAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
-const MAX_FILE=50*1024*1024,MAX_ZIP=250*1024*1024,MAX_ITEMS=100;
+const MAX_FILE=50*1024*1024,MAX_ZIP=500*1024*1024,MAX_ITEMS=100;
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,75);
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const status=(message,bad=false)=>{$('status').textContent=message;$('status').style.background=bad?'#87382e':'#213738'};
@@ -536,7 +536,7 @@ function zipMembers(file){
 }
 async function gather(files){
  const selected=[];for(const f of files){
-  if(/\.zip$/i.test(f.name)){if(f.size>MAX_ZIP)throw Error('ZIP exceeds 250 MB: '+f.name);selected.push(...await zipMembers(f))}
+  if(/\.zip$/i.test(f.name)){if(f.size>MAX_ZIP)throw Error('ZIP exceeds 500 MB: '+f.name);selected.push(...await zipMembers(f))}
   else if(validImage(f))selected.push({file:f,path:f.name});
   else throw Error('Unsupported file or image larger than 50 MB: '+f.name);
  }
