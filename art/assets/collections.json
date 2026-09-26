@@ -50,6 +50,27 @@
       "featured": true
     },
     {
+      "id": "forgotten-places",
+      "name": "Forgotten Places",
+      "description": "Abandoned theatres, conservatories, palaces and rooms where beauty survives after people have gone. A collection about memory, decay, silence and the strange dignity of places left behind.",
+      "cover": "",
+      "featured": true
+    },
+    {
+      "id": "gilded-dreams",
+      "name": "Gilded Dreams",
+      "description": "Moonlit figures, marble skin, gold-mended fractures, ravens, butterflies and impossible relics in black, ivory and gold. Surreal images about damage, repair, mortality and transformation.",
+      "cover": "",
+      "featured": true
+    },
+    {
+      "id": "after-the-war",
+      "name": "After the War",
+      "description": "The noise has stopped. Burned-out streets, abandoned machines and moonlit ruins ask what remains after conflict — and whether people can still choose compassion, peace and one another.",
+      "cover": "",
+      "featured": true
+    },
+    {
       "id": "studio-archive",
       "name": "Studio Archive",
       "description": "A wider view of the studio: experiments in period-inspired composition, abstraction and portraiture. Different styles, connected by an interest in atmosphere and human stories.",

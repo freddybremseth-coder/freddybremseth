@@ -25,7 +25,7 @@ for(const art of catalog){
  fs.writeFileSync(path.join(target,'index.html'),html);
 }
 
-// Five first-class collection pages (four signatures and the studio archive).
+// First-class collection pages generated from the curated collection taxonomy.
 // These remain usable, linkable and indexable without JavaScript.
 const curation=JSON.parse(fs.readFileSync(path.join(root,'assets/collections.json'),'utf8'));
 const collectionFor=art=>art.collection_id||curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
@@ -40,6 +40,9 @@ const notes={
   'earth-and-emotion':'Botanical forms, grounded palettes and tactile-looking digital compositions.',
   'city-after-dark':'Nocturnal city stories shaped by rain, windows, music, solitude and cinematic light.',
   'sunken-worlds':'Imagined civilizations below the waterline, where architecture, memory and the sea meet.',
+  'forgotten-places':'Abandoned architecture, fading grandeur and spaces where silence becomes part of the story.',
+  'gilded-dreams':'Gold-mended bodies, moonlit symbols and surreal relics exploring transformation, fragility and repair.',
+  'after-the-war':'Cinematic ruins and the stillness after conflict, focused on human cost, compassion and the possibility of peace.',
   'studio-archive':'A wider selection of historical and stylistic studies from the digital studio.'
 };
 for(const collection of curation.collections){

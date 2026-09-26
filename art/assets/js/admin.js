@@ -394,7 +394,13 @@ function fallbackCuration(item,error){
  const hasCollection=id=>state.collections.some(entry=>entry.id===id);
  const hasStyle=id=>state.styles.some(entry=>entry.id===id);
  let collection_id=$('collection-default').value,style_id=$('style-default').value;
- if(/(?:city|night|neon|rooftop|jazz|diner|tokyo|street|avenue|penthouse|bridge|fire escape|skyline)/i.test(text)){
+ if(/(?:war|anti-war|antiwar|post-war|after the war|bomb|bombed|tank|helicopter|battlefield|war zone|burned-out|burnt-out|destroyed city|conflict ruins)/i.test(text)){
+  collection_id=collection_id||'after-the-war';style_id=style_id||'urban-nightscapes';
+ }else if(/(?:forgotten|abandoned|deserted|derelict|theatre|theater|opera|ballroom|palace|conservatory|orangery|old hotel|casino|winter garden|ruined interior)/i.test(text)){
+  collection_id=collection_id||'forgotten-places';style_id=style_id||'surrealism';
+ }else if(/(?:gilded|gold-mended|golden cracks|kintsugi (?:queen|goddess|figure|portrait)|marble (?:goddess|figure|bust)|moon (?:goddess|queen)|gilded queen|mechanical heart|hourglass|raven queen|moth queen|butterfly crown)/i.test(text)){
+  collection_id=collection_id||'gilded-dreams';style_id=style_id||'symbolic-realism';
+ }else if(/(?:city|night|neon|rooftop|jazz|diner|tokyo|street|avenue|penthouse|bridge|fire escape|skyline)/i.test(text)){
   collection_id=collection_id||'city-after-dark';style_id=style_id||'urban-nightscapes';
  }else if(/(?:sunken|underwater|atlantis|beneath|submerged|ocean ruins|under the sea|temple|lost library)/i.test(text)){
   collection_id=collection_id||'sunken-worlds';style_id=style_id||'surrealism';
