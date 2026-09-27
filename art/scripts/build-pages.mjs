@@ -43,6 +43,11 @@ const notes={
   'forgotten-places':'Abandoned architecture, fading grandeur and spaces where silence becomes part of the story.',
   'gilded-dreams':'Gold-mended bodies, moonlit symbols and surreal relics exploring transformation, fragility and repair.',
   'after-the-war':'Cinematic ruins and the stillness after conflict, focused on human cost, compassion and the possibility of peace.',
+  'mediterranean-silence':'Limestone, terracotta, olive trees and sea light reduced to quiet, spacious compositions.',
+  'impossible-rooms':'Architectural scenes that stay elegant while perspective, gravity, water or space quietly stops obeying the rules.',
+  'midnight-gold':'Nocturnal luxury in midnight blue, black marble and antique gold, shaped by reflections and cinematic light.',
+  'golden-scars':'Objects, structures and natural forms transformed by luminous kintsugi-like repair.',
+  'dream-logic':'Plausible scenes with one impossible detail — images designed to reward the second look.',
   'studio-archive':'A wider selection of historical and stylistic studies from the digital studio.'
 };
 for(const collection of curation.collections){
