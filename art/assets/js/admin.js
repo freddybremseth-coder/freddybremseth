@@ -394,7 +394,17 @@ function fallbackCuration(item,error){
  const hasCollection=id=>state.collections.some(entry=>entry.id===id);
  const hasStyle=id=>state.styles.some(entry=>entry.id===id);
  let collection_id=$('collection-default').value,style_id=$('style-default').value;
- if(/(?:war|anti-war|antiwar|post-war|after the war|bomb|bombed|tank|helicopter|battlefield|war zone|burned-out|burnt-out|destroyed city|conflict ruins)/i.test(text)){
+ if(/(?:midnight[ _-]*gold)/i.test(text)){
+  collection_id=collection_id||'midnight-gold';style_id=style_id||'surrealism';
+ }else if(/(?:mediterranean[ _-]*silence)/i.test(text)){
+  collection_id=collection_id||'mediterranean-silence';style_id=style_id||'landscape';
+ }else if(/(?:impossible[ _-]*rooms?|dream[ _-]*architecture)/i.test(text)){
+  collection_id=collection_id||'impossible-rooms';style_id=style_id||'surrealism';
+ }else if(/(?:golden[ _-]*scars?)/i.test(text)){
+  collection_id=collection_id||'golden-scars';style_id=style_id||'symbolic-realism';
+ }else if(/(?:dream[ _-]*logic)/i.test(text)){
+  collection_id=collection_id||'dream-logic';style_id=style_id||'surrealism';
+ }else if(/(?:war|anti-war|antiwar|post-war|after the war|bomb|bombed|tank|helicopter|battlefield|war zone|burned-out|burnt-out|destroyed city|conflict ruins)/i.test(text)){
   collection_id=collection_id||'after-the-war';style_id=style_id||'urban-nightscapes';
  }else if(/(?:forgotten|abandoned|deserted|derelict|theatre|theater|opera|ballroom|palace|conservatory|orangery|old hotel|casino|winter garden|ruined interior)/i.test(text)){
   collection_id=collection_id||'forgotten-places';style_id=style_id||'surrealism';
