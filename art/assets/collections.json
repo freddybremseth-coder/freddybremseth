@@ -71,6 +71,41 @@
       "featured": true
     },
     {
+      "id": "dream-logic",
+      "name": "Dream Logic",
+      "description": "Scenes that feel believable at first glance, then reveal something impossible. Subtle shifts in perspective, gravity, water, reflection and architecture reward a slower second look.",
+      "cover": "",
+      "featured": true
+    },
+    {
+      "id": "golden-scars",
+      "name": "Golden Scars",
+      "description": "Kintsugi expanded beyond portraiture. Broken instruments, vessels, architecture, trees and symbolic objects are repaired with luminous gold — damage transformed into part of the story.",
+      "cover": "",
+      "featured": true
+    },
+    {
+      "id": "midnight-gold",
+      "name": "Midnight Gold",
+      "description": "Midnight blue, black marble and antique gold shape nocturnal rooms, objects and architecture. A dark-luxury collection built around silence, reflection and cinematic light.",
+      "cover": "",
+      "featured": true
+    },
+    {
+      "id": "impossible-rooms",
+      "name": "Impossible Rooms",
+      "description": "Elegant interiors where reality slips: stairs lead somewhere impossible, water crosses architectural boundaries, gravity changes direction and familiar rooms reveal a second logic.",
+      "cover": "",
+      "featured": true
+    },
+    {
+      "id": "mediterranean-silence",
+      "name": "Mediterranean Silence",
+      "description": "Quiet Mediterranean architecture in limestone, sand, terracotta, olive green and pale blue. Expansive rooms, sea light and restrained compositions designed around stillness rather than spectacle.",
+      "cover": "",
+      "featured": true
+    },
+    {
       "id": "studio-archive",
       "name": "Studio Archive",
       "description": "A wider view of the studio: experiments in period-inspired composition, abstraction and portraiture. Different styles, connected by an interest in atmosphere and human stories.",
