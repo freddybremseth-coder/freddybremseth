@@ -26,14 +26,14 @@
   const visible=visibleArt();
   const host=$('categories');host.replaceChildren();
   const all=document.createElement('button');all.type='button';all.className='chip';all.dataset.category='all';all.textContent='All collections ('+visible.length+')';host.appendChild(all);
-  for(const collection of state.collections){const button=document.createElement('button');button.type='button';button.className='chip';button.dataset.category=collection.id;button.textContent=collection.name+' ('+visible.filter(a=>a.collection_id===collection.id).length+')';host.appendChild(button)}
+  for(const collection of state.collections){const count=visible.filter(a=>a.collection_id===collection.id).length;if(!count)continue;const button=document.createElement('button');button.type='button';button.className='chip';button.dataset.category=collection.id;button.textContent=collection.name+' ('+count+')';host.appendChild(button)}
   const styleSelect=$('style-filter');styleSelect.replaceChildren(new Option('All artistic styles','all'));
   for(const style of state.styles){if(visible.some(a=>a.style_id===style.id))styleSelect.add(new Option(style.name,style.id))}
   const cardsHost=$('collection-cards');cardsHost.replaceChildren();
   for(const collection of state.collections.filter(c=>c.featured)){
    const works=visible.filter(a=>a.collection_id===collection.id),count=works.length;
    const cover=collection.cover||works[0]?.thumb||works[0]?.image||'';
-   if(!count&&!cover)continue;
+   if(!count)continue;
    const button=document.createElement('a');button.href='/collections/'+encodeURIComponent(collection.id)+'/';button.className='collection-tile';
    const image=document.createElement('img');image.src=cover;image.alt='Artwork preview for '+collection.name;image.loading='lazy';
    const text=document.createElement('span');text.className='collection-tile-copy';
@@ -122,8 +122,8 @@
   grid.classList.toggle('gallery-grouped',grouped);
   grid.classList.toggle('gallery-discover',state.sort==='discover'&&!grouped);
   for(const chip of $('categories').querySelectorAll('.chip')){const active=chip.dataset.category===state.category;chip.classList.toggle('active',active);chip.setAttribute('aria-pressed',String(active))}
-  $('result-count').textContent=state.filtered.length+' artworks'+(collection?' · '+collection.name:grouped?' · five signature collections + studio archive':'');
-  $('active-style-description').textContent=collection?collection.description:'Seven signature collections plus our studio archive. Explore a varied mix or refine by style, motif, colour, orientation and price.';
+  $('result-count').textContent=state.filtered.length+' artworks'+(collection?' · '+collection.name:grouped?' · grouped by collection':'');
+  $('active-style-description').textContent=collection?collection.description:'Explore the signature collections that currently contain published work, or refine the gallery by style, motif, colour, orientation and price.';
   $('load-more').hidden=true;
   if(grouped){
    const narrowed=!!(state.search||state.style!=='all'||state.orientation!=='all'||state.motif!=='all'||state.colour!=='all'||state.price!=='all');
