@@ -375,3 +375,11 @@ test('City After Dark and Sunken Worlds are first-class taxonomy entries',()=>{
  assert.match(app,/admin-smart-zip/);
  assert.match(sync,/admin-smart-zip/);
 });
+
+
+test('dynamic artwork page keeps complete preview image markup when dimensions are present',()=>{
+ const handler=fs.readFileSync(path.join(root,'api/artwork-page.js'),'utf8');
+ assert.match(handler,/const width=Number\(art\.pixel_width\)\|\|1122,height=Number\(art\.pixel_height\)\|\|1402;/);
+ assert.match(handler,/width="'\+width\+'" height="'\+height\+'"/);
+ assert.doesNotMatch(handler,/width="'\+Number\(art\.pixel_width\)\|\|/);
+});
