@@ -30,7 +30,7 @@ test('planned signature collections plus Studio Archive support established and 
  assert.equal(curation.collections.filter(c=>c.featured).length,15);
  assert.equal(curation.collections.length,16);
  assert.deepEqual(curation.collections.filter(c=>c.featured).map(c=>c.id),[
-  'human-condition','words-that-matter','symbolic-street-art','mediterranean-soul','earth-and-emotion','city-after-dark','sunken-worlds','forgotten-places','gilded-dreams','after-the-war','mediterranean-silence','impossible-rooms','midnight-gold','golden-scars','dream-logic'
+  'human-condition','words-that-matter','symbolic-street-art','mediterranean-soul','earth-and-emotion','city-after-dark','sunken-worlds','forgotten-places','gilded-dreams','after-the-war','midnight-gold','mediterranean-silence','impossible-rooms','golden-scars','dream-logic'
  ]);
  assert.equal(curation.collections.find(c=>c.id==='studio-archive').featured,false);
  assert.ok(artworks.every(art=>curation.collections.some(c=>c.id===collectionFor(art))));
