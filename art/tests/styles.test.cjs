@@ -26,18 +26,18 @@ test('every unique artwork retains its existing style',()=>{
   else assert.ok(style.count>0);
  }
 });
-test('ten featured collections plus Studio Archive support both established and new series',()=>{
- assert.equal(curation.collections.filter(c=>c.featured).length,10);
- assert.equal(curation.collections.length,11);
+test('planned signature collections plus Studio Archive support established and new series',()=>{
+ assert.equal(curation.collections.filter(c=>c.featured).length,15);
+ assert.equal(curation.collections.length,16);
  assert.deepEqual(curation.collections.filter(c=>c.featured).map(c=>c.id),[
-  'human-condition','words-that-matter','symbolic-street-art','mediterranean-soul','earth-and-emotion','city-after-dark','sunken-worlds','forgotten-places','gilded-dreams','after-the-war'
+  'human-condition','words-that-matter','symbolic-street-art','mediterranean-soul','earth-and-emotion','city-after-dark','sunken-worlds','forgotten-places','gilded-dreams','after-the-war','mediterranean-silence','impossible-rooms','midnight-gold','golden-scars','dream-logic'
  ]);
  assert.equal(curation.collections.find(c=>c.id==='studio-archive').featured,false);
  assert.ok(artworks.every(art=>curation.collections.some(c=>c.id===collectionFor(art))));
  for(const collection of curation.collections){
   const works=artworks.filter(art=>collectionFor(art)===collection.id);
   if(collection.cover)assert.ok(fs.existsSync(path.join(root,collection.cover.replace(/^\//,''))));
-  else assert.ok(['city-after-dark','sunken-worlds','forgotten-places','gilded-dreams','after-the-war'].includes(collection.id)||works.length>0,'Only auto-cover collections may omit a configured cover');
+  else assert.ok(['city-after-dark','sunken-worlds','forgotten-places','gilded-dreams','after-the-war','mediterranean-silence','impossible-rooms','midnight-gold','golden-scars','dream-logic'].includes(collection.id)||works.length>0,'Only auto-cover collections may omit a configured cover');
  }
  assert.equal(curation.byStyle['urban-nightscapes'],'city-after-dark');
  for(const id of Object.keys(curation.byArtworkId))assert.ok(artworks.some(a=>a.id===id),'Unknown collection override '+id);
@@ -254,7 +254,7 @@ test('configured featured collection covers are unique; new series can auto-cove
   assert.ok(artworks.some(a=>a.thumb===collection.cover&&collectionFor(a)===collection.id),
     'Cover must be part of its own collection: '+collection.id);
  }
- for(const id of ['city-after-dark','sunken-worlds'])assert.equal(curation.collections.find(c=>c.id===id).cover,'');
+ for(const id of ['city-after-dark','sunken-worlds','mediterranean-silence','impossible-rooms','midnight-gold','golden-scars','dream-logic'])assert.equal(curation.collections.find(c=>c.id===id).cover,'');
 });
 test('discovery gallery supports a varied shuffle on an undecorated background',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
