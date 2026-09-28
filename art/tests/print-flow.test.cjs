@@ -139,9 +139,10 @@ test('Prodigi print asset selection can use a higher-resolution private digital 
 
 test('Prodigi failures return safe actionable diagnostics',()=>{
  const options=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
+ const prodigiSource=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
  const client=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
- assert.match(options,/PRODIGI_TIMEOUT/);
- assert.match(options,/PRODIGI_HTTP_/);
+ assert.match(prodigiSource,/PRODIGI_TIMEOUT/);
+ assert.match(options,/HTTP_\\d\{3\}/);
  assert.match(client,/Sandbox and Live API keys are separate/);
  assert.match(client,/rate-limiting size lookup/);
 });
