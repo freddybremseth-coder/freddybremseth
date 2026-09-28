@@ -30,7 +30,9 @@ module.exports=async(req,res)=>{
       }))
     });
   }catch(error){
-    console.error('Print options',error?.code||error?.message||'unknown');
-    return res.status(502).json({error:'Print options are temporarily unavailable'});
+    const code=String(error?.code||'PRODIGI_UNKNOWN');
+    console.error('Print options',code);
+    const safeCode=/^PRODIGI_(?:HTTP_\d{3}|TIMEOUT|NETWORK_ERROR|CATALOG_UNAVAILABLE|NOT_CONFIGURED)$/.test(code)?code:'PRODIGI_UNKNOWN';
+    return res.status(502).json({error:'Print options are temporarily unavailable',code:safeCode,environment:prodigiEnvironment()});
   }
 };

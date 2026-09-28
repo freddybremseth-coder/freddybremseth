@@ -92,15 +92,25 @@ function supabasePublic() {
 
 async function prodigiRequest(path, options = {}) {
   if (!prodigiConfigured()) throw Object.assign(new Error('Prodigi is not configured'), { code: 'PRODIGI_NOT_CONFIGURED' });
-  const response = await fetch(prodigiBaseUrl() + path, {
-    ...options,
-    headers: {
-      'X-API-Key': process.env.PRODIGI_API_KEY,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...(options.headers || {})
-    }
-  });
+  const { timeoutMs = 6000, ...fetchOptions } = options;
+  let response;
+  try {
+    response = await fetch(prodigiBaseUrl() + path, {
+      ...fetchOptions,
+      signal: fetchOptions.signal || AbortSignal.timeout(timeoutMs),
+      headers: {
+        'X-API-Key': process.env.PRODIGI_API_KEY,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(fetchOptions.headers || {})
+      }
+    });
+  } catch (error) {
+    const code = error?.name === 'TimeoutError' || error?.name === 'AbortError'
+      ? 'PRODIGI_TIMEOUT'
+      : 'PRODIGI_NETWORK_ERROR';
+    throw Object.assign(new Error(code), { code });
+  }
   let body = {};
   try { body = await response.json(); } catch {}
   if (!response.ok) {
@@ -136,7 +146,7 @@ async function findPrintAsset(artworkId) {
       .from('art_gallery_assets')
       .select('artwork_id,asset_role,bucket_name,object_path,mime_type,pixel_width,pixel_height,verified_at')
       .eq('artwork_id', artworkId)
-      .in('asset_role', ['print', 'master']);
+      .in('asset_role', ['print', 'master', 'digital']);
     data = result.data;
     error = result.error;
   }
@@ -144,10 +154,10 @@ async function findPrintAsset(artworkId) {
     .filter(row => row.bucket_name === (process.env.ART_STORAGE_BUCKET || 'art-originals'))
     .filter(row => ['image/jpeg', 'image/png'].includes(String(row.mime_type || '').toLowerCase()) || /\.(jpe?g|png)$/i.test(row.object_path || ''))
     .sort((a, b) => {
-      const role = row => row.asset_role === 'print' ? 2 : 1;
+      const role = row => row.asset_role === 'print' ? 3 : row.asset_role === 'master' ? 2 : 1;
       const verified = row => row.verified_at ? 1 : 0;
       const pixels = row => Number(row.pixel_width || 0) * Number(row.pixel_height || 0);
-      return role(b) - role(a) || verified(b) - verified(a) || pixels(b) - pixels(a);
+      return verified(b) - verified(a) || pixels(b) - pixels(a) || role(b) - role(a);
     }) : [];
   if (ranked[0]) return ranked[0];
 
@@ -172,7 +182,7 @@ async function productDetails(sku) {
   const cached = productCache.get(safe);
   if (cached && Date.now() - cached.at < PRODUCT_CACHE_TTL_MS) return cached.value;
   try {
-    const body = await prodigiRequest('/v4.0/products/' + encodeURIComponent(safe), { method: 'GET' });
+    const body = await prodigiRequest('/v4.0/products/' + encodeURIComponent(safe), { method: 'GET', timeoutMs: 3000 });
     const value = body && body.product ? body.product : null;
     productCache.set(safe, { at: Date.now(), value });
     return value;
@@ -240,9 +250,11 @@ function aspectDelta(asset, product) {
 function candidateSkusForAsset(asset) {
   const width = Number(asset && asset.pixel_width || 0);
   const height = Number(asset && asset.pixel_height || 0);
-  if (!width || !height) return CANDIDATE_SKUS.slice(0, 6);
+  const small = ['GLOBAL-FAP-4X6','GLOBAL-FAP-5X7','GLOBAL-FAP-6X8'];
+  if (!width || !height) return small;
   const ratio = Math.min(width, height) / Math.max(width, height);
-  return CANDIDATE_SKUS
+  const closest = CANDIDATE_SKUS
+    .filter(sku => !small.includes(sku))
     .map(sku => {
       const match = sku.match(/-(\d+)X(\d+)$/);
       const a = Number(match && match[1] || 1);
@@ -250,7 +262,32 @@ function candidateSkusForAsset(asset) {
       return { sku, delta: Math.abs(ratio - Math.min(a, b) / Math.max(a, b)), area: a * b };
     })
     .sort((x, y) => x.delta - y.delta || x.area - y.area)
+    .slice(0, 3)
     .map(item => item.sku);
+  return [...new Set([...small, ...closest])];
+}
+
+async function productDetailsBatch(skus, concurrency = 2) {
+  const queue = [...skus];
+  const products = [];
+  let failures = 0;
+  const workers = Array.from({ length: Math.max(1, Math.min(concurrency, queue.length || 1)) }, async () => {
+    while (queue.length) {
+      const sku = queue.shift();
+      try {
+        const product = await productDetails(sku);
+        if (product) products.push(product);
+      } catch (error) {
+        failures += 1;
+        console.warn('Prodigi product lookup failed', sku, error?.code || error?.message || 'unknown');
+      }
+    }
+  });
+  await Promise.all(workers);
+  if (!products.length && failures) {
+    throw Object.assign(new Error('Prodigi catalogue unavailable'), { code: 'PRODIGI_CATALOG_UNAVAILABLE' });
+  }
+  return products;
 }
 
 async function eligibleProducts(artworkId, countryCode) {
@@ -259,7 +296,7 @@ async function eligibleProducts(artworkId, countryCode) {
   const asset = await findPrintAsset(artworkId);
   if (!asset) return { asset: null, products: [] };
   const candidates = candidateSkusForAsset(asset);
-  const details = await Promise.all(candidates.map(productDetails));
+  const details = await productDetailsBatch(candidates, 2);
   const shippable = details.filter(Boolean).map(product => {
     const variant = variantForCountry(product, country);
     const required = resolutionForVariant(variant);
