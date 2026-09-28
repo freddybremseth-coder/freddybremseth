@@ -211,9 +211,10 @@
   }
   return {primary:niceNumber(width)+' × '+niceNumber(height)+' '+units,secondary:'',maxInches:Math.max(width,height)};
  }
- const printTier=product=>{const n=dimensionData(product).maxInches;return n<=12?'Small':n<=20?'Medium':n<=30?'Large':'Statement'};
+ const printTier=product=>{const n=dimensionData(product).maxInches;return n<=12?'Fine art':n<=20?'Medium':n<=30?'Large':'Statement'};
  function printBlockerMessage(data=lastPrintOptions){
   const status=data?.checkout_status||{};
+  if(data?.asset_source==='archive_preview'&&!status.private_storage&&status.environment!=='live')return 'Prodigi Sandbox is working, but this deployment is sizing the artwork from its web preview because SUPABASE_SERVICE_ROLE_KEY is missing. Add private Supabase access to test the real Print Master and larger fine-art formats; Live sales also require the Prodigi Live API key.';
   if(data?.asset_source==='archive_preview'&&!status.private_storage)return 'The public preview is being used for print sizing because SUPABASE_SERVICE_ROLE_KEY is missing from the Art Vercel project. Connect private Supabase storage to unlock the larger Print Master.';
   if(status.environment&&status.environment!=='live')return 'Prodigi Sandbox is working. Customer checkout remains locked until the Live API key is connected and PRODIGI_ENVIRONMENT=live.';
   if(status.prodigi===false)return 'Prodigi is not connected for live production.';
@@ -256,9 +257,12 @@
     $('print-help').textContent='Prodigi is prepared in the site code, but the API key has not been connected yet.';return;
    }
    if(!Array.isArray(data.products)||!data.products.length){
-    size.append(new Option('No size available',''));
-    host.innerHTML='<p class="print-size-empty">No paper size could be prepared for this artwork yet.</p>';
-    $('print-help').textContent='The artwork is published, but its private print master needs attention before an order can be sent.';return;
+    const needsMaster=data.asset_source==='archive_preview';
+    size.append(new Option('No fine-art size available',''));
+    host.innerHTML='<p class="print-size-empty">'+(needsMaster?'A larger Print Master is required for this artwork.':'No curated fine-art size could be prepared for this artwork yet.')+'</p>';
+    $('print-help').textContent=needsMaster
+     ?'Fine-art editions start at 8 inches on the shortest paper side. This deployment is currently seeing only the web-size source; connect the private Print Master to unlock eligible larger formats.'
+     :'The artwork is published, but its Print Master does not yet meet the minimum fine-art size and quality floor.';return;
    }
    size.append(new Option('Choose a size…',''));
    for(const product of data.products){
@@ -273,8 +277,8 @@
     ||data.products.find(product=>product.quality?.recommended)
     ||data.products[Math.min(1,data.products.length-1)];
    const archiveCopy=data.asset_source==='archive_preview'
-    ?' This archived work is offered only in small formats that keep print resolution above our quality floor.'
-    :'';
+    ?' The print service is currently seeing only the web-size source; connect the private Print Master to unlock the full fine-art range.'
+    :' Fine-art editions start at 8 inches on the shortest paper side.';
    $('print-help').textContent=data.sales_enabled
     ?'Choose a size. Your complete artwork is fitted to the paper without cropping; a border may appear when proportions differ.'+archiveCopy
     :printBlockerMessage(data)+archiveCopy;
