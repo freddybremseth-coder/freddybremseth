@@ -221,3 +221,24 @@ test('Print Master selection prefers real private printable assets and never pub
  assert.doesNotMatch(block,/portfolio/);
  assert.doesNotMatch(block,/art-previews/);
 });
+
+
+test('bulk Print Master recovery auto-matches exact artwork IDs without fuzzy title matching',()=>{
+ const html=read('admin/index.html'),admin=read('assets/js/admin.js');
+ assert.match(html,/exact existing artwork ID/i);
+ assert.match(admin,/const exactExisting=new Map\(\)/);
+ assert.match(admin,/work\.id===group\.label\|\|work\.id===group\.key\|\|stem\(work\.id\)===group\.key/);
+ assert.match(admin,/exactExisting\.size===grouped\.size/);
+ assert.match(admin,/Switched to existing-artwork mode automatically/);
+ assert.match(admin,/Ready · exact artwork ID matched/);
+ assert.doesNotMatch(admin,/includes\(group\.key\)/);
+});
+
+test('print-only recovery reuses one private object as the unverified compatibility master',()=>{
+ const admin=read('assets/js/admin.js');
+ assert.match(admin,/fallbackMasterRole=existing&&needMaster&&!explicitMaster/);
+ assert.match(admin,/item\.files\?\.print\?'print'/);
+ assert.match(admin,/if\(fallbackMasterRole===role\)/);
+ assert.match(admin,/compatibilityMaster=\{artwork_id:id,bucket_name:'art-originals',object_path:objectPath/);
+ assert.match(admin,/art_gallery_masters/);
+});
