@@ -257,3 +257,16 @@ test('print options imports every runtime symbol used in its response',()=>{
  const prodigi=require(path.join(root,'api/_lib/prodigi.cjs'));
  assert.equal(prodigi.MIN_FINE_ART_SHORT_SIDE_IN,8);
 });
+
+
+test('Sandbox can size from private Print Master metadata without exposing its path',()=>{
+ const prodigiSource=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
+ assert.match(prodigiSource,/art_public_print_master_metadata/);
+ assert.match(prodigiSource,/metadata_only: true/);
+ assert.match(prodigiSource,/object_path: ''/);
+ const options=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
+ assert.match(options,/private_master_metadata/);
+ const dynamic=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ assert.match(dynamic,/Private Print Master found/);
+ assert.match(dynamic,/Live fulfilment remains locked until private storage access is connected/);
+});
