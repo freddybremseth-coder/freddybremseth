@@ -105,3 +105,16 @@ test('print asset discovery falls back to published preview metadata when privat
  assert.match(source,/asset_role: 'archive-preview'/);
  assert.match(source,/preview_fallback: true/);
 });
+
+
+test('dynamic artwork print flow explains the exact live checkout blocker',()=>{
+ const options=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
+ const client=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ assert.match(options,/checkout_status:printCheckoutStatus\(\)/);
+ assert.match(client,/SANDBOX test mode/);
+ assert.match(client,/STRIPE_WEBHOOK_SECRET/);
+ assert.match(client,/SUPABASE_SERVICE_ROLE_KEY/);
+ assert.match(client,/PRINT_SAMPLE_APPROVED/);
+ assert.match(client,/PRINT_LEGAL_APPROVED/);
+ assert.match(client,/PRINT_SALES_ENABLED/);
+});
