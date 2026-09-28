@@ -58,3 +58,18 @@
 .print-readiness-panel summary{cursor:pointer;font-weight:600;padding:12px 0}
 @media(max-width:790px){.print-readiness-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:460px){.print-readiness-grid{grid-template-columns:1fr}.print-live-row{align-items:flex-start;flex-direction:column}}
+
+/* Private physical-order queue. Delivery addresses are intentionally not stored here. */
+.panel-count{margin-left:auto;font:normal 24px Georgia,serif;color:#32433e}
+.print-order-list{display:grid;gap:10px;margin-top:16px}
+.print-order-item{border:1px solid #ddd9cf;background:#fcfbf8;border-radius:9px;padding:13px 14px}
+.print-order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.print-order-top>strong{font:normal 18px/1.25 Georgia,serif}
+.print-order-state{flex:0 0 auto;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:#eceae4;color:#555}
+.print-order-state[data-state="submitted"],.print-order-state[data-state="complete"]{background:#e4f1e7;color:#27633d}
+.print-order-state[data-state="paid"],.print-order-state[data-state="submitting"]{background:#f3ecd7;color:#765f21}
+.print-order-state[data-state="fulfillment_error"],.print-order-state[data-state="cancelled"]{background:#f5e1dc;color:#9b3d28}
+.print-order-item p{margin:9px 0 5px!important;font-size:12px!important;color:#4f5a55!important}
+.print-order-item small{display:block;font-size:10px;line-height:1.5;color:#717875;overflow-wrap:anywhere}
+.print-order-error{color:#a13d2d!important;font-weight:600}
+@media(max-width:620px){.print-order-top{flex-direction:column}.print-order-state{align-self:flex-start}}
