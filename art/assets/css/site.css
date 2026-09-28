@@ -413,3 +413,53 @@ dialog.landscape-artwork .dialog-photo img {
 .print-quote strong{grid-column:1/-1;font:20px/1.3 var(--font);font-weight:400}
 .print-quote b{grid-column:1/-1;border-top:1px solid #cbc2b4;padding-top:10px;margin-top:2px;font:22px var(--font);text-align:right}
 @media(max-width:620px){.print-box{padding:42px 24px 28px}.print-form{grid-template-columns:1fr}.print-box h2{font-size:35px}}
+
+
+/* Print buying flow: visible from every gallery card and readable before checkout. */
+.art-card>.art-card-print{
+ margin-top:12px;padding:11px 0 0;border-top:1px solid #d6d0c6;background:transparent;
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ color:#4d514b;font:10px/1.35 var(--sans);letter-spacing:.08em;text-transform:uppercase;
+}
+.art-card>.art-card-print strong{font:11px/1.35 var(--sans);font-weight:600;color:#9e583f;letter-spacing:.02em;text-transform:none}
+.art-card>.art-card-print:hover strong,.art-card>.art-card-print:focus-visible strong{color:#6f3f30;text-decoration:underline;text-underline-offset:3px}
+.print-option{margin-top:18px;padding:16px 0 0;border-top:1px solid var(--line);display:grid;gap:9px}
+.print-option>span:first-child{font:10px/1.4 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:#696b64}
+.print-button{
+ width:100%;border:1px solid #8e7766;background:#fffaf3;padding:12px 14px;text-decoration:none;
+ text-align:center;color:#6f3f30;font:600 12px/1.35 var(--sans);letter-spacing:.01em
+}
+.print-button:hover,.print-button:focus-visible{background:#6f3f30;color:#fff}
+.print-box{width:min(780px,94vw);padding:46px 40px 38px;position:relative;max-height:92vh;overflow:auto}
+.print-form{display:grid;grid-template-columns:1fr .7fr;gap:14px;margin:24px 0 22px}
+.print-size-section{margin:0 0 16px}
+.print-size-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:10px}
+.print-size-heading strong{font:600 12px/1.3 var(--sans);letter-spacing:.07em;text-transform:uppercase}
+.print-size-heading small{font:11px/1.4 var(--sans);color:#6c6d67}
+.print-size-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.print-size-card{
+ min-width:0;border:1px solid #c6beb2;background:#fffaf3;padding:13px 12px;text-align:left;color:var(--ink);
+ display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:112px
+}
+.print-size-card:hover,.print-size-card:focus-visible{border-color:#8e7766;background:#f5eee4}
+.print-size-card.active{border:2px solid #6f3f30;background:#f5e8dd;padding:12px 11px}
+.print-size-card .print-size-tier{font:9px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#9e583f}
+.print-size-card strong{font:21px/1.15 var(--font);font-weight:400;letter-spacing:-.02em}
+.print-size-card>span:not(.print-size-tier){font:11px/1.3 var(--sans);color:#555952}
+.print-size-card small{margin-top:auto;font:9px/1.25 var(--sans);color:#77756f}
+.print-size-loading,.print-size-empty{grid-column:1/-1;margin:0;padding:18px;border:1px dashed #c6beb2;background:#f5f0e8;font:12px/1.5 var(--sans);color:#66685f}
+.print-quote{margin:18px 0 12px}
+#print-checkout-button{margin-top:10px}
+#print-checkout-button:disabled{opacity:.58;cursor:not-allowed}
+@media(max-width:680px){
+ .print-box{padding:42px 22px 28px}
+ .print-form{grid-template-columns:1fr 1fr}
+ .print-size-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .print-size-heading{display:block}
+ .print-size-heading small{display:block;margin-top:4px}
+}
+@media(max-width:420px){
+ .print-form{grid-template-columns:1fr}
+ .print-size-options{grid-template-columns:1fr}
+ .art-card>.art-card-print{align-items:flex-start}
+}

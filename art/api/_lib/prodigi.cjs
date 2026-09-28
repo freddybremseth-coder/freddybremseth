@@ -27,6 +27,8 @@ const cleanCountry = value => typeof value === 'string' && /^[A-Z]{2}$/.test(val
 const cleanSku = value => typeof value === 'string' && /^GLOBAL-FAP-[0-9]+X[0-9]+$/i.test(value) ? value.toUpperCase() : null;
 const cents = value => Math.round(Number(value || 0) * 100);
 const roundUp = (value, step = 500) => Math.ceil(Math.max(0, value) / step) * step;
+const PRODUCT_CACHE_TTL_MS = 30 * 60 * 1000;
+const productCache = new Map();
 
 function prodigiEnvironment() {
   return String(process.env.PRODIGI_ENVIRONMENT || 'sandbox').toLowerCase() === 'live' ? 'live' : 'sandbox';
@@ -123,11 +125,18 @@ async function findPrintAsset(artworkId) {
 async function productDetails(sku) {
   const safe = cleanSku(sku);
   if (!safe) return null;
+  const cached = productCache.get(safe);
+  if (cached && Date.now() - cached.at < PRODUCT_CACHE_TTL_MS) return cached.value;
   try {
     const body = await prodigiRequest('/v4.0/products/' + encodeURIComponent(safe), { method: 'GET' });
-    return body && body.product ? body.product : null;
+    const value = body && body.product ? body.product : null;
+    productCache.set(safe, { at: Date.now(), value });
+    return value;
   } catch (error) {
-    if (error.status === 404 || error.status === 400) return null;
+    if (error.status === 404 || error.status === 400) {
+      productCache.set(safe, { at: Date.now(), value: null });
+      return null;
+    }
     throw error;
   }
 }
@@ -151,6 +160,25 @@ function fitsResolution(asset, required) {
   if (!width || !height || !required) return false;
   return (width >= required.width && height >= required.height)
     || (width >= required.height && height >= required.width);
+}
+
+function fitQuality(asset, required) {
+  const width = Number(asset && asset.pixel_width || 0);
+  const height = Number(asset && asset.pixel_height || 0);
+  const requiredWidth = Number(required && required.width || 0);
+  const requiredHeight = Number(required && required.height || 0);
+  if (!width || !height || !requiredWidth || !requiredHeight) return null;
+  const scaleA = Math.min(requiredWidth / width, requiredHeight / height);
+  const scaleB = Math.min(requiredWidth / height, requiredHeight / width);
+  const scaleNeeded = Math.min(scaleA, scaleB);
+  const effectivePpi = Math.round(300 / Math.max(scaleNeeded, 0.01));
+  return {
+    scale_needed: Number(scaleNeeded.toFixed(3)),
+    effective_ppi: effectivePpi,
+    recommended: scaleNeeded <= 1,
+    acceptable: scaleNeeded <= 2.5,
+    label: scaleNeeded <= 1 ? 'Recommended quality' : scaleNeeded <= 1.5 ? 'Very good quality' : scaleNeeded <= 2.5 ? 'Good quality' : 'Standard quality'
+  };
 }
 
 function aspectDelta(asset, product) {
@@ -177,7 +205,6 @@ function candidateSkusForAsset(asset) {
       return { sku, delta: Math.abs(ratio - Math.min(a, b) / Math.max(a, b)), area: a * b };
     })
     .sort((x, y) => x.delta - y.delta || x.area - y.area)
-    .slice(0, 7)
     .map(item => item.sku);
 }
 
@@ -188,22 +215,27 @@ async function eligibleProducts(artworkId, countryCode) {
   if (!asset) return { asset: null, products: [] };
   const candidates = candidateSkusForAsset(asset);
   const details = await Promise.all(candidates.map(productDetails));
-  const products = details.filter(Boolean).map(product => {
+  const shippable = details.filter(Boolean).map(product => {
     const variant = variantForCountry(product, country);
     const required = resolutionForVariant(variant);
+    const quality = fitQuality(asset, required);
     return {
       sku: String(product.sku || '').toUpperCase(),
       description: String(product.description || 'Enhanced matte fine-art print'),
       dimensions: product.productDimensions || null,
       resolution: required,
       aspect_delta: aspectDelta(asset, product),
-      quality_ok: fitsResolution(asset, required)
+      quality_ok: fitsResolution(asset, required),
+      quality,
+      fit_mode: 'fitPrintArea'
     };
-  }).filter(product => product.sku && product.quality_ok && product.aspect_delta <= 0.035)
+  }).filter(product => product.sku && product.resolution && product.quality)
     .sort((a, b) => {
       const area = p => Number(p.dimensions && p.dimensions.width || 0) * Number(p.dimensions && p.dimensions.height || 0);
       return area(a) - area(b);
     });
+  const preferred = shippable.filter(product => product.quality.acceptable);
+  const products = (preferred.length ? preferred : shippable.slice(0, 1)).slice(0, 12);
   return { asset, products };
 }
 
@@ -290,7 +322,7 @@ async function submitOrder({ session, artwork, asset, sku, quantity, shippingMet
         merchantReference: artwork.id,
         sku,
         copies: quantity,
-        sizing: 'fillPrintArea',
+        sizing: 'fitPrintArea',
         attributes: {},
         recipientCost: { amount: (recipientCostCents / 100).toFixed(2), currency: 'EUR' },
         assets: [{ printArea: 'default', url: assetUrl }]
@@ -383,6 +415,7 @@ module.exports = {
   findArtworkForPrint,
   findPrintAsset,
   productDetails,
+  fitQuality,
   eligibleProducts,
   createQuote,
   retailFromQuote,
