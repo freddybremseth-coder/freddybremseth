@@ -140,7 +140,7 @@ async function verifyAdmin(){
  await loadCatalogue();status('Administrator access verified. Ready for files.');
 }
 async function loadCatalogue(){
- const [styles,curation,works,variants,masters,assets,masterAudit,printStatus]=await Promise.all([
+ const [styles,curation,works,variants,masters,assets,masterAudit,printStatus,printOrders]=await Promise.all([
  fetch('/assets/styles.json').then(r=>r.json()),fetch('/assets/collections.json').then(r=>r.json()),
  api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
  api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
@@ -164,6 +164,30 @@ async function loadCatalogue(){
  $('master-verified').textContent=masterAudit.filter(row=>row.sale_verified).length;
  $('master-audit-note').textContent=missing?missing+' artwork(s) need a private source file. Select a missing work below and upload only its private original; the public gallery stays unchanged.':'Every registered artwork has a matching private object. Print quality and sale delivery still require separate checks.';
  renderCatalogue();
+}
+function renderPrintOrders(rows){
+ const host=$('print-order-list'),count=$('print-order-count');
+ if(!host||!count)return;
+ const orders=Array.isArray(rows)?rows:[];
+ count.textContent=String(orders.length);
+ host.replaceChildren();
+ if(!orders.length){const p=document.createElement('p');p.className='subtle';p.textContent='No physical print orders yet.';host.appendChild(p);return}
+ for(const order of orders){
+  const card=document.createElement('article');card.className='print-order-item';
+  const top=document.createElement('div');top.className='print-order-top';
+  const title=document.createElement('strong');title.textContent=state.works.find(work=>work.id===order.artwork_id)?.title_en||order.artwork_id;
+  const badge=document.createElement('span');badge.className='print-order-state';badge.dataset.state=String(order.state||'').toLowerCase();badge.textContent=String(order.state||'unknown').replaceAll('_',' ');
+  top.append(title,badge);
+  const details=document.createElement('p');
+  const total=Number.isFinite(Number(order.amount_total_cents))?'€'+(Number(order.amount_total_cents)/100).toFixed(2):'—';
+  const created=order.created_at?new Date(order.created_at).toLocaleString():'';
+  details.textContent=[order.sku,'Qty '+(order.quantity||1),order.destination_country,total,order.shipping_method,created].filter(Boolean).join(' · ');
+  card.append(top,details);
+  const refs=document.createElement('small');refs.textContent=['Stripe '+order.stripe_session_id,order.prodigi_order_id?'Prodigi '+order.prodigi_order_id:null,order.prodigi_stage||null].filter(Boolean).join(' · ');card.append(refs);
+  if(order.customer_email){const email=document.createElement('small');email.textContent='Customer: '+order.customer_email;card.append(email)}
+  if(order.last_error){const error=document.createElement('small');error.className='print-order-error';error.textContent='Needs attention: '+order.last_error;card.append(error)}
+  host.appendChild(card);
+ }
 }
 function renderPrintReadiness(info){
  const set=(id,value,ok)=>{const el=$(id);if(!el)return;el.textContent=value;el.dataset.state=ok===true?'ok':ok===false?'blocked':'neutral'};
