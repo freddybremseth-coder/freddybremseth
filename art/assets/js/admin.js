@@ -648,15 +648,27 @@ async function gather(files){
  if(state.pendingExistingId&&grouped.size!==1)throw Error('The selected existing artwork needs one logical artwork package. Put its master/digital/print/web versions in one ZIP or upload one image.');
  if(grouped.size>MAX_ITEMS||state.queue.length+grouped.size>MAX_ITEMS)throw Error('Maximum 100 artworks per batch. Clear the queue or split your archives.');
  const collection=$('collection-default').value,style=$('style-default').value;
+ const exactExisting=new Map();
  for(const group of grouped.values()){
-  const match=state.works.find(work=>work.id===state.pendingExistingId);
+  const matches=state.works.filter(work=>work.id===group.label||work.id===group.key||stem(work.id)===group.key);
+  if(matches.length===1)exactExisting.set(group.key,matches[0]);
+ }
+ if(!state.pendingExistingId&&$('upload-mode').value==='new'&&grouped.size>0&&exactExisting.size===grouped.size){
+  $('upload-mode').value='existing';
+  status('Exact artwork IDs detected in this package. Switched to existing-artwork mode automatically; public gallery details will stay unchanged.');
+ }
+ const existingMode=$('upload-mode').value==='existing';
+ for(const group of grouped.values()){
+  const match=state.pendingExistingId
+   ?state.works.find(work=>work.id===state.pendingExistingId)
+   :(existingMode?exactExisting.get(group.key):null);
   const previewSource=group.files.portfolio||group.files.master||group.files.digital||group.files.print;
   const masterSource=group.files.master||group.files.digital||group.files.print||group.files.portfolio;
   if(!previewSource||!masterSource)continue;
   const blobUrl=URL.createObjectURL(previewSource.file);
   const queueItem={files:group.files,members:group.members,file:masterSource.file,path:group.members.map(member=>member.path).join(' | '),blobUrl,
    title:match?.title_en||titleFromName(group.label),description:match?.description_en||'',collection_id:match?.collection_id||collection,
-   style_id:match?.style_id||style,published:match?.published??$('publish-default').checked,existing_id:match?.id||'',variant_primary_id:'',price:'50',skip:false,progress:'Ready',ai_curation:null};
+   style_id:match?.style_id||style,published:match?.published??$('publish-default').checked,existing_id:match?.id||'',variant_primary_id:'',price:'50',skip:false,progress:match?'Ready · exact artwork ID matched':'Ready',ai_curation:null};
   state.queue.push(queueItem);
  }
  state.pendingExistingId='';
@@ -668,7 +680,8 @@ async function gather(files){
  renderQueue();
  const roleCounts={master:0,digital:0,print:0,portfolio:0};
  for(const item of state.queue)for(const role of Object.keys(item.files||{}))roleCounts[role]++;
- status('Smart ZIP ready: '+grouped.size+' artwork(s). Routed roles — master '+roleCounts.master+', digital '+roleCounts.digital+', print '+roleCounts.print+', web '+roleCounts.portfolio+'.');
+ const autoMatched=state.queue.filter(item=>item.existing_id).length;
+ status('Smart ZIP ready: '+grouped.size+' artwork(s). Routed roles — master '+roleCounts.master+', digital '+roleCounts.digital+', print '+roleCounts.print+', web '+roleCounts.portfolio+'.'+(autoMatched?' Exact existing-artwork matches: '+autoMatched+'.':''));
 }
 function rowSelect(entries,value,placeholder){return '<option value="">'+esc(placeholder)+'</option>'+entries.map(e=>'<option value="'+esc(e.id)+'"'+(value===e.id?' selected':'')+'>'+esc(e.name||e.title_en)+'</option>').join('')}
 function renderQueue(){
