@@ -463,3 +463,21 @@ dialog.landscape-artwork .dialog-photo img {
  .print-size-options{grid-template-columns:1fr}
  .art-card>.art-card-print{align-items:flex-start}
 }
+
+
+/* Dynamic /artwork/ pages use the same Prodigi purchase flow as the gallery. */
+.artwork-print-shop{margin:30px 0 24px;padding:24px;border:1px solid #cfc7ba;background:#fbf8f2}
+.artwork-print-heading .eyebrow{margin-bottom:10px}
+.artwork-print-heading h2{font:normal 34px/1.08 var(--font);letter-spacing:-.035em;margin:0 0 10px}
+.artwork-print-heading>p:not(.eyebrow){font:14px/1.6 var(--font);color:#5f625c;margin-bottom:0}
+.artwork-print-form{margin-top:18px}
+#artwork-print-buy{margin-top:12px}
+#artwork-print-buy:disabled{opacity:.58;cursor:not-allowed}
+#artwork-print-message[data-state="ready"]{color:#385843}
+#artwork-print-message[data-state="locked"]{color:#765f3f}
+#artwork-print-message[data-state="error"]{color:#9a463c}
+.artwork-back-link{display:inline-block;margin-top:5px}
+@media(max-width:760px){
+ .artwork-print-shop{padding:20px 16px}
+ .artwork-print-heading h2{font-size:30px}
+}

@@ -75,3 +75,18 @@ test('print options tell the gallery whether a master or archive preview is used
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
  assert.match(app,/archived work is offered only in small formats/);
 });
+
+
+test('dynamic artwork pages expose print ordering and correct Stripe return path',()=>{
+ const page=fs.readFileSync(path.join(root,'api/artwork-page.js'),'utf8');
+ const client=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ const checkout=fs.readFileSync(path.join(root,'api/create-print-checkout.js'),'utf8');
+ assert.match(page,/artwork-print\.js/);
+ assert.match(page,/data-artwork-print/);
+ assert.match(page,/Order this artwork as a print/);
+ assert.doesNotMatch(page,/Gallery preview only\. A high-resolution digital edition is not yet available for purchase\./);
+ assert.match(client,/\/api\/print-options\?artwork_id=/);
+ assert.match(client,/\/api\/print-quote/);
+ assert.match(client,/\/api\/create-print-checkout/);
+ assert.match(checkout,/artwork\.id\.startsWith\('art-'\)\?'\/artwork\/':'\/verk\/'/);
+});
