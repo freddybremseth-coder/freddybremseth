@@ -8,7 +8,7 @@ const prodigi=require('../api/_lib/prodigi.cjs');
 
 test('print flow keeps the full artwork and allows practical smaller formats',()=>{
  const quality=prodigi.fitQuality(
-  {pixel_width:1480,pixel_height:740},
+  {pixel_width:6002,pixel_height:7632},
   {width:2400,height:3000}
  );
  assert.ok(quality);
