@@ -50,15 +50,29 @@ function prodigiConfigured() {
   return Boolean(process.env.PRODIGI_API_KEY);
 }
 
+function printCheckoutStatus() {
+  return {
+    environment: prodigiEnvironment(),
+    prodigi: prodigiConfigured(),
+    sales_enabled: process.env.PRINT_SALES_ENABLED === 'true',
+    sample_approved: process.env.PRINT_SAMPLE_APPROVED === 'true',
+    legal_approved: process.env.PRINT_LEGAL_APPROVED === 'true',
+    stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+    webhook: Boolean(process.env.STRIPE_WEBHOOK_SECRET),
+    private_storage: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
+  };
+}
+
 function printCheckoutReady() {
-  return process.env.PRINT_SALES_ENABLED === 'true'
-    && process.env.PRINT_SAMPLE_APPROVED === 'true'
-    && process.env.PRINT_LEGAL_APPROVED === 'true'
-    && prodigiEnvironment() === 'live'
-    && prodigiConfigured()
-    && Boolean(process.env.STRIPE_SECRET_KEY)
-    && Boolean(process.env.STRIPE_WEBHOOK_SECRET)
-    && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const status = printCheckoutStatus();
+  return status.sales_enabled
+    && status.sample_approved
+    && status.legal_approved
+    && status.environment === 'live'
+    && status.prodigi
+    && status.stripe
+    && status.webhook
+    && status.private_storage;
 }
 
 function supabaseAdmin() {
@@ -460,6 +474,7 @@ module.exports = {
   cleanSku,
   prodigiEnvironment,
   prodigiConfigured,
+  printCheckoutStatus,
   printCheckoutReady,
   findArtworkForPrint,
   findPrintAsset,
