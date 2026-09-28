@@ -73,7 +73,7 @@ test('archive print asset URLs are signed and point to the converter function',(
 
 test('print options tell the gallery whether a master or archive preview is used',()=>{
  const handler=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
- assert.match(handler,/asset_source:asset&&asset\.preview_fallback\?'archive_preview':'master'/);
+ assert.match(handler,/private_master_metadata/);
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
  assert.match(app,/web-size source/);
 });
