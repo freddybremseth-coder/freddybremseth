@@ -58,7 +58,6 @@ function printCheckoutReady() {
     && prodigiConfigured()
     && Boolean(process.env.STRIPE_SECRET_KEY)
     && Boolean(process.env.STRIPE_WEBHOOK_SECRET)
-    && Boolean(process.env.SUPABASE_URL)
     && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
