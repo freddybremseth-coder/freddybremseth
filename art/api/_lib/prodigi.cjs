@@ -29,6 +29,8 @@ const CANDIDATE_SKUS = [
   'GLOBAL-FAP-30X45'
 ];
 
+const PUBLIC_SUPABASE_URL = 'https://ereapsfcsqtdmzosgnnn.supabase.co';
+const PUBLIC_SUPABASE_KEY = 'sb_publishable_KTywNu5kx3HfcOLInKOUjA_5Py79jZm';
 const cleanCountry = value => typeof value === 'string' && /^[A-Z]{2}$/.test(value) ? value : null;
 const cleanSku = value => typeof value === 'string' && /^GLOBAL-FAP-[0-9]+X[0-9]+$/i.test(value) ? value.toUpperCase() : null;
 const cents = value => Math.round(Number(value || 0) * 100);
@@ -61,9 +63,16 @@ function printCheckoutReady() {
 }
 
 function supabaseAdmin() {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
   const { createClient } = require('@supabase/supabase-js');
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  return createClient(process.env.SUPABASE_URL || PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+
+function supabasePublic() {
+  const { createClient } = require('@supabase/supabase-js');
+  return createClient(process.env.SUPABASE_URL || PUBLIC_SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY || PUBLIC_SUPABASE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false }
   });
 }
@@ -93,8 +102,7 @@ async function prodigiRequest(path, options = {}) {
 
 async function findArtworkForPrint(artworkId) {
   if (typeof artworkId !== 'string' || !/^[a-z0-9-]+$/.test(artworkId)) return null;
-  const client = supabaseAdmin();
-  if (!client) return null;
+  const client = supabaseAdmin() || supabasePublic();
   const { data, error } = await client
     .from('art_gallery_works')
     .select('id,title_en,description_en,pixel_width,pixel_height,published,review_status,public_preview_path')
@@ -108,12 +116,17 @@ async function findArtworkForPrint(artworkId) {
 async function findPrintAsset(artworkId) {
   if (typeof artworkId !== 'string' || !/^[a-z0-9-]+$/.test(artworkId)) return null;
   const client = supabaseAdmin();
-  if (!client) return null;
-  const { data, error } = await client
-    .from('art_gallery_assets')
-    .select('artwork_id,asset_role,bucket_name,object_path,mime_type,pixel_width,pixel_height,verified_at')
-    .eq('artwork_id', artworkId)
-    .in('asset_role', ['print', 'master']);
+  let data = null;
+  let error = null;
+  if (client) {
+    const result = await client
+      .from('art_gallery_assets')
+      .select('artwork_id,asset_role,bucket_name,object_path,mime_type,pixel_width,pixel_height,verified_at')
+      .eq('artwork_id', artworkId)
+      .in('asset_role', ['print', 'master']);
+    data = result.data;
+    error = result.error;
+  }
   const ranked = !error && Array.isArray(data) ? data
     .filter(row => row.bucket_name === (process.env.ART_STORAGE_BUCKET || 'art-originals'))
     .filter(row => ['image/jpeg', 'image/png'].includes(String(row.mime_type || '').toLowerCase()) || /\.(jpe?g|png)$/i.test(row.object_path || ''))
@@ -303,11 +316,11 @@ function retailFromQuote(quoteResult) {
 }
 
 function previewPrintAssetUrl(asset, expiresIn = 86400) {
-  if (!asset || !asset.preview_fallback || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  if (!asset || !asset.preview_fallback || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
   const expires = Math.floor(Date.now() / 1000) + Math.max(300, Math.min(7 * 86400, Number(expiresIn || 86400)));
   const message = asset.artwork_id + ':' + expires;
   const sig = crypto.createHmac('sha256', process.env.SUPABASE_SERVICE_ROLE_KEY).update(message).digest('hex');
-  const url = new URL('/functions/v1/art-print-asset', process.env.SUPABASE_URL);
+  const url = new URL('/functions/v1/art-print-asset', process.env.SUPABASE_URL || PUBLIC_SUPABASE_URL);
   url.searchParams.set('artwork_id', asset.artwork_id);
   url.searchParams.set('expires', String(expires));
   url.searchParams.set('sig', sig);
@@ -451,6 +464,7 @@ module.exports = {
   printCheckoutReady,
   findArtworkForPrint,
   findPrintAsset,
+  supabasePublic,
   previewPrintAssetUrl,
   productDetails,
   fitQuality,
