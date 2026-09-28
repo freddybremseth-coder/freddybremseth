@@ -43,8 +43,8 @@ module.exports=async(req,res)=>{
         print_total_cents:String(retail.total_cents)
       },
       payment_intent_data:{metadata:{artwork_id:artwork.id,delivery:'print',prodigi_sku:sku}},
-      success_url:base+'/verk/'+encodeURIComponent(artwork.id)+'/?print_session_id={CHECKOUT_SESSION_ID}',
-      cancel_url:base+'/verk/'+encodeURIComponent(artwork.id)+'/?print_checkout=cancelled',
+      success_url:base+(artwork.id.startsWith('art-')?'/artwork/':'/verk/')+encodeURIComponent(artwork.id)+'/?print_session_id={CHECKOUT_SESSION_ID}',
+      cancel_url:base+(artwork.id.startsWith('art-')?'/artwork/':'/verk/')+encodeURIComponent(artwork.id)+'/?print_checkout=cancelled',
       ...(process.env.STRIPE_AUTOMATIC_TAX==='true'?{automatic_tax:{enabled:true}}:{})
     });
     if(!session.url)return res.status(502).json({error:'Stripe did not return a checkout link'});
