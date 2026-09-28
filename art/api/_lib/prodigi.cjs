@@ -162,6 +162,29 @@ async function findPrintAsset(artworkId) {
     }) : [];
   if (ranked[0]) return ranked[0];
 
+  // Sandbox sizing may safely use dimensions from a private master even when this
+  // deployment has no service-role secret. The RPC exposes metadata only: never
+  // the private bucket path or file URL. Live checkout still requires the service
+  // role so signedPrintUrl() can hand the actual asset to Prodigi after payment.
+  if (!client) {
+    const publicClient = supabasePublic();
+    const metadata = await publicClient.rpc('art_public_print_master_metadata', { p_artwork_id: artworkId });
+    const row = !metadata.error && Array.isArray(metadata.data) ? metadata.data[0] : null;
+    if (row && Number(row.pixel_width) > 0 && Number(row.pixel_height) > 0) {
+      return {
+        artwork_id: artworkId,
+        asset_role: row.asset_role || 'master',
+        bucket_name: 'art-originals',
+        object_path: '',
+        mime_type: row.mime_type || 'image/jpeg',
+        pixel_width: Number(row.pixel_width),
+        pixel_height: Number(row.pixel_height),
+        verified_at: null,
+        metadata_only: true
+      };
+    }
+  }
+
   const artwork = await findArtworkForPrint(artworkId);
   if (!artwork || !artwork.public_preview_path || !Number(artwork.pixel_width) || !Number(artwork.pixel_height)) return null;
   return {

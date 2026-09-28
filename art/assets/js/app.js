@@ -278,7 +278,9 @@
     ||data.products[Math.min(1,data.products.length-1)];
    const archiveCopy=data.asset_source==='archive_preview'
     ?' The print service is currently seeing only the web-size source; connect the private Print Master to unlock the full fine-art range.'
-    :' Fine-art editions start at 8 inches on the shortest paper side.';
+    :data.asset_source==='private_master_metadata'
+      ?' Private Print Master found; Sandbox sizing uses its real pixel dimensions while the private file itself remains locked.'
+      :' Fine-art editions start at 8 inches on the shortest paper side.';
    $('print-help').textContent=data.sales_enabled
     ?'Choose a size. Your complete artwork is fitted to the paper without cropping; a border may appear when proportions differ.'+archiveCopy
     :printBlockerMessage(data)+archiveCopy;

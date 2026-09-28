@@ -62,7 +62,11 @@
    const chosen=data.products.find(p=>p.quality?.recommended&&dimensionData(p).max>=14&&dimensionData(p).max<=24)
     ||data.products.find(p=>p.quality?.recommended)
     ||data.products[0];
-   setMessage(data.asset_source==='archive_preview'?'This artwork is temporarily using a web-size source. Add the private Print Master to unlock the full fine-art range.':'Choose a fine-art size to see the complete print and shipping price. Editions start at 8 inches on the shortest paper side.');
+   setMessage(data.asset_source==='archive_preview'
+    ?'This artwork is temporarily using a web-size source. Add the private Print Master to unlock the full fine-art range.'
+    :data.asset_source==='private_master_metadata'
+      ?'Private Print Master found. Sandbox is sizing this artwork from its '+data.products.length+' eligible fine-art format'+(data.products.length===1?'':'s')+'. Live fulfilment remains locked until private storage access is connected.'
+      :'Choose a fine-art size to see the complete print and shipping price. Editions start at 8 inches on the shortest paper side.');
    selectSize(chosen.sku,true);
   }catch(error){
    host.innerHTML='<p class="print-size-empty">Print sizes are temporarily unavailable.</p>';setMessage(error.message||'Print ordering is temporarily unavailable.','error');
