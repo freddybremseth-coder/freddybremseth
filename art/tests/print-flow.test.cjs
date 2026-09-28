@@ -214,14 +214,14 @@ test('Gilded Ruin source supports curated 8x10, 8x12 and 11x14 without cropping'
 
 test('fine-art retail floors rise with physical size and replace the fixed artist fee',()=>{
  assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-4X6'),0);
- assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-8X10'),7900);
- assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-8X12'),7900);
- assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-11X14'),9900);
- assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-12X18'),11900);
- assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-16X24'),15900);
- assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-20X30'),19900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-8X10'),5900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-8X12'),5900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-11X14'),7900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-12X18'),9900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-16X24'),13900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-20X30'),17900);
  assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-24X36'),24900);
- assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-30X40'),32900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-30X40'),24900);
  const oldMultiplier=process.env.PRINT_COST_MULTIPLIER;
  const oldRound=process.env.PRINT_ROUND_TO_CENTS;
  process.env.PRINT_COST_MULTIPLIER='2';process.env.PRINT_ROUND_TO_CENTS='500';
@@ -229,9 +229,9 @@ test('fine-art retail floors rise with physical size and replace the fixed artis
   sku:'GLOBAL-FAP-8X12',quantity:1,
   quote:{shipmentMethod:'Standard',costSummary:{items:{amount:'10.00'},shipping:{amount:'9.00'}}}
  });
- assert.equal(retail.product_cents,7900);
+ assert.equal(retail.product_cents,5900);
  assert.equal(retail.shipping_cents,900);
- assert.equal(retail.total_cents,8800);
+ assert.equal(retail.total_cents,6800);
  if(oldMultiplier===undefined)delete process.env.PRINT_COST_MULTIPLIER;else process.env.PRINT_COST_MULTIPLIER=oldMultiplier;
  if(oldRound===undefined)delete process.env.PRINT_ROUND_TO_CENTS;else process.env.PRINT_ROUND_TO_CENTS=oldRound;
 });
@@ -269,4 +269,35 @@ test('Sandbox can size from private Print Master metadata without exposing its p
  const dynamic=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
  assert.match(dynamic,/Private Print Master found/);
  assert.match(dynamic,/Live fulfilment remains locked until private storage access is connected/);
+});
+
+
+test('print buying UI leads with three tiers and hides extra sizes behind More sizes',()=>{
+ const gallery=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const dynamic=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ for(const source of [gallery,dynamic]){
+  assert.match(source,/Gallery · Most popular/);
+  assert.match(source,/Statement/);
+  assert.match(source,/More sizes/);
+  assert.match(source,/display_price_cents/);
+  assert.match(source,/print-promotion/);
+ }
+});
+
+test('print promotions require explicit dates and never become permanent by accident',()=>{
+ const keys=['PRINT_PROMOTION_MODE','PRINT_PROMOTION_PERCENT','PRINT_PROMOTION_LABEL','PRINT_PROMOTION_START','PRINT_PROMOTION_END'];
+ const before=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+ process.env.PRINT_PROMOTION_MODE='percent';
+ process.env.PRINT_PROMOTION_PERCENT='17';
+ process.env.PRINT_PROMOTION_LABEL='Introduction Edition';
+ delete process.env.PRINT_PROMOTION_START;delete process.env.PRINT_PROMOTION_END;
+ assert.equal(prodigi.activePrintPromotion(new Date('2026-09-28T12:00:00Z')),null);
+ process.env.PRINT_PROMOTION_START='2026-09-28T00:00:00Z';
+ process.env.PRINT_PROMOTION_END='2026-10-05T23:59:59Z';
+ const promo=prodigi.activePrintPromotion(new Date('2026-09-29T12:00:00Z'));
+ assert.equal(promo.mode,'percent');
+ assert.equal(promo.percent,17);
+ assert.equal(promo.label,'Introduction Edition');
+ assert.equal(prodigi.activePrintPromotion(new Date('2026-10-06T00:00:00Z')),null);
+ for(const key of keys){if(before[key]===undefined)delete process.env[key];else process.env[key]=before[key]}
 });

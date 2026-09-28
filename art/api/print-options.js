@@ -1,5 +1,5 @@
 'use strict';
-const {prodigiConfigured,prodigiEnvironment,printCheckoutStatus,printCheckoutReady,findArtworkForPrint,eligibleProducts,MIN_FINE_ART_SHORT_SIDE_IN}=require('./_lib/prodigi.cjs');
+const {prodigiConfigured,prodigiEnvironment,printCheckoutStatus,printCheckoutReady,findArtworkForPrint,eligibleProducts,MIN_FINE_ART_SHORT_SIDE_IN,fineArtRetailFloorCents}=require('./_lib/prodigi.cjs');
 
 module.exports=async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
@@ -27,6 +27,7 @@ module.exports=async(req,res)=>{
         dimensions:product.dimensions,
         recommended_resolution:product.resolution,
         fit_mode:product.fit_mode,
+        display_price_cents:fineArtRetailFloorCents(product.sku),
         quality:product.quality
       }))
     });

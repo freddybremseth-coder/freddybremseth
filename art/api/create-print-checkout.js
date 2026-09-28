@@ -40,7 +40,11 @@ module.exports=async(req,res)=>{
         destination_country:country,
         shipping_method:retail.shipping_method,
         print_product_cents:String(retail.product_cents),
-        print_total_cents:String(retail.total_cents)
+        print_total_cents:String(retail.total_cents),
+        print_normal_total_cents:String(retail.normal_product_cents+retail.normal_shipping_cents),
+        print_discount_cents:String(retail.discount_cents||0),
+        print_promotion_mode:String(retail.promotion?.mode||'none'),
+        print_promotion_label:String(retail.promotion?.label||'').slice(0,80)
       },
       payment_intent_data:{metadata:{artwork_id:artwork.id,delivery:'print',prodigi_sku:sku}},
       success_url:base+(artwork.id.startsWith('art-')?'/artwork/':'/verk/')+encodeURIComponent(artwork.id)+'/?print_session_id={CHECKOUT_SESSION_ID}',

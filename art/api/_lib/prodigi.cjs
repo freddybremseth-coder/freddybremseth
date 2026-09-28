@@ -313,13 +313,29 @@ function fineArtRetailFloorCents(sku) {
   const dims = skuDimensions(sku);
   if (!dims || Math.min(dims.width, dims.height) < MIN_FINE_ART_SHORT_SIDE_IN) return 0;
   const longest = Math.max(dims.width, dims.height);
-  if (longest <= 12) return 7900;
-  if (longest <= 14) return 9900;
-  if (longest <= 18) return 11900;
-  if (longest <= 24) return 15900;
-  if (longest <= 30) return 19900;
-  if (longest <= 36) return 24900;
-  return 32900;
+  if (longest <= 12) return 5900;
+  if (longest <= 14) return 7900;
+  if (longest <= 18) return 9900;
+  if (longest <= 24) return 13900;
+  if (longest <= 30) return 17900;
+  return 24900;
+}
+
+function activePrintPromotion(now = new Date()) {
+  const mode = String(process.env.PRINT_PROMOTION_MODE || 'off').trim().toLowerCase();
+  if (!['percent','free_shipping'].includes(mode)) return null;
+  const startRaw = String(process.env.PRINT_PROMOTION_START || '').trim();
+  const endRaw = String(process.env.PRINT_PROMOTION_END || '').trim();
+  if (!startRaw || !endRaw) return null;
+  const start = new Date(startRaw);
+  const end = new Date(endRaw);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) return null;
+  const at = now instanceof Date ? now : new Date(now);
+  if (!Number.isFinite(at.getTime()) || at < start || at > end) return null;
+  const label = String(process.env.PRINT_PROMOTION_LABEL || (mode === 'free_shipping' ? 'Free delivery' : 'Limited-time offer')).trim().slice(0,80);
+  if (mode === 'free_shipping') return { mode, label, starts_at:start.toISOString(), ends_at:end.toISOString() };
+  const percent = Math.max(5, Math.min(30, Math.round(Number(process.env.PRINT_PROMOTION_PERCENT || 17))));
+  return { mode, label, percent, starts_at:start.toISOString(), ends_at:end.toISOString() };
 }
 
 function localProductForSku(sku, asset) {
@@ -396,13 +412,27 @@ function retailFromQuote(quoteResult) {
   const roundTo = Math.max(100, Number(process.env.PRINT_ROUND_TO_CENTS || 500));
   const curatedFloor = fineArtRetailFloorCents(quoteResult.sku) * quoteResult.quantity;
   if (!curatedFloor) throw Object.assign(new Error('Fine-art print size is below the curated minimum'), { code: 'PRINT_SIZE_BELOW_MINIMUM' });
-  const product = Math.max(roundUp(wholesaleItems * multiplier, roundTo), curatedFloor);
-  const shipping = roundUp(wholesaleShipping, 100);
+  const costProtectedFloor = roundUp(wholesaleItems * multiplier, roundTo);
+  const normalProduct = Math.max(costProtectedFloor, curatedFloor);
+  const normalShipping = roundUp(wholesaleShipping, 100);
+  const promotion = activePrintPromotion();
+  let product = normalProduct;
+  let shipping = normalShipping;
+  if (promotion?.mode === 'percent') {
+    const discounted = Math.round(normalProduct * (100 - promotion.percent) / 100 / 100) * 100;
+    product = Math.max(costProtectedFloor, discounted);
+  } else if (promotion?.mode === 'free_shipping') {
+    shipping = 0;
+  }
   return {
     currency: 'eur',
     product_cents: product,
     shipping_cents: shipping,
     total_cents: product + shipping,
+    normal_product_cents: normalProduct,
+    normal_shipping_cents: normalShipping,
+    discount_cents: Math.max(0, normalProduct + normalShipping - product - shipping),
+    promotion,
     wholesale_items_cents: wholesaleItems,
     wholesale_shipping_cents: wholesaleShipping,
     shipping_method: String(quote.shipmentMethod || 'Standard')
@@ -554,6 +584,7 @@ module.exports = {
   MIN_FINE_ART_SHORT_SIDE_IN,
   skuDimensions,
   fineArtRetailFloorCents,
+  activePrintPromotion,
   isCuratedFineArtProduct,
   cleanCountry,
   cleanSku,

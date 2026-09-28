@@ -6,6 +6,17 @@
  const $=id=>document.getElementById(id);
  const money=cents=>'€'+(Number(cents||0)/100).toFixed(2);
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const primaryProducts=products=>{
+  if(products.length<=3)return products;
+  return [products[0],products[Math.round((products.length-1)/2)],products[products.length-1]].filter((item,index,all)=>all.findIndex(x=>x.sku===item.sku)===index);
+ };
+ const primaryLabel=(product,primary)=>{
+  const index=primary.findIndex(item=>item.sku===product.sku);
+  if(primary.length===1)return 'Fine Art';
+  if(index===0)return 'Fine Art';
+  if(index===primary.length-1)return 'Statement';
+  return 'Gallery · Most popular';
+ };
  const dimensionData=product=>{
   const d=product?.dimensions||{},w=Number(d.width||0),h=Number(d.height||0),units=String(d.units||'in').toLowerCase();
   if(!w||!h)return {primary:'Print size',secondary:'',max:0};
@@ -53,15 +64,24 @@
     return
    }
    host.replaceChildren();
-   for(const product of data.products){
+   const primary=primaryProducts(data.products),primarySet=new Set(primary.map(item=>item.sku));
+   const createButton=(product,label)=>{
     const dims=dimensionData(product);
     const button=document.createElement('button');button.type='button';button.className='print-size-card';button.dataset.sku=product.sku;button.setAttribute('aria-pressed','false');
-    button.innerHTML='<span class="print-size-tier">'+(dims.max<=12?'Fine art':dims.max<=20?'Medium':dims.max<=30?'Large':'Statement')+'</span><strong>'+esc(dims.primary)+'</strong>'+(dims.secondary?'<span>'+esc(dims.secondary)+'</span>':'')+'<small>'+esc(product.quality?.label||'Fine-art print')+'</small>';
-    button.addEventListener('click',()=>selectSize(product.sku,true));host.appendChild(button);
+    const price=Number(product.display_price_cents||0)>0?'<span class="print-size-price">from '+money(product.display_price_cents)+'</span>':'';
+    button.innerHTML='<span class="print-size-tier">'+esc(label)+'</span><strong>'+esc(dims.primary)+'</strong>'+(dims.secondary?'<span>'+esc(dims.secondary)+'</span>':'')+price+'<small>'+esc(product.quality?.label||'Fine-art print')+'</small>';
+    button.addEventListener('click',()=>selectSize(product.sku,true));return button;
+   };
+   for(const product of primary)host.appendChild(createButton(product,primaryLabel(product,primary)));
+   const extras=data.products.filter(product=>!primarySet.has(product.sku));
+   if(extras.length){
+    const more=document.createElement('details');more.className='print-more-sizes';
+    const summary=document.createElement('summary');summary.textContent='More sizes ('+extras.length+')';more.appendChild(summary);
+    const extraHost=document.createElement('div');extraHost.className='print-more-size-grid';
+    for(const product of extras)extraHost.appendChild(createButton(product,'Additional size'));
+    more.appendChild(extraHost);host.appendChild(more);
    }
-   const chosen=data.products.find(p=>p.quality?.recommended&&dimensionData(p).max>=14&&dimensionData(p).max<=24)
-    ||data.products.find(p=>p.quality?.recommended)
-    ||data.products[0];
+   const chosen=primary[Math.min(1,primary.length-1)]||primary[0];
    setMessage(data.asset_source==='archive_preview'
     ?'This artwork is temporarily using a web-size source. Add the private Print Master to unlock the full fine-art range.'
     :data.asset_source==='private_master_metadata'
@@ -89,7 +109,9 @@
    }
    quote=data;
    const summary=$('artwork-print-quote');
-   summary.innerHTML='<strong>'+esc(data.description||'Fine-art print')+'</strong><span>Print'+(quantity>1?' × '+quantity:'')+' '+money(data.product_cents)+'</span><span>'+esc(data.shipping_method||'Standard')+' shipping '+money(data.shipping_cents)+'</span><b>Total '+money(data.total_cents)+'</b>';
+   const promo=data.promotion&&data.discount_cents>0?'<span class="print-promotion"><strong>'+esc(data.promotion.label||'Limited-time offer')+'</strong> · save '+money(data.discount_cents)+'</span>':'';
+   const normal=data.discount_cents>0?'<span class="print-normal-price">Normally '+money(Number(data.normal_product_cents||0)+Number(data.normal_shipping_cents||0))+'</span>':'';
+   summary.innerHTML='<strong>'+esc(data.description||'Fine-art print')+'</strong>'+normal+'<span>Print'+(quantity>1?' × '+quantity:'')+' '+money(data.product_cents)+'</span><span>'+esc(data.shipping_method||'Standard')+' shipping '+(data.promotion?.mode==='free_shipping'?'<s>'+money(data.normal_shipping_cents)+'</s> '+money(0):money(data.shipping_cents))+'</span>'+promo+'<b>Total '+money(data.total_cents)+'</b>';
    summary.hidden=false;
    const buy=$('artwork-print-buy');buy.hidden=false;buy.disabled=!data.checkout_enabled;
    buy.textContent=data.checkout_enabled?'Buy this print securely ↗':'Online checkout is not live yet';

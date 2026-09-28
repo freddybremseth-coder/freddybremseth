@@ -29,6 +29,10 @@ module.exports=async(req,res)=>{
       product_cents:retail.product_cents,
       shipping_cents:retail.shipping_cents,
       total_cents:retail.total_cents,
+      normal_product_cents:retail.normal_product_cents,
+      normal_shipping_cents:retail.normal_shipping_cents,
+      discount_cents:retail.discount_cents,
+      promotion:retail.promotion,
       currency:'eur',
       checkout_enabled:printCheckoutReady()
     });
