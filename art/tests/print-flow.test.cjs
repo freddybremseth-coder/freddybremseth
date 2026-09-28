@@ -39,7 +39,7 @@ test('print API returns fit and quality guidance for each paper size',()=>{
 });
 
 
-test('archive previews qualify for safe small-format printing',()=>{
+test('legacy web previews can be measured safely but are not sold as premium mini prints',()=>{
  const small=prodigi.fitQuality(
   {pixel_width:1122,pixel_height:1402},
   {width:1200,height:1800}
@@ -52,6 +52,8 @@ test('archive previews qualify for safe small-format printing',()=>{
  assert.ok(medium.effective_ppi>=220);
  assert.ok(prodigi.CANDIDATE_SKUS.includes('GLOBAL-FAP-4X6'));
  assert.ok(prodigi.CANDIDATE_SKUS.includes('GLOBAL-FAP-5X7'));
+ assert.equal(prodigi.MIN_FINE_ART_SHORT_SIDE_IN,8);
+ assert.equal(prodigi.isCuratedFineArtProduct(prodigi.localProductForSku('GLOBAL-FAP-4X6',{pixel_width:1122,pixel_height:1402}),220),false);
 });
 
 test('archive print asset URLs are signed and point to the converter function',()=>{
@@ -196,4 +198,52 @@ test('gallery print dialog explains exact readiness blocker',()=>{
  assert.match(client,/representative sample print still needs approval/);
  assert.match(client,/lastPrintOptions=data/);
  assert.match(client,/printBlockerMessage\(lastPrintOptions\)/);
+});
+
+
+test('Gilded Ruin source supports curated 8x10, 8x12 and 11x14 without cropping',()=>{
+ const asset={pixel_width:2048,pixel_height:3072};
+ const eligible=sku=>prodigi.isCuratedFineArtProduct(prodigi.localProductForSku(sku,asset),200);
+ assert.equal(eligible('GLOBAL-FAP-4X6'),false);
+ assert.equal(eligible('GLOBAL-FAP-5X7'),false);
+ assert.equal(eligible('GLOBAL-FAP-8X10'),true);
+ assert.equal(eligible('GLOBAL-FAP-8X12'),true);
+ assert.equal(eligible('GLOBAL-FAP-11X14'),true);
+ assert.equal(eligible('GLOBAL-FAP-12X16'),false);
+});
+
+test('fine-art retail floors rise with physical size and replace the fixed artist fee',()=>{
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-4X6'),0);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-8X10'),7900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-8X12'),7900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-11X14'),9900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-12X18'),11900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-16X24'),15900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-20X30'),19900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-24X36'),24900);
+ assert.equal(prodigi.fineArtRetailFloorCents('GLOBAL-FAP-30X40'),32900);
+ const oldMultiplier=process.env.PRINT_COST_MULTIPLIER;
+ const oldRound=process.env.PRINT_ROUND_TO_CENTS;
+ process.env.PRINT_COST_MULTIPLIER='2';process.env.PRINT_ROUND_TO_CENTS='500';
+ const retail=prodigi.retailFromQuote({
+  sku:'GLOBAL-FAP-8X12',quantity:1,
+  quote:{shipmentMethod:'Standard',costSummary:{items:{amount:'10.00'},shipping:{amount:'9.00'}}}
+ });
+ assert.equal(retail.product_cents,8000);
+ assert.equal(retail.shipping_cents,900);
+ assert.equal(retail.total_cents,8900);
+ if(oldMultiplier===undefined)delete process.env.PRINT_COST_MULTIPLIER;else process.env.PRINT_COST_MULTIPLIER=oldMultiplier;
+ if(oldRound===undefined)delete process.env.PRINT_ROUND_TO_CENTS;else process.env.PRINT_ROUND_TO_CENTS=oldRound;
+});
+
+test('fine-art options enforce the curated minimum and moderate border tolerance',()=>{
+ const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
+ assert.match(source,/MIN_FINE_ART_SHORT_SIDE_IN = 8/);
+ assert.match(source,/aspect_delta.*<= 0\.15/);
+ assert.match(source,/isCuratedFineArtProduct/);
+ const options=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
+ assert.match(options,/fine_art_min_short_side_in/);
+ const dynamic=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ assert.match(dynamic,/Fine-art editions start at 8 inches/);
+ assert.match(dynamic,/SUPABASE_SERVICE_ROLE_KEY/);
 });
