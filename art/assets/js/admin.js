@@ -4,6 +4,7 @@ const cfg=window.ART_GALLERY_CONFIG;
 const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],assets:[],masterAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
 const MAX_FILE=50*1024*1024,MAX_ZIP=500*1024*1024,MAX_ITEMS=100;
+const PRINT_MASTER_SKUS=['4X6','5X7','6X8','6X9','8X10','8X12','10X10','11X14','12X16','12X18','16X16','16X20','16X24','18X24','20X20','20X24','20X28','20X30','24X24','24X30','24X36','30X30','30X40','30X45'];
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,75);
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const status=(message,bad=false)=>{$('status').textContent=message;$('status').style.background=bad?'#87382e':'#213738'};
@@ -145,7 +146,7 @@ async function loadCatalogue(){
  api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
  api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
  api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes&limit=1000'),
- api('/rest/v1/art_gallery_assets?select=artwork_id,asset_role,bucket_name,object_path,verified_at,original_filename,pixel_width,pixel_height,file_bytes&order=artwork_id.asc,asset_role.asc&limit=2000'),
+ api('/rest/v1/art_gallery_assets?select=artwork_id,asset_role,bucket_name,object_path,verified_at,original_filename,mime_type,pixel_width,pixel_height,file_bytes&order=artwork_id.asc,asset_role.asc&limit=2000'),
  api('/rest/v1/rpc/art_gallery_admin_master_status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),
  fetch('/api/status',{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():({})).catch(()=>({})),
  api('/rest/v1/art_print_orders?select=stripe_session_id,artwork_id,prodigi_order_id,prodigi_environment,sku,quantity,destination_country,shipping_method,amount_total_cents,currency,state,prodigi_stage,issues,customer_email,last_error,created_at,updated_at&order=created_at.desc&limit=50').catch(()=>[])
@@ -165,6 +166,14 @@ async function loadCatalogue(){
  $('master-missing').textContent=missing;
  $('master-verified').textContent=masterAudit.filter(row=>row.sale_verified).length;
  $('master-audit-note').textContent=missing?missing+' artwork(s) need a private source file. Select a missing work below and upload only its private original; the public gallery stays unchanged.':'Every registered artwork has a matching private object. Print quality and sale delivery still require separate checks.';
+ const printStatuses=state.works.map(work=>printMasterStatusFor(work.id));
+ const printCount=tier=>printStatuses.filter(item=>item.tier===tier).length;
+ $('print-master-statement').textContent=printCount('statement');
+ $('print-master-large').textContent=printCount('large');
+ $('print-master-medium').textContent=printCount('medium');
+ $('print-master-upgrade').textContent=printStatuses.filter(item=>item.needs_upgrade).length;
+ const printReady=printStatuses.filter(item=>['medium','large','statement'].includes(item.tier)).length;
+ $('print-master-note').textContent=printReady+' artwork(s) currently support roughly 40×50 cm or larger at the quality floor. '+printStatuses.filter(item=>item.needs_upgrade).length+' should receive a larger private PRINT file before large-format selling.';
  renderCatalogue();
 }
 function renderPrintOrders(rows){
@@ -211,18 +220,48 @@ function renderPrintReadiness(info){
  const note=$('print-status-note');
  if(note)note.textContent=live?'Physical print checkout is live. Prodigi receives orders only after verified Stripe payment.':(missing.length?'Still locked: '+missing.join(', ')+'.':'Print checkout remains locked by the server safety gate.');
 }
+function privatePrintAssetFor(id){
+ const priority={print:3,master:2,digital:1};
+ const candidates=state.assets.filter(asset=>asset.artwork_id===id&&asset.bucket_name==='art-originals'&&priority[asset.asset_role]&&Number(asset.pixel_width)>0&&Number(asset.pixel_height)>0)
+  .sort((a,b)=>{
+   const verified=row=>row.verified_at?1:0,area=row=>Number(row.pixel_width||0)*Number(row.pixel_height||0);
+   return verified(b)-verified(a)||area(b)-area(a)||(priority[b.asset_role]||0)-(priority[a.asset_role]||0);
+  });
+ if(candidates[0])return candidates[0];
+ const audit=state.masterAudit.find(row=>row.artwork_id===id);
+ if(audit?.storage_object_present&&Number(audit.pixel_width)>0&&Number(audit.pixel_height)>0)return {artwork_id:id,asset_role:'master',bucket_name:'art-originals',pixel_width:audit.pixel_width,pixel_height:audit.pixel_height,verified_at:audit.sale_verified?'verified':null};
+ return null;
+}
+function printPpiFor(asset,paperWidth,paperHeight){
+ const width=Number(asset?.pixel_width||0),height=Number(asset?.pixel_height||0);
+ const requiredWidth=paperWidth*300,requiredHeight=paperHeight*300;
+ if(!width||!height)return 0;
+ const sameOrientation=(width>=height)===(requiredWidth>=requiredHeight);
+ const scale=sameOrientation?Math.min(requiredWidth/width,requiredHeight/height):Math.min(requiredWidth/height,requiredHeight/width);
+ return Math.round(300/Math.max(scale,.01));
+}
+function printMasterStatusFor(id){
+ const asset=privatePrintAssetFor(id);
+ if(!asset)return {tier:'none',label:'No private print source',needs_upgrade:true,asset:null,max:null};
+ const sizes=PRINT_MASTER_SKUS.map(code=>{
+  const [width,height]=code.split('X').map(Number),ppi=printPpiFor(asset,width,height);
+  return {code,width,height,ppi,area:width*height,long:Math.max(width,height)};
+ }).filter(item=>item.ppi>=200).sort((a,b)=>a.area-b.area);
+ if(!sizes.length)return {tier:'none',label:'Source too small for print',needs_upgrade:true,asset,max:null};
+ const max=sizes[sizes.length-1],cmWidth=Math.round(max.width*2.54),cmHeight=Math.round(max.height*2.54);
+ const tier=max.long>=36?'statement':max.long>=28?'large':max.long>=20?'medium':'small';
+ return {tier,label:'Up to '+cmWidth+' × '+cmHeight+' cm',needs_upgrade:max.long<20,asset,max};
+}
 function masterStatusFor(id){return state.masterAudit.find(row=>row.artwork_id===id)}
 function renderCatalogue(){
  const term=$('catalog-search').value.trim().toLowerCase();
  const filter=$('master-filter').value;
+ const printFilter=$('print-master-filter').value;
  const matches=state.works.filter(w=>{
-  const master=masterStatusFor(w.id);
-  return (w.title_en+' '+w.id).toLowerCase().includes(term)&&(
-   filter==='all'||
-   (filter==='needs-upload'&&!master?.storage_object_present)||
-   (filter==='stored'&&!!master?.storage_object_present)||
-   (filter==='verified'&&!!master?.sale_verified)
-  );
+  const master=masterStatusFor(w.id),print=printMasterStatusFor(w.id);
+  const privateMatch=filter==='all'||(filter==='needs-upload'&&!master?.storage_object_present)||(filter==='stored'&&!!master?.storage_object_present)||(filter==='verified'&&!!master?.sale_verified);
+  const printMatch=printFilter==='all'||(printFilter==='needs-upgrade'&&print.needs_upgrade)||printFilter===print.tier;
+  return (w.title_en+' '+w.id).toLowerCase().includes(term)&&privateMatch&&printMatch;
  });
  $('catalog-filter-count').textContent=matches.length+' matching artwork(s) · showing '+Math.min(matches.length,100)+' (use search to narrow results).';
  $('catalog-list').replaceChildren();
@@ -236,7 +275,8 @@ function renderCatalogue(){
   const size=master?.storage_object_present&&master.pixel_width&&master.pixel_height?' · '+master.pixel_width+' × '+master.pixel_height+' px':'';
   const roles=state.assets.filter(asset=>asset.artwork_id===work.id).map(asset=>asset.asset_role);
   const roleNote=roles.length?' · Files: '+roles.map(role=>ROLE_LABELS[role]||role).join(', '):'';
-  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+esc(roleNote)+'</small></span>';
+  const print=printMasterStatusFor(work.id),printSource=print.asset?String(print.asset.pixel_width)+' × '+String(print.asset.pixel_height)+' px · '+(ROLE_LABELS[print.asset.asset_role]||print.asset.asset_role):'No usable private JPG/PNG';
+  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+esc(roleNote)+'</small><small class="print-master-line" data-tier="'+esc(print.tier)+'"><strong>Print Master:</strong> '+esc(print.label)+' · '+esc(printSource)+(print.max?' · ~'+print.max.ppi+' ppi at max size':'')+'</small></span>';
   const edit=document.createElement('button');edit.type='button';edit.textContent='Edit title & story';edit.addEventListener('click',()=>editWork(work));el.append(edit);
   const add=document.createElement('button');add.type='button';add.textContent='Add / replace source files';
   add.disabled=false;
@@ -832,7 +872,9 @@ $('upload-all').addEventListener('click',withErrors(uploadAll));
 $('clear-queue').addEventListener('click',()=>{if(state.busy)return;for(const item of state.queue)URL.revokeObjectURL(item.blobUrl);state.queue=[];renderQueue();status('Queue cleared.')});
 $('catalog-search').addEventListener('input',renderCatalogue);
 $('master-filter').addEventListener('change',renderCatalogue);
-$('show-missing').addEventListener('click',()=>{$('master-filter').value='needs-upload';renderCatalogue();$('catalog-search').value='';renderCatalogue();$('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});});
+$('print-master-filter').addEventListener('change',renderCatalogue);
+$('show-missing').addEventListener('click',()=>{$('master-filter').value='needs-upload';$('print-master-filter').value='all';$('catalog-search').value='';renderCatalogue();$('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});});
+$('show-print-upgrades').addEventListener('click',()=>{$('master-filter').value='all';$('print-master-filter').value='needs-upgrade';$('catalog-search').value='';renderCatalogue();$('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});});
 dropEvents();
 (async()=>{if(!cfg?.url||!cfg?.anonKey)throw Error('Missing gallery configuration');const fromLink=await acceptCallback();if(!state.session){try{state.session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}}if(state.session)await verifyAdmin();else if(!fromLink)status('Private gallery: sign in to continue. If an email link brought you back to this login screen, see the Magic Link template help below.');})().catch(e=>status(e.message,true));
 })();
