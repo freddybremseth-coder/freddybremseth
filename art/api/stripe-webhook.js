@@ -1,6 +1,6 @@
 'use strict';
 const Stripe=require('stripe');
-const {findArtworkForPrint,findPrintAsset,submitOrder,printCheckoutReady}=require('./_lib/prodigi.cjs');
+const {findArtworkForPrint,findPrintAsset,submitOrder,printCheckoutReady,getPrintOrder,savePrintOrder,patchPrintOrder}=require('./_lib/prodigi.cjs');
 
 async function rawBody(req){
   // Do not access req.body before reading the stream: Vercel exposes body as a lazy
@@ -33,11 +33,44 @@ async function handler(req,res){
     const artwork=await findArtworkForPrint(artworkId);
     const asset=await findPrintAsset(artworkId);
     if(!artwork||!asset||!sku)throw new Error('Print fulfillment metadata or master is missing');
-    const order=await submitOrder({session,artwork,asset,sku,quantity,shippingMethod,recipientCostCents});
-    if(order&&order.id){
-      await stripe.checkout.sessions.update(session.id,{metadata:{prodigi_order_id:order.id}});
+
+    const existing=await getPrintOrder(session.id);
+    if(existing?.prodigi_order_id){
+      return res.status(200).json({received:true,prodigi_order_id:existing.prodigi_order_id,duplicate_webhook:true});
     }
-    return res.status(200).json({received:true,prodigi_order_id:order&&order.id||null});
+
+    await savePrintOrder({
+      stripe_session_id:session.id,
+      artwork_id:artwork.id,
+      sku,
+      quantity,
+      destination_country:session.metadata?.destination_country||session.collected_information?.shipping_details?.address?.country||'ES',
+      shipping_method:shippingMethod,
+      amount_total_cents:session.amount_total,
+      customer_email:session.customer_details?.email||null,
+      state:'submitting'
+    });
+
+    try{
+      const order=await submitOrder({session,artwork,asset,sku,quantity,shippingMethod,recipientCostCents});
+      if(order&&order.id){
+        await patchPrintOrder(session.id,{
+          prodigi_order_id:order.id,
+          state:'submitted',
+          prodigi_stage:order.status?.stage||null,
+          issues:Array.isArray(order.status?.issues)?order.status.issues:[],
+          last_error:null
+        });
+        await stripe.checkout.sessions.update(session.id,{metadata:{prodigi_order_id:order.id}});
+      }
+      return res.status(200).json({received:true,prodigi_order_id:order&&order.id||null});
+    }catch(error){
+      await patchPrintOrder(session.id,{
+        state:'fulfillment_error',
+        last_error:String(error?.code||error?.message||'PRODIGI_SUBMISSION_FAILED').slice(0,500)
+      }).catch(()=>undefined);
+      throw error;
+    }
   }catch(error){
     console.error('Stripe print webhook',error?.type||error?.code||error?.message||'unknown');
     return res.status(400).send('Webhook error');
