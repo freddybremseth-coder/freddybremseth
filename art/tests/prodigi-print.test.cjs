@@ -1,0 +1,46 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const prodigi=require('../api/_lib/prodigi.cjs');
+
+test('Prodigi candidate catalogue keeps documented fine-art SKUs',()=>{
+ assert.ok(prodigi.CANDIDATE_SKUS.includes('GLOBAL-FAP-10X10'));
+ assert.ok(prodigi.CANDIDATE_SKUS.includes('GLOBAL-FAP-16X24'));
+});
+
+test('retail quote keeps shipping separate and rounds safely',()=>{
+ const oldMultiplier=process.env.PRINT_COST_MULTIPLIER;
+ const oldFee=process.env.PRINT_ARTIST_FEE_CENTS;
+ const oldRound=process.env.PRINT_ROUND_TO_CENTS;
+ process.env.PRINT_COST_MULTIPLIER='2';
+ process.env.PRINT_ARTIST_FEE_CENTS='5000';
+ process.env.PRINT_ROUND_TO_CENTS='500';
+ const price=prodigi.retailFromQuote({
+  quantity:1,
+  quote:{shipmentMethod:'Standard',costSummary:{items:{amount:'12.34',currency:'EUR'},shipping:{amount:'4.21',currency:'EUR'}}}
+ });
+ assert.equal(price.product_cents,7500);
+ assert.equal(price.shipping_cents,500);
+ assert.equal(price.total_cents,8000);
+ if(oldMultiplier===undefined)delete process.env.PRINT_COST_MULTIPLIER;else process.env.PRINT_COST_MULTIPLIER=oldMultiplier;
+ if(oldFee===undefined)delete process.env.PRINT_ARTIST_FEE_CENTS;else process.env.PRINT_ARTIST_FEE_CENTS=oldFee;
+ if(oldRound===undefined)delete process.env.PRINT_ROUND_TO_CENTS;else process.env.PRINT_ROUND_TO_CENTS=oldRound;
+});
+
+test('live checkout fails closed unless production approvals and secrets exist',()=>{
+ const keys=['PRINT_SALES_ENABLED','PRINT_SAMPLE_APPROVED','PRINT_LEGAL_APPROVED','PRODIGI_ENVIRONMENT','PRODIGI_API_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY'];
+ const before=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+ for(const key of keys)delete process.env[key];
+ process.env.PRODIGI_ENVIRONMENT='live';
+ process.env.PRODIGI_API_KEY='test';
+ process.env.STRIPE_SECRET_KEY='test';
+ process.env.STRIPE_WEBHOOK_SECRET='test';
+ process.env.SUPABASE_URL='https://example.supabase.co';
+ process.env.SUPABASE_SERVICE_ROLE_KEY='test';
+ process.env.PRINT_SALES_ENABLED='true';
+ assert.equal(prodigi.printCheckoutReady(),false);
+ process.env.PRINT_SAMPLE_APPROVED='true';
+ process.env.PRINT_LEGAL_APPROVED='true';
+ assert.equal(prodigi.printCheckoutReady(),true);
+ for(const key of keys){if(before[key]===undefined)delete process.env[key];else process.env[key]=before[key]}
+});

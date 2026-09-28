@@ -90,20 +90,33 @@ Pay attention to merchant details, contact information, VAT and EU consumer requ
 
 **Workflow**: Customer selects artwork → accepts immediate-delivery/license terms → POST `/api/create-checkout` checks private file and starts a new €50 Stripe Checkout → Stripe returns to the chosen artwork page with its session ID → GET `/api/confirm-download` checks the **actual paid** Stripe session and matching artwork and amount → issues a **300-second signed download URL** to the corresponding private image. An unsuccessful Stripe session receives no file. Keep the Stripe return URL private; it can be revisited by the buyer. For guaranteed delivery independent of checkout return or an expired return link, implement a customer email receipt with a secure recovery flow before scaling paid sales; a mail provider is not configured in this build.
 
-## Print-on-demand integration
+## Print-on-demand integration — Prodigi
 
-Edit `assets/print-links.json` when you have your partner's **real direct URL for each artwork**:
+The gallery now has a first-party **Prodigi v4** integration instead of relying only on outbound print-store links. The browser never receives the Prodigi key, Stripe secret or Supabase service role.
 
-```json
-{
-  "defaultPrintUrl":"",
-  "byArtworkId":{
-    "kintsugi-kyss-i-gull-og-marmor":"https://your-real-print-store.example/your-artwork-product"
-  }
-}
-```
+**Flow:** artwork → destination → server checks the private master → Prodigi Product Details validates destination and recommended pixel resolution → Prodigi Quote calculates wholesale print/shipping → the gallery applies its configured retail formula → Stripe Checkout → signed Stripe webhook → private time-limited print asset URL → Prodigi order.
 
-The public print button becomes visible **only** for works with configured valid web links. Leave `defaultPrintUrl` empty unless one global storefront page genuinely offers all artwork. Buying a physical print is a separate transaction via your print provider; digital checkout is always €50 and does not charge for a print.
+Safety boundaries:
+
+- Sandbox is the default. Sandbox orders are not produced or charged by Prodigi.
+- Live checkout requires `PRODIGI_ENVIRONMENT=live`, `PRINT_SALES_ENABLED=true`, `PRINT_SAMPLE_APPROVED=true` and `PRINT_LEGAL_APPROVED=true`, plus the required Stripe/Supabase/Prodigi secrets.
+- Only Enhanced Matte Art products with the `GLOBAL-FAP` SKU family are considered in the first rollout.
+- A size is shown only when Prodigi says it ships to the selected country **and** the private source meets Prodigi's current recommended pixel dimensions.
+- Prodigi order creation uses an idempotency key derived from the Stripe Checkout session, preventing webhook retries from creating duplicate physical orders.
+- Physical and digital purchases remain separate products. A physical print never grants the digital download licence.
+
+Server-side variables are documented in `.env.example`. Keep `PRODIGI_API_KEY` and `STRIPE_WEBHOOK_SECRET` in the **ART Vercel project only**. Configure Stripe to send `checkout.session.completed` and `checkout.session.async_payment_succeeded` to:
+
+`https://art.freddybremseth.com/api/stripe-webhook`
+
+The initial retail formula is configurable rather than hard-coded into the browser:
+
+- `PRINT_COST_MULTIPLIER` — multiplier applied to Prodigi item cost
+- `PRINT_ARTIST_FEE_CENTS` — artist value added per print
+- `PRINT_ROUND_TO_CENTS` — retail rounding increment
+- quoted shipping is added separately
+
+The old `assets/print-links.json` mapping remains available only as a fallback for a future external storefront link.
 
 ## Content management and image quality
 
