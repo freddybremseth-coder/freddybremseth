@@ -247,3 +247,13 @@ test('fine-art options enforce the curated minimum and moderate border tolerance
  assert.match(dynamic,/Fine-art editions start at 8 inches/);
  assert.match(dynamic,/SUPABASE_SERVICE_ROLE_KEY/);
 });
+
+
+test('print options imports every runtime symbol used in its response',()=>{
+ const source=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
+ const importLine=source.match(/const \{([^}]+)\}=require\('\.\/_lib\/prodigi\.cjs'\);/);
+ assert.ok(importLine,'print-options must import its Prodigi runtime dependencies');
+ assert.match(importLine[1],/MIN_FINE_ART_SHORT_SIDE_IN/);
+ const prodigi=require(path.join(root,'api/_lib/prodigi.cjs'));
+ assert.equal(prodigi.MIN_FINE_ART_SHORT_SIDE_IN,8);
+});
