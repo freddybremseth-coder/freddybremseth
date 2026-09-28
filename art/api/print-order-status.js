@@ -1,6 +1,6 @@
 'use strict';
 const Stripe=require('stripe');
-const {findOrderByMerchantReference}=require('./_lib/prodigi.cjs');
+const {findOrderByMerchantReference,getPrintOrder,patchPrintOrder}=require('./_lib/prodigi.cjs');
 
 module.exports=async(req,res)=>{
   res.setHeader('Cache-Control','no-store, private');
@@ -11,8 +11,25 @@ module.exports=async(req,res)=>{
     const stripe=new Stripe(process.env.STRIPE_SECRET_KEY);
     const session=await stripe.checkout.sessions.retrieve(id);
     if(session.metadata?.delivery!=='print'||session.payment_status!=='paid')return res.status(403).json({error:'No verified paid print purchase'});
+    const stored=await getPrintOrder(session.id);
     const order=await findOrderByMerchantReference('FBART-'+session.id);
-    if(!order)return res.status(202).json({paid:true,submitted:false,status:'Payment confirmed. Preparing your print order.'});
+    if(!order){
+      const failed=stored?.state==='fulfillment_error';
+      return res.status(202).json({
+        paid:true,
+        submitted:false,
+        status:failed?'Payment is confirmed, but fulfilment needs attention. The gallery has retained the order for retry.':'Payment confirmed. Preparing your print order.'
+      });
+    }
+    const issues=order.status&&Array.isArray(order.status.issues)?order.status.issues:[];
+    const stage=order.status&&order.status.stage||null;
+    await patchPrintOrder(session.id,{
+      prodigi_order_id:order.id,
+      state:String(stage||'').toLowerCase()==='complete'?'complete':String(stage||'').toLowerCase()==='cancelled'?'cancelled':'submitted',
+      prodigi_stage:stage,
+      issues,
+      last_error:null
+    }).catch(()=>undefined);
     const shipments=Array.isArray(order.shipments)?order.shipments.map(shipment=>({
       status:shipment.status||null,
       tracking_url:shipment.tracking&&shipment.tracking.url||null,
@@ -22,8 +39,8 @@ module.exports=async(req,res)=>{
       paid:true,
       submitted:true,
       prodigi_order_id:order.id,
-      stage:order.status&&order.status.stage||null,
-      issues:order.status&&Array.isArray(order.status.issues)?order.status.issues:[],
+      stage,
+      issues,
       shipments
     });
   }catch(error){
