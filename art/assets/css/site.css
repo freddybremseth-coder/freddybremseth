@@ -508,3 +508,16 @@ dialog.landscape-artwork .dialog-photo img {
 .shop-policy>p:not(.eyebrow){max-width:740px;font:16px/1.7 var(--font);color:#c6c7be}
 @media(max-width:900px){.shop-hero{grid-template-columns:1fr;gap:30px}.shop-grid{grid-template-columns:1fr 1fr}.shop-category:last-child{grid-column:1/-1}}
 @media(max-width:620px){.shop-main{padding:38px 18px 70px}.shop-hero{padding:30px 0 55px}.shop-grid{grid-template-columns:1fr;padding:50px 0}.shop-category:last-child{grid-column:auto}.shop-category{min-height:0}.shop-policy{padding:45px 24px}}
+
+
+/* Curated fine-art buying tiers */
+.print-size-price{display:block;font-weight:700;letter-spacing:.01em;margin-top:.2rem}
+.print-more-sizes{grid-column:1/-1;margin-top:.35rem;border-top:1px solid rgba(127,127,127,.22);padding-top:.65rem}
+.print-more-sizes>summary{cursor:pointer;font-size:.88rem;font-weight:650;list-style:none;opacity:.78}
+.print-more-sizes>summary::-webkit-details-marker{display:none}
+.print-more-sizes>summary::after{content:" +";font-weight:400}
+.print-more-sizes[open]>summary::after{content:" −"}
+.print-more-size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;margin-top:.7rem}
+.print-promotion{display:block;font-size:.9rem;margin-top:.35rem}
+.print-normal-price{display:block;text-decoration:line-through;opacity:.58;font-size:.88rem}
+@media(max-width:760px){.print-more-size-grid{grid-template-columns:1fr}}
