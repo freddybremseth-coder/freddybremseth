@@ -81,6 +81,20 @@ async function prodigiRequest(path, options = {}) {
   return body;
 }
 
+async function findArtworkForPrint(artworkId) {
+  if (typeof artworkId !== 'string' || !/^[a-z0-9-]+$/.test(artworkId)) return null;
+  const client = supabaseAdmin();
+  if (!client) return null;
+  const { data, error } = await client
+    .from('art_gallery_works')
+    .select('id,title_en,description_en,pixel_width,pixel_height,published,review_status')
+    .eq('id', artworkId)
+    .eq('published', true)
+    .maybeSingle();
+  if (error || !data) return null;
+  return { id: data.id, title: data.title_en || data.id, description: data.description_en || '', pixel_width: data.pixel_width, pixel_height: data.pixel_height, review_status: data.review_status };
+}
+
 async function findPrintAsset(artworkId) {
   if (typeof artworkId !== 'string' || !/^[a-z0-9-]+$/.test(artworkId)) return null;
   const client = supabaseAdmin();
@@ -306,6 +320,7 @@ module.exports = {
   prodigiEnvironment,
   prodigiConfigured,
   printCheckoutReady,
+  findArtworkForPrint,
   findPrintAsset,
   productDetails,
   eligibleProducts,
