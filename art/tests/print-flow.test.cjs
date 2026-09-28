@@ -167,3 +167,21 @@ test('quote endpoint returns safe Prodigi diagnostics after size selection',()=>
  assert.match(client,/Prodigi rejected the API key/);
  assert.match(client,/does not currently offer a shipping quote/);
 });
+
+
+test('curated shop stays separate from the gallery purchase flow',()=>{
+ const shop=fs.readFileSync(path.join(root,'shop/index.html'),'utf8');
+ const home=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const dynamic=fs.readFileSync(path.join(root,'api/artwork-page.js'),'utf8');
+ const builder=fs.readFileSync(path.join(root,'scripts/build-public.mjs'),'utf8');
+ const pages=fs.readFileSync(path.join(root,'scripts/build-pages.mjs'),'utf8');
+ assert.match(shop,/Art first\.<br><em>Objects second\.<\/em>/);
+ assert.match(shop,/Fine-art prints/);
+ assert.match(shop,/Framed art &amp; canvas/);
+ assert.match(shop,/Art beyond the wall/);
+ assert.match(shop,/no generic merchandise catalogue/i);
+ assert.match(home,/href="\/shop\/"/);
+ assert.match(dynamic,/href="\/shop\/"/);
+ assert.match(builder,/['"]shop['"]/);
+ assert.match(pages,/domain\+'\/shop\/'/);
+});
