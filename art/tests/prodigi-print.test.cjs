@@ -10,20 +10,18 @@ test('Prodigi candidate catalogue keeps documented fine-art SKUs',()=>{
 
 test('retail quote keeps shipping separate and rounds safely',()=>{
  const oldMultiplier=process.env.PRINT_COST_MULTIPLIER;
- const oldFee=process.env.PRINT_ARTIST_FEE_CENTS;
  const oldRound=process.env.PRINT_ROUND_TO_CENTS;
  process.env.PRINT_COST_MULTIPLIER='2';
- process.env.PRINT_ARTIST_FEE_CENTS='5000';
  process.env.PRINT_ROUND_TO_CENTS='500';
  const price=prodigi.retailFromQuote({
+  sku:'GLOBAL-FAP-8X10',
   quantity:1,
   quote:{shipmentMethod:'Standard',costSummary:{items:{amount:'12.34',currency:'EUR'},shipping:{amount:'4.21',currency:'EUR'}}}
  });
- assert.equal(price.product_cents,7500);
+ assert.equal(price.product_cents,7900);
  assert.equal(price.shipping_cents,500);
- assert.equal(price.total_cents,8000);
+ assert.equal(price.total_cents,8400);
  if(oldMultiplier===undefined)delete process.env.PRINT_COST_MULTIPLIER;else process.env.PRINT_COST_MULTIPLIER=oldMultiplier;
- if(oldFee===undefined)delete process.env.PRINT_ARTIST_FEE_CENTS;else process.env.PRINT_ARTIST_FEE_CENTS=oldFee;
  if(oldRound===undefined)delete process.env.PRINT_ROUND_TO_CENTS;else process.env.PRINT_ROUND_TO_CENTS=oldRound;
 });
 

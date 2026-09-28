@@ -36,6 +36,7 @@ const cleanSku = value => typeof value === 'string' && /^GLOBAL-FAP-[0-9]+X[0-9]
 const cents = value => Math.round(Number(value || 0) * 100);
 const roundUp = (value, step = 500) => Math.ceil(Math.max(0, value) / step) * step;
 const PRODUCT_CACHE_TTL_MS = 30 * 60 * 1000;
+const MIN_FINE_ART_SHORT_SIDE_IN = 8;
 const productCache = new Map();
 
 function prodigiEnvironment() {
@@ -250,21 +251,8 @@ function aspectDelta(asset, product) {
 function candidateSkusForAsset(asset) {
   const width = Number(asset && asset.pixel_width || 0);
   const height = Number(asset && asset.pixel_height || 0);
-  const small = ['GLOBAL-FAP-4X6','GLOBAL-FAP-5X7','GLOBAL-FAP-6X8'];
-  if (!width || !height) return small;
-  const ratio = Math.min(width, height) / Math.max(width, height);
-  const closest = CANDIDATE_SKUS
-    .filter(sku => !small.includes(sku))
-    .map(sku => {
-      const match = sku.match(/-(\d+)X(\d+)$/);
-      const a = Number(match && match[1] || 1);
-      const b = Number(match && match[2] || 1);
-      return { sku, delta: Math.abs(ratio - Math.min(a, b) / Math.max(a, b)), area: a * b };
-    })
-    .sort((x, y) => x.delta - y.delta || x.area - y.area)
-    .slice(0, 3)
-    .map(item => item.sku);
-  return [...new Set([...small, ...closest])];
+  if (!width || !height) return [];
+  return [...CANDIDATE_SKUS];
 }
 
 async function productDetailsBatch(skus, concurrency = 2) {
@@ -290,6 +278,27 @@ async function productDetailsBatch(skus, concurrency = 2) {
   return products;
 }
 
+function skuDimensions(sku) {
+  const match = String(sku || '').match(/GLOBAL-FAP-(\d+)X(\d+)$/i);
+  if (!match) return null;
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  return width > 0 && height > 0 ? { width, height } : null;
+}
+
+function fineArtRetailFloorCents(sku) {
+  const dims = skuDimensions(sku);
+  if (!dims || Math.min(dims.width, dims.height) < MIN_FINE_ART_SHORT_SIDE_IN) return 0;
+  const longest = Math.max(dims.width, dims.height);
+  if (longest <= 12) return 7900;
+  if (longest <= 14) return 9900;
+  if (longest <= 18) return 11900;
+  if (longest <= 24) return 15900;
+  if (longest <= 30) return 19900;
+  if (longest <= 36) return 24900;
+  return 32900;
+}
+
 function localProductForSku(sku, asset) {
   const match = String(sku || '').match(/GLOBAL-FAP-(\d+)X(\d+)$/i);
   if (!match) return null;
@@ -310,6 +319,13 @@ function localProductForSku(sku, asset) {
   };
 }
 
+function isCuratedFineArtProduct(product, qualityFloor = 200) {
+  return Math.min(Number(product?.dimensions?.width || 0), Number(product?.dimensions?.height || 0)) >= MIN_FINE_ART_SHORT_SIDE_IN
+    && Number(product?.aspect_delta || 0) <= 0.15
+    && Boolean(product?.quality)
+    && Number(product.quality.effective_ppi || 0) >= qualityFloor;
+}
+
 async function eligibleProducts(artworkId, countryCode) {
   const country = cleanCountry(countryCode);
   if (!country || !prodigiConfigured()) return { asset: null, products: [] };
@@ -324,7 +340,7 @@ async function eligibleProducts(artworkId, countryCode) {
     });
   const qualityFloor = asset.preview_fallback ? 220 : 200;
   const products = candidates
-    .filter(product => product.quality && product.quality.effective_ppi >= qualityFloor)
+    .filter(product => isCuratedFineArtProduct(product, qualityFloor))
     .slice(0, 6);
   return { asset, products };
 }
@@ -354,9 +370,10 @@ function retailFromQuote(quoteResult) {
   const wholesaleItems = cents(quote.costSummary && quote.costSummary.items && quote.costSummary.items.amount);
   const wholesaleShipping = cents(quote.costSummary && quote.costSummary.shipping && quote.costSummary.shipping.amount);
   const multiplier = Math.max(1, Number(process.env.PRINT_COST_MULTIPLIER || 2));
-  const artistFee = Math.max(0, Number(process.env.PRINT_ARTIST_FEE_CENTS || 5000));
   const roundTo = Math.max(100, Number(process.env.PRINT_ROUND_TO_CENTS || 500));
-  const product = roundUp(wholesaleItems * multiplier + artistFee * quoteResult.quantity, roundTo);
+  const curatedFloor = fineArtRetailFloorCents(quoteResult.sku) * quoteResult.quantity;
+  if (!curatedFloor) throw Object.assign(new Error('Fine-art print size is below the curated minimum'), { code: 'PRINT_SIZE_BELOW_MINIMUM' });
+  const product = Math.max(roundUp(wholesaleItems * multiplier, roundTo), curatedFloor);
   const shipping = roundUp(wholesaleShipping, 100);
   return {
     currency: 'eur',
@@ -511,6 +528,10 @@ async function findOrderByMerchantReference(reference) {
 
 module.exports = {
   CANDIDATE_SKUS,
+  MIN_FINE_ART_SHORT_SIDE_IN,
+  skuDimensions,
+  fineArtRetailFloorCents,
+  isCuratedFineArtProduct,
   cleanCountry,
   cleanSku,
   prodigiEnvironment,
