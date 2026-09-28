@@ -75,7 +75,7 @@ test('print options tell the gallery whether a master or archive preview is used
  const handler=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
  assert.match(handler,/asset_source:asset&&asset\.preview_fallback\?'archive_preview':'master'/);
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
- assert.match(app,/archived work is offered only in small formats/);
+ assert.match(app,/web-size source/);
 });
 
 
