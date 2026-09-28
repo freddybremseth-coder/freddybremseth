@@ -383,3 +383,14 @@ test('dynamic artwork page keeps complete preview image markup when dimensions a
  assert.match(handler,/width="'\+width\+'" height="'\+height\+'"/);
  assert.doesNotMatch(handler,/width="'\+Number\(art\.pixel_width\)\|\|/);
 });
+
+
+test('admin enforces English catalogue titles for Norwegian and other non-English uploads',()=>{
+ const js=fs.readFileSync(path.join(root,'assets/js/admin.js'),'utf8');
+ assert.match(js,/function looksNonEnglishTitle\(title\)/);
+ assert.match(js,/gullhav/);
+ assert.match(js,/midnattsgull/);
+ assert.match(js,/biblioteca/);
+ assert.match(js,/gleði/);
+ assert.match(js,/Artwork titles must be English\. Change the non-English title before upload/);
+});

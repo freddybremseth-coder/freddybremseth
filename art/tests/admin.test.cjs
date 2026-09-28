@@ -36,7 +36,7 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(html,/Smart ZIP · automatic file placement/);
  assert.match(html,/PRINT_300DPI/);
  assert.match(html,/RETINA/);
- assert.match(js,/looksNorwegianTitle/);
+ assert.match(js,/looksNonEnglishTitle/);
  assert.match(js,/art-title-english/);
  assert.match(js,/Artwork titles must be English/);
  assert.match(html,/Artwork titles are English only/);
@@ -117,8 +117,8 @@ test('English title normalizer is admin-only, rate-limit resilient and skips AI 
  assert.match(fn,/art_gallery_admin_users/);
  assert.match(fn,/client\.auth\.getUser/);
  assert.match(fn,/If an input title is already English, return it unchanged/);
- assert.match(fn,/If an input title is Norwegian, translate it into concise, natural English/);
- assert.match(fn,/Never translate an English title into Norwegian/);
+ assert.match(fn,/If an input title is not English, translate it into concise, natural English/);
+ assert.match(fn,/Never translate an English title into another language/);
  assert.match(fn,/callGemini/);
  assert.match(fn,/callOpenAI/);
  assert.match(fn,/callClaude/);
@@ -127,7 +127,7 @@ test('English title normalizer is admin-only, rate-limit resilient and skips AI 
  assert.match(fn,/titles\.length>100/);
  assert.match(fn,/Provide 1-100 non-empty titles/);
  assert.match(fn,/responseMimeType:'application\/json'/);
- assert.match(admin,/filter\(item=>looksNorwegianTitle\(item\.title\)\)/);
+ assert.match(admin,/filter\(item=>looksNonEnglishTitle\(item\.title\)\)/);
  assert.match(admin,/English source titles stay English and are not sent to the translation service/);
  assert.match(admin,/Needs English title · translation temporarily unavailable/);
  assert.match(admin,/!item\.skip/);
