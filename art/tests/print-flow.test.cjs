@@ -120,17 +120,6 @@ test('dynamic artwork print flow explains the exact live checkout blocker',()=>{
 });
 
 
-test('Prodigi size discovery limits catalogue fan-out and tolerates per-SKU failures',()=>{
- const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
- assert.match(source,/productDetailsBatch\(candidates, 2\)/);
- assert.match(source,/\.slice\(0, 3\)/);
- assert.match(source,/GLOBAL-FAP-4X6/);
- assert.match(source,/GLOBAL-FAP-5X7/);
- assert.match(source,/GLOBAL-FAP-6X8/);
- assert.match(source,/Prodigi product lookup failed/);
- assert.match(source,/PRODIGI_CATALOG_UNAVAILABLE/);
-});
-
 test('Prodigi print asset selection can use a higher-resolution private digital JPEG',()=>{
  const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
  assert.match(source,/\['print', 'master', 'digital'\]/);
@@ -145,4 +134,36 @@ test('Prodigi failures return safe actionable diagnostics',()=>{
  assert.match(options,/HTTP_\\d\{3\}/);
  assert.match(client,/Sandbox and Live API keys are separate/);
  assert.match(client,/rate-limiting size lookup/);
+});
+
+
+test('print size options are derived locally before Prodigi quote',()=>{
+ const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
+ assert.match(source,/function localProductForSku\(/);
+ assert.match(source,/dimensions: \{ width, height, units: 'in' \}/);
+ const eligible=source.slice(source.indexOf('async function eligibleProducts'),source.indexOf('async function createQuote'));
+ assert.doesNotMatch(eligible,/productDetailsBatch/);
+ assert.doesNotMatch(eligible,/prodigiRequest/);
+ assert.match(eligible,/qualityFloor = asset\.preview_fallback \? 220 : 200/);
+});
+
+test('2244x2804 artwork gets practical local print sizes without a catalogue request',()=>{
+ const asset={pixel_width:2244,pixel_height:2804};
+ const p4=prodigi.localProductForSku('GLOBAL-FAP-4X6',asset);
+ const p8=prodigi.localProductForSku('GLOBAL-FAP-8X10',asset);
+ const p16=prodigi.localProductForSku('GLOBAL-FAP-16X20',asset);
+ assert.equal(p4.dimensions.width,4);
+ assert.equal(p4.dimensions.height,6);
+ assert.ok(p4.quality.effective_ppi>=300);
+ assert.ok(p8.quality.effective_ppi>=270);
+ assert.ok(p16.quality.effective_ppi<200);
+});
+
+test('quote endpoint returns safe Prodigi diagnostics after size selection',()=>{
+ const quote=fs.readFileSync(path.join(root,'api/print-quote.js'),'utf8');
+ const client=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ assert.match(quote,/PRINT_NO_QUOTE/);
+ assert.match(quote,/PRODIGI_UNKNOWN/);
+ assert.match(client,/Prodigi rejected the API key/);
+ assert.match(client,/does not currently offer a shipping quote/);
 });

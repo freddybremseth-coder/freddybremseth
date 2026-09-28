@@ -69,7 +69,15 @@
   setMessage('Calculating print and shipping…');
   try{
    const response=await fetch('/api/print-quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:artworkId,sku,country:$('artwork-print-country').value,quantity})});
-   const data=await response.json();if(!response.ok)throw Error(data.error||'Price unavailable');
+   const data=await response.json();
+   if(!response.ok){
+    let message=data.error||'Price unavailable';
+    if(data.code==='PRODIGI_HTTP_401'||data.code==='PRODIGI_HTTP_403')message='Prodigi rejected the API key for '+String(data.environment||'this').toUpperCase()+' environment. The Sandbox and Live API keys are separate.';
+    else if(data.code==='PRODIGI_HTTP_429')message='Prodigi is rate-limiting the price request. Please try again.';
+    else if(data.code==='PRODIGI_TIMEOUT'||data.code==='PRODIGI_NETWORK_ERROR')message='Prodigi did not answer the price request in time. Please try again.';
+    else if(data.code==='PRINT_NO_QUOTE')message='Prodigi does not currently offer a shipping quote for this size and destination. Choose another size.';
+    throw Error(message);
+   }
    quote=data;
    const summary=$('artwork-print-quote');
    summary.innerHTML='<strong>'+esc(data.description||'Fine-art print')+'</strong><span>Print'+(quantity>1?' × '+quantity:'')+' '+money(data.product_cents)+'</span><span>'+esc(data.shipping_method||'Standard')+' shipping '+money(data.shipping_cents)+'</span><b>Total '+money(data.total_cents)+'</b>';

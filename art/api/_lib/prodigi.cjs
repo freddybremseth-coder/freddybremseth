@@ -290,38 +290,42 @@ async function productDetailsBatch(skus, concurrency = 2) {
   return products;
 }
 
+function localProductForSku(sku, asset) {
+  const match = String(sku || '').match(/GLOBAL-FAP-(\d+)X(\d+)$/i);
+  if (!match) return null;
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (!width || !height) return null;
+  const required = { width: width * 300, height: height * 300 };
+  const quality = fitQuality(asset, required);
+  return {
+    sku: String(sku).toUpperCase(),
+    description: 'Enhanced matte fine-art print',
+    dimensions: { width, height, units: 'in' },
+    resolution: required,
+    aspect_delta: aspectDelta(asset, { productDimensions: { width, height, units: 'in' } }),
+    quality_ok: fitsResolution(asset, required),
+    quality,
+    fit_mode: 'fitPrintArea'
+  };
+}
+
 async function eligibleProducts(artworkId, countryCode) {
   const country = cleanCountry(countryCode);
   if (!country || !prodigiConfigured()) return { asset: null, products: [] };
   const asset = await findPrintAsset(artworkId);
   if (!asset) return { asset: null, products: [] };
-  const candidates = candidateSkusForAsset(asset);
-  const details = await productDetailsBatch(candidates, 2);
-  const shippable = details.filter(Boolean).map(product => {
-    const variant = variantForCountry(product, country);
-    const required = resolutionForVariant(variant);
-    const quality = fitQuality(asset, required);
-    return {
-      sku: String(product.sku || '').toUpperCase(),
-      description: String(product.description || 'Enhanced matte fine-art print'),
-      dimensions: product.productDimensions || null,
-      resolution: required,
-      aspect_delta: aspectDelta(asset, product),
-      quality_ok: fitsResolution(asset, required),
-      quality,
-      fit_mode: 'fitPrintArea'
-    };
-  }).filter(product => product.sku && product.resolution && product.quality)
+  const candidates = candidateSkusForAsset(asset)
+    .map(sku => localProductForSku(sku, asset))
+    .filter(Boolean)
     .sort((a, b) => {
       const area = p => Number(p.dimensions && p.dimensions.width || 0) * Number(p.dimensions && p.dimensions.height || 0);
       return area(a) - area(b);
     });
-  const preferred = asset.preview_fallback
-    ? shippable.filter(product => product.quality.effective_ppi >= 220)
-    : shippable.filter(product => product.quality.acceptable);
-  const products = asset.preview_fallback
-    ? preferred.slice(0, 3)
-    : (preferred.length ? preferred : shippable.slice(0, 1)).slice(0, 12);
+  const qualityFloor = asset.preview_fallback ? 220 : 200;
+  const products = candidates
+    .filter(product => product.quality && product.quality.effective_ppi >= qualityFloor)
+    .slice(0, 6);
   return { asset, products };
 }
 
@@ -519,6 +523,7 @@ module.exports = {
   previewPrintAssetUrl,
   productDetails,
   fitQuality,
+  localProductForSku,
   eligibleProducts,
   createQuote,
   retailFromQuote,
