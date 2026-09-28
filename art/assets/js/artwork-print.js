@@ -46,18 +46,23 @@
    }
    readiness=data.checkout_status||null;
    if(!data.configured){host.innerHTML='<p class="print-size-empty">Print ordering is temporarily unavailable.</p>';setMessage('Print ordering is temporarily unavailable.');return}
-   if(!Array.isArray(data.products)||!data.products.length){host.innerHTML='<p class="print-size-empty">No print size is available for this destination yet.</p>';setMessage('No print size is available for this destination yet.');return}
+   if(!Array.isArray(data.products)||!data.products.length){
+    const needsMaster=data.asset_source==='archive_preview';
+    host.innerHTML='<p class="print-size-empty">'+(needsMaster?'A larger Print Master is required for this artwork.':'No curated fine-art size is available for this destination yet.')+'</p>';
+    setMessage(needsMaster?'This artwork currently has only a web-size source available to the print service. Fine-art editions start at 8 inches on the shortest paper side; add the private Print Master to unlock larger formats.':'No curated fine-art size is available for this destination yet.');
+    return
+   }
    host.replaceChildren();
    for(const product of data.products){
     const dims=dimensionData(product);
     const button=document.createElement('button');button.type='button';button.className='print-size-card';button.dataset.sku=product.sku;button.setAttribute('aria-pressed','false');
-    button.innerHTML='<span class="print-size-tier">'+(dims.max<=12?'Small':dims.max<=20?'Medium':dims.max<=30?'Large':'Statement')+'</span><strong>'+esc(dims.primary)+'</strong>'+(dims.secondary?'<span>'+esc(dims.secondary)+'</span>':'')+'<small>'+esc(product.quality?.label||'Fine-art print')+'</small>';
+    button.innerHTML='<span class="print-size-tier">'+(dims.max<=12?'Fine art':dims.max<=20?'Medium':dims.max<=30?'Large':'Statement')+'</span><strong>'+esc(dims.primary)+'</strong>'+(dims.secondary?'<span>'+esc(dims.secondary)+'</span>':'')+'<small>'+esc(product.quality?.label||'Fine-art print')+'</small>';
     button.addEventListener('click',()=>selectSize(product.sku,true));host.appendChild(button);
    }
    const chosen=data.products.find(p=>p.quality?.recommended&&dimensionData(p).max>=14&&dimensionData(p).max<=24)
     ||data.products.find(p=>p.quality?.recommended)
     ||data.products[0];
-   setMessage(data.asset_source==='archive_preview'?'Small-format fine-art prints are available for this archived work.':'Choose a size to see the complete print and shipping price.');
+   setMessage(data.asset_source==='archive_preview'?'This artwork is temporarily using a web-size source. Add the private Print Master to unlock the full fine-art range.':'Choose a fine-art size to see the complete print and shipping price. Editions start at 8 inches on the shortest paper side.');
    selectSize(chosen.sku,true);
   }catch(error){
    host.innerHTML='<p class="print-size-empty">Print sizes are temporarily unavailable.</p>';setMessage(error.message||'Print ordering is temporarily unavailable.','error');
@@ -86,7 +91,8 @@
    buy.textContent=data.checkout_enabled?'Buy this print securely ↗':'Online checkout is not live yet';
    let lockedMessage='Print size and price are available, but customer checkout has not been switched to live production yet.';
    if(!data.checkout_enabled&&readiness){
-    if(readiness.environment!=='live')lockedMessage='Prodigi is connected in SANDBOX test mode. Sizes and prices work, but real customer purchases require PRODIGI_ENVIRONMENT=live and a Prodigi Live API key.';
+    if(readiness.environment!=='live'&&!readiness.private_storage)lockedMessage='Prodigi Sandbox is working, but this Art deployment still lacks SUPABASE_SERVICE_ROLE_KEY. Add it to let Sandbox size the artwork from its private Print Master; Live customer purchases also require PRODIGI_ENVIRONMENT=live and a Prodigi Live API key.';
+    else if(readiness.environment!=='live')lockedMessage='Prodigi is connected in SANDBOX test mode. Sizes and prices work, but real customer purchases require PRODIGI_ENVIRONMENT=live and a Prodigi Live API key.';
     else if(!readiness.stripe)lockedMessage='Prodigi is live, but the Stripe server key is missing from the Art Vercel project.';
     else if(!readiness.webhook)lockedMessage='Prodigi and Stripe are connected, but STRIPE_WEBHOOK_SECRET is still missing for print fulfilment.';
     else if(!readiness.private_storage)lockedMessage='Print checkout still needs SUPABASE_SERVICE_ROLE_KEY in the Art Vercel project to access the private print master.';
