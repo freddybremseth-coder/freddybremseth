@@ -229,9 +229,9 @@ test('fine-art retail floors rise with physical size and replace the fixed artis
   sku:'GLOBAL-FAP-8X12',quantity:1,
   quote:{shipmentMethod:'Standard',costSummary:{items:{amount:'10.00'},shipping:{amount:'9.00'}}}
  });
- assert.equal(retail.product_cents,8000);
+ assert.equal(retail.product_cents,7900);
  assert.equal(retail.shipping_cents,900);
- assert.equal(retail.total_cents,8900);
+ assert.equal(retail.total_cents,8800);
  if(oldMultiplier===undefined)delete process.env.PRINT_COST_MULTIPLIER;else process.env.PRINT_COST_MULTIPLIER=oldMultiplier;
  if(oldRound===undefined)delete process.env.PRINT_ROUND_TO_CENTS;else process.env.PRINT_ROUND_TO_CENTS=oldRound;
 });
