@@ -22,7 +22,9 @@ module.exports=async(req,res)=>{
         sku:product.sku,
         description:product.description,
         dimensions:product.dimensions,
-        recommended_resolution:product.resolution
+        recommended_resolution:product.resolution,
+        fit_mode:product.fit_mode,
+        quality:product.quality
       }))
     });
   }catch(error){
