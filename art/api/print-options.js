@@ -20,7 +20,7 @@ module.exports=async(req,res)=>{
    fine_art_min_short_side_in:MIN_FINE_ART_SHORT_SIDE_IN,
       artwork:{id:artwork.id,title:artwork.title},
       master_ready:!!asset,
-      asset_source:asset&&asset.preview_fallback?'archive_preview':'master',
+      asset_source:asset&&asset.preview_fallback?'archive_preview':asset&&asset.metadata_only?'private_master_metadata':'master',
       products:products.map(product=>({
         sku:product.sku,
         description:product.description,
