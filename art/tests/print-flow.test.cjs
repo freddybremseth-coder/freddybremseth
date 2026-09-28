@@ -90,3 +90,18 @@ test('dynamic artwork pages expose print ordering and correct Stripe return path
  assert.match(client,/\/api\/create-print-checkout/);
  assert.match(checkout,/artwork\.id\.startsWith\('art-'\)\?'\/artwork\/':'\/verk\/'/);
 });
+
+
+test('print catalogue can resolve published artworks without a Vercel Supabase URL',()=>{
+ const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
+ assert.match(source,/PUBLIC_SUPABASE_URL = 'https:\/\/ereapsfcsqtdmzosgnnn\.supabase\.co'/);
+ assert.match(source,/supabaseAdmin\(\) \|\| supabasePublic\(\)/);
+ assert.doesNotMatch(source,/&& Boolean\(process\.env\.SUPABASE_URL\)/);
+});
+
+test('print asset discovery falls back to published preview metadata when private asset access is unavailable',()=>{
+ const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
+ assert.match(source,/const client = supabaseAdmin\(\);\s*let data = null;/);
+ assert.match(source,/asset_role: 'archive-preview'/);
+ assert.match(source,/preview_fallback: true/);
+});
