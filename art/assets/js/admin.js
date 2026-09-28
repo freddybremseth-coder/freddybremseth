@@ -773,7 +773,10 @@ async function uploadOne(item){
  if(existing?.digital_available&&explicitMaster)throw Error('This artwork is already sale-enabled. Its master/original is locked; add PRINT, DIGITAL or WEB role files instead.');
  if(explicitMaster&&currentMaster?.verified_at)throw Error('Verified sale master exists; its master/original cannot be replaced from a ZIP.');
  const needMaster=!existing||!audit?.storage_object_present||!!explicitMaster;
- const masterSource=needMaster?(explicitMaster||item.files?.digital||item.files?.print||item.files?.portfolio):null;
+ const fallbackMasterRole=existing&&needMaster&&!explicitMaster
+  ?(item.files?.digital?'digital':item.files?.print?'print':'')
+  :'';
+ const masterSource=needMaster?(explicitMaster||(fallbackMasterRole?null:(item.files?.digital||item.files?.print||item.files?.portfolio))):null;
  const portfolioSource=item.files?.portfolio||(!existing?(masterSource||item.files?.digital||item.files?.print):null);
  if(!existing&&!masterSource)throw Error('No usable master, digital, print or web file was found for '+item.title);
  const nonce=crypto.randomUUID(),folder=id+'/'+nonce;
@@ -832,6 +835,12 @@ async function uploadOne(item){
   item.progress='Uploading '+ROLE_LABELS[role]+'…';item.row.querySelector('.row-status').textContent=item.progress;
   await uploadBlob('art-originals',objectPath,source.file,masterType(source.file));
   await saveAsset(role,'art-originals',objectPath,source,dimensions,masterType(source.file),source.file.size);
+  if(fallbackMasterRole===role){
+   const compatibilityMaster={artwork_id:id,bucket_name:'art-originals',object_path:objectPath,file_bytes:source.file.size,
+    pixel_width:dimensions.w,pixel_height:dimensions.h,source_archive:source.path};
+   if(currentMaster)await api('/rest/v1/art_gallery_masters?artwork_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(compatibilityMaster)});
+   else await api('/rest/v1/art_gallery_masters',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(compatibilityMaster)});
+  }
  }
  if(existing){
   const routed=Object.keys(item.files||{}).map(role=>ROLE_LABELS[role]||role).join(', ');
