@@ -9,7 +9,11 @@ module.exports=async(req,res)=>{
   print_provider:'Prodigi',
   print_configured:prodigiConfigured(),
   print_environment:prodigiEnvironment(),
-  print_sales_enabled:printCheckoutReady()
+  print_sales_enabled:printCheckoutReady(),
+  print_sample_approved:process.env.PRINT_SAMPLE_APPROVED==='true',
+  print_legal_approved:process.env.PRINT_LEGAL_APPROVED==='true',
+  print_stripe_configured:!!process.env.STRIPE_SECRET_KEY,
+  print_webhook_configured:!!process.env.STRIPE_WEBHOOK_SECRET
  };
  if(!ready())return res.status(200).json({sales_enabled:false,digital_price_eur:50,...print});
  try{
