@@ -43,6 +43,8 @@ function prodigiConfigured() {
 
 function printCheckoutReady() {
   return process.env.PRINT_SALES_ENABLED === 'true'
+    && process.env.PRINT_SAMPLE_APPROVED === 'true'
+    && process.env.PRINT_LEGAL_APPROVED === 'true'
     && prodigiEnvironment() === 'live'
     && prodigiConfigured()
     && Boolean(process.env.STRIPE_SECRET_KEY)
