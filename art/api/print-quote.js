@@ -33,7 +33,9 @@ module.exports=async(req,res)=>{
       checkout_enabled:printCheckoutReady()
     });
   }catch(error){
-    console.error('Print quote',error?.code||error?.message||'unknown');
-    return res.status(502).json({error:'A print and shipping quote could not be created'});
+    const code=String(error?.code||'PRODIGI_UNKNOWN');
+    console.error('Print quote',code);
+    const safeCode=/^PRODIGI_(?:HTTP_\d{3}|TIMEOUT|NETWORK_ERROR|NOT_CONFIGURED)$/.test(code)?code:(code==='PRINT_NO_QUOTE'?'PRINT_NO_QUOTE':'PRODIGI_UNKNOWN');
+    return res.status(502).json({error:'A print and shipping quote could not be created',code:safeCode,environment:require('./_lib/prodigi.cjs').prodigiEnvironment()});
   }
 };
