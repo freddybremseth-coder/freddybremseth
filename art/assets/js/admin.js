@@ -140,7 +140,7 @@ async function verifyAdmin(){
  await loadCatalogue();status('Administrator access verified. Ready for files.');
 }
 async function loadCatalogue(){
- const [styles,curation,works,variants,masters,assets,masterAudit]=await Promise.all([
+ const [styles,curation,works,variants,masters,assets,masterAudit,printStatus]=await Promise.all([
  fetch('/assets/styles.json').then(r=>r.json()),fetch('/assets/collections.json').then(r=>r.json()),
  api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
  api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
@@ -164,6 +164,26 @@ async function loadCatalogue(){
  $('master-verified').textContent=masterAudit.filter(row=>row.sale_verified).length;
  $('master-audit-note').textContent=missing?missing+' artwork(s) need a private source file. Select a missing work below and upload only its private original; the public gallery stays unchanged.':'Every registered artwork has a matching private object. Print quality and sale delivery still require separate checks.';
  renderCatalogue();
+}
+function renderPrintReadiness(info){
+ const set=(id,value,ok)=>{const el=$(id);if(!el)return;el.textContent=value;el.dataset.state=ok===true?'ok':ok===false?'blocked':'neutral'};
+ const configured=!!info.print_configured,liveEnv=info.print_environment==='live',stripe=!!info.print_stripe_configured,webhook=!!info.print_webhook_configured,sample=!!info.print_sample_approved,legal=!!info.print_legal_approved,live=!!info.print_sales_enabled;
+ set('print-provider-status',configured?'Connected':'Missing API key',configured);
+ set('print-environment-status',String(info.print_environment||'sandbox').toUpperCase(),liveEnv);
+ set('print-stripe-status',stripe?'Configured':'Missing',stripe);
+ set('print-webhook-status',webhook?'Configured':'Missing',webhook);
+ set('print-sample-status',sample?'Approved':'Not approved',sample);
+ set('print-legal-status',legal?'Approved':'Not approved',legal);
+ set('print-live-status',live?'LIVE':'LOCKED',live);
+ const missing=[];
+ if(!configured)missing.push('Prodigi API key');
+ if(!liveEnv)missing.push('Live Prodigi environment');
+ if(!stripe)missing.push('Stripe secret');
+ if(!webhook)missing.push('Stripe webhook secret');
+ if(!sample)missing.push('sample print approval');
+ if(!legal)missing.push('legal approval');
+ const note=$('print-status-note');
+ if(note)note.textContent=live?'Physical print checkout is live. Prodigi receives orders only after verified Stripe payment.':(missing.length?'Still locked: '+missing.join(', ')+'.':'Print checkout remains locked by the server safety gate.');
 }
 function masterStatusFor(id){return state.masterAudit.find(row=>row.artwork_id===id)}
 function renderCatalogue(){
