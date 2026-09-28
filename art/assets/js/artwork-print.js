@@ -36,7 +36,14 @@
   try{
    const response=await fetch('/api/print-options?artwork_id='+encodeURIComponent(artworkId)+'&country='+encodeURIComponent(country),{headers:{Accept:'application/json'}});
    const data=await response.json();
-   if(!response.ok)throw Error(data.error||'Print sizes are unavailable');
+   if(!response.ok){
+    let message=data.error||'Print sizes are unavailable';
+    if(data.code==='PRODIGI_HTTP_401'||data.code==='PRODIGI_HTTP_403')message='Prodigi rejected the API key for '+String(data.environment||'this').toUpperCase()+' environment. The Sandbox and Live API keys are separate.';
+    else if(data.code==='PRODIGI_HTTP_429')message='Prodigi is rate-limiting size lookup. Please try again.';
+    else if(data.code==='PRODIGI_TIMEOUT'||data.code==='PRODIGI_NETWORK_ERROR')message='Prodigi did not answer the size request in time. Please try again.';
+    else if(data.code==='PRODIGI_CATALOG_UNAVAILABLE')message='Prodigi could not return the print catalogue for this artwork right now.';
+    throw Error(message);
+   }
    readiness=data.checkout_status||null;
    if(!data.configured){host.innerHTML='<p class="print-size-empty">Print ordering is temporarily unavailable.</p>';setMessage('Print ordering is temporarily unavailable.');return}
    if(!Array.isArray(data.products)||!data.products.length){host.innerHTML='<p class="print-size-empty">No print size is available for this destination yet.</p>';setMessage('No print size is available for this destination yet.');return}
