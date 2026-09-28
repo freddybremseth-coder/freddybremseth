@@ -1,5 +1,5 @@
 'use strict';
-const {prodigiConfigured,prodigiEnvironment,printCheckoutStatus,printCheckoutReady,findArtworkForPrint,eligibleProducts}=require('./_lib/prodigi.cjs');
+const {prodigiConfigured,prodigiEnvironment,printCheckoutStatus,printCheckoutReady,findArtworkForPrint,eligibleProducts,MIN_FINE_ART_SHORT_SIDE_IN}=require('./_lib/prodigi.cjs');
 
 module.exports=async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
