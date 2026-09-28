@@ -146,9 +146,11 @@ async function loadCatalogue(){
  api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
  api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes&limit=1000'),
  api('/rest/v1/art_gallery_assets?select=artwork_id,asset_role,bucket_name,object_path,verified_at,original_filename,pixel_width,pixel_height,file_bytes&order=artwork_id.asc,asset_role.asc&limit=2000'),
- api('/rest/v1/rpc/art_gallery_admin_master_status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+ api('/rest/v1/rpc/art_gallery_admin_master_status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),
+ fetch('/api/status',{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():({})).catch(()=>({})),
+ api('/rest/v1/art_print_orders?select=stripe_session_id,artwork_id,prodigi_order_id,prodigi_environment,sku,quantity,destination_country,shipping_method,amount_total_cents,currency,state,prodigi_stage,issues,customer_email,last_error,created_at,updated_at&order=created_at.desc&limit=50').catch(()=>[])
  ]);
- state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;state.assets=assets;state.masterAudit=masterAudit;
+ state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;state.assets=assets;state.masterAudit=masterAudit;state.printOrders=Array.isArray(printOrders)?printOrders:[];renderPrintReadiness(printStatus||{});renderPrintOrders(state.printOrders);
  for(const [element,entries] of [['collection-default',state.collections],['style-default',state.styles]]){
  const select=$(element),current=select.value;
  select.replaceChildren(new Option(element==='collection-default'?'Choose a collection…':'Choose an artistic style…',''));
