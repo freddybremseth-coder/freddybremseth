@@ -192,7 +192,7 @@
   $('no-results').hidden=state.filtered.length!==0;
  }
  function printLinkFor(art){return safeLink(state.print.byArtworkId?.[art.id]||state.print.defaultPrintUrl||art.print_url)}
- let activePrintQuote=null;
+ let activePrintQuote=null,lastPrintOptions=null;
  const money=cents=>'€'+(Number(cents||0)/100).toFixed(2);
  const niceNumber=value=>Number.isInteger(Number(value))?String(Number(value)):Number(value).toFixed(1).replace(/\.0$/,'');
  function dimensionData(product){
@@ -212,6 +212,19 @@
   return {primary:niceNumber(width)+' × '+niceNumber(height)+' '+units,secondary:'',maxInches:Math.max(width,height)};
  }
  const printTier=product=>{const n=dimensionData(product).maxInches;return n<=12?'Small':n<=20?'Medium':n<=30?'Large':'Statement'};
+ function printBlockerMessage(data=lastPrintOptions){
+  const status=data?.checkout_status||{};
+  if(data?.asset_source==='archive_preview'&&!status.private_storage)return 'The public preview is being used for print sizing because SUPABASE_SERVICE_ROLE_KEY is missing from the Art Vercel project. Connect private Supabase storage to unlock the larger Print Master.';
+  if(status.environment&&status.environment!=='live')return 'Prodigi Sandbox is working. Customer checkout remains locked until the Live API key is connected and PRODIGI_ENVIRONMENT=live.';
+  if(status.prodigi===false)return 'Prodigi is not connected for live production.';
+  if(status.stripe===false)return 'Stripe server checkout is not connected to the Art project.';
+  if(status.webhook===false)return 'Stripe checkout is connected, but STRIPE_WEBHOOK_SECRET is still missing.';
+  if(status.private_storage===false)return 'Private Supabase print storage is not connected. Add SUPABASE_SERVICE_ROLE_KEY to the Art Vercel project.';
+  if(status.sample_approved===false)return 'Live production is connected, but the representative sample print still needs approval.';
+  if(status.legal_approved===false)return 'Live production is connected, but the final physical-purchase terms still need approval.';
+  if(status.sales_enabled===false)return 'Everything is connected, but physical print sales are still disabled.';
+  return 'Size and shipping price are working. Customer checkout remains locked until all live-production gates are approved.';
+ }
  function clearPrintQuote(){
   activePrintQuote=null;$('print-quote').hidden=true;
   const buy=$('print-checkout-button');buy.disabled=true;buy.hidden=true;
@@ -235,6 +248,7 @@
    const response=await fetch('/api/print-options?artwork_id='+encodeURIComponent(state.selected.id)+'&country='+encodeURIComponent(country),{headers:{Accept:'application/json'}});
    const data=await response.json();
    if(!response.ok)throw Error(data.error||'Print options unavailable');
+   lastPrintOptions=data;
    size.replaceChildren();host.replaceChildren();
    if(!data.configured){
     size.append(new Option('Print provider not configured yet',''));
@@ -263,7 +277,7 @@
     :'';
    $('print-help').textContent=data.sales_enabled
     ?'Choose a size. Your complete artwork is fitted to the paper without cropping; a border may appear when proportions differ.'+archiveCopy
-    :'Print sizes are working in '+String(data.environment||'sandbox').toUpperCase()+' test mode. Your complete artwork is fitted without cropping; customer checkout stays locked until live production is approved.'+archiveCopy;
+    :printBlockerMessage(data)+archiveCopy;
    selectPrintSku(recommended.sku,true);
   }catch(error){
    size.replaceChildren(new Option('Print options unavailable',''));host.replaceChildren();
@@ -291,7 +305,7 @@
    const buy=$('print-checkout-button');buy.hidden=false;buy.disabled=!data.checkout_enabled;buy.textContent=data.checkout_enabled?'Buy physical print ↗':'Checkout opens after live approval';
    $('print-help').textContent=data.checkout_enabled
     ?'Secure Stripe checkout. Prodigi receives the print order only after payment is confirmed.'
-    :'Size and shipping price are working. Checkout is still locked because this Prodigi connection is not yet approved for live customer orders.';
+    :printBlockerMessage(lastPrintOptions);
   }catch(error){activePrintQuote=null;$('print-quote').hidden=true;const buy=$('print-checkout-button');buy.hidden=true;showToast(error.message||'Print quote unavailable')}
   finally{button.disabled=!$('print-size').value;button.textContent='Update print & shipping price'}
  }
