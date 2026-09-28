@@ -211,7 +211,17 @@
   }
   return {primary:niceNumber(width)+' × '+niceNumber(height)+' '+units,secondary:'',maxInches:Math.max(width,height)};
  }
- const printTier=product=>{const n=dimensionData(product).maxInches;return n<=12?'Fine art':n<=20?'Medium':n<=30?'Large':'Statement'};
+ const primaryPrintProducts=products=>{
+  if(products.length<=3)return products;
+  return [products[0],products[Math.round((products.length-1)/2)],products[products.length-1]].filter((item,index,all)=>all.findIndex(x=>x.sku===item.sku)===index);
+ };
+ const primaryPrintLabel=(product,primary)=>{
+  const index=primary.findIndex(item=>item.sku===product.sku);
+  if(primary.length===1)return 'Fine Art';
+  if(index===0)return 'Fine Art';
+  if(index===primary.length-1)return 'Statement';
+  return 'Gallery · Most popular';
+ };
  function printBlockerMessage(data=lastPrintOptions){
   const status=data?.checkout_status||{};
   if(data?.asset_source==='archive_preview'&&!status.private_storage&&status.environment!=='live')return 'Prodigi Sandbox is working, but this deployment is sizing the artwork from its web preview because SUPABASE_SERVICE_ROLE_KEY is missing. Add private Supabase access to test the real Print Master and larger fine-art formats; Live sales also require the Prodigi Live API key.';
@@ -265,17 +275,26 @@
      :'The artwork is published, but its Print Master does not yet meet the minimum fine-art size and quality floor.';return;
    }
    size.append(new Option('Choose a size…',''));
-   for(const product of data.products){
-    const dims=dimensionData(product);size.append(new Option(dims.primary,product.sku));
-    const choice=document.createElement('button');choice.type='button';choice.className='print-size-card';choice.dataset.printSku=product.sku;choice.setAttribute('aria-pressed','false');
+   for(const product of data.products){const dims=dimensionData(product);size.append(new Option(dims.primary,product.sku))}
+   const primary=primaryPrintProducts(data.products),primarySet=new Set(primary.map(item=>item.sku));
+   const createChoice=(product,label)=>{
+    const dims=dimensionData(product),choice=document.createElement('button');choice.type='button';choice.className='print-size-card';choice.dataset.printSku=product.sku;choice.setAttribute('aria-pressed','false');
     const quality=product.quality?.label||'Fine-art print';
-    choice.innerHTML='<span class="print-size-tier">'+escapeHtml(printTier(product))+'</span><strong>'+escapeHtml(dims.primary)+'</strong>'+(dims.secondary?'<span>'+escapeHtml(dims.secondary)+'</span>':'')+'<small>'+escapeHtml(quality)+'</small>';
-    choice.addEventListener('click',()=>selectPrintSku(product.sku,true));host.appendChild(choice);
+    const price=Number(product.display_price_cents||0)>0?'<span class="print-size-price">from '+money(product.display_price_cents)+'</span>':'';
+    choice.innerHTML='<span class="print-size-tier">'+escapeHtml(label)+'</span><strong>'+escapeHtml(dims.primary)+'</strong>'+(dims.secondary?'<span>'+escapeHtml(dims.secondary)+'</span>':'')+price+'<small>'+escapeHtml(quality)+'</small>';
+    choice.addEventListener('click',()=>selectPrintSku(product.sku,true));return choice;
+   };
+   for(const product of primary)host.appendChild(createChoice(product,primaryPrintLabel(product,primary)));
+   const extras=data.products.filter(product=>!primarySet.has(product.sku));
+   if(extras.length){
+    const more=document.createElement('details');more.className='print-more-sizes';
+    const summary=document.createElement('summary');summary.textContent='More sizes ('+extras.length+')';more.appendChild(summary);
+    const extraHost=document.createElement('div');extraHost.className='print-more-size-grid';
+    for(const product of extras)extraHost.appendChild(createChoice(product,'Additional size'));
+    more.appendChild(extraHost);host.appendChild(more);
    }
    size.disabled=false;
-   const recommended=data.products.find(product=>product.quality?.recommended&&dimensionData(product).maxInches>=14&&dimensionData(product).maxInches<=24)
-    ||data.products.find(product=>product.quality?.recommended)
-    ||data.products[Math.min(1,data.products.length-1)];
+   const recommended=primary[Math.min(1,primary.length-1)]||primary[0];
    const archiveCopy=data.asset_source==='archive_preview'
     ?' The print service is currently seeing only the web-size source; connect the private Print Master to unlock the full fine-art range.'
     :data.asset_source==='private_master_metadata'
@@ -307,7 +326,10 @@
    const response=await fetch('/api/print-quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:state.selected.id,sku:$('print-size').value,country:$('print-country').value,quantity})});
    const data=await response.json();if(!response.ok)throw Error(data.error||'Quote unavailable');
    activePrintQuote=data;
-   const summary=$('print-quote');summary.innerHTML='<strong>'+escapeHtml(data.description||'Fine-art print')+'</strong><span>Print'+(quantity>1?' × '+quantity:'')+' '+money(data.product_cents)+'</span><span>'+escapeHtml(data.shipping_method||'Standard')+' shipping '+money(data.shipping_cents)+'</span><b>Total '+money(data.total_cents)+'</b>';summary.hidden=false;
+   const summary=$('print-quote');
+   const promo=data.promotion&&data.discount_cents>0?'<span class="print-promotion"><strong>'+escapeHtml(data.promotion.label||'Limited-time offer')+'</strong> · save '+money(data.discount_cents)+'</span>':'';
+   const normal=data.discount_cents>0?'<span class="print-normal-price">Normally '+money(Number(data.normal_product_cents||0)+Number(data.normal_shipping_cents||0))+'</span>':'';
+   summary.innerHTML='<strong>'+escapeHtml(data.description||'Fine-art print')+'</strong>'+normal+'<span>Print'+(quantity>1?' × '+quantity:'')+' '+money(data.product_cents)+'</span><span>'+escapeHtml(data.shipping_method||'Standard')+' shipping '+(data.promotion?.mode==='free_shipping'?'<s>'+money(data.normal_shipping_cents)+'</s> '+money(0):money(data.shipping_cents))+'</span>'+promo+'<b>Total '+money(data.total_cents)+'</b>';summary.hidden=false;
    const buy=$('print-checkout-button');buy.hidden=false;buy.disabled=!data.checkout_enabled;buy.textContent=data.checkout_enabled?'Buy physical print ↗':'Checkout opens after live approval';
    $('print-help').textContent=data.checkout_enabled
     ?'Secure Stripe checkout. Prodigi receives the print order only after payment is confirmed.'
