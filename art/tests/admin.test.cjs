@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 test('admin UI and all dependencies are self-contained and expose no service key',()=>{
  const html=read('admin/index.html'),js=read('assets/js/admin.js'),config=read('assets/js/gallery-config.js'),css=read('assets/css/admin.css');
- for(const item of ['source-files','collection-default','style-default','review-list','upload-mode','catalog-list','login-form','print-live-status','print-order-list'])assert.ok(html.includes('id="'+item+'"'));
+ for(const item of ['source-files','collection-default','style-default','review-list','upload-mode','catalog-list','login-form','print-live-status','print-order-list','print-master-filter','print-master-upgrade'])assert.ok(html.includes('id="'+item+'"'));
  assert.match(html,/noindex,nofollow/);
  assert.ok(!/SERVICE_ROLE_KEY|service_role/.test(js+config+html),'Admin must not expose server secrets');
  assert.match(js,/art_gallery_admin_users/);
@@ -189,4 +189,35 @@ test('Smart ZIP preselects role variants before decompression and limits logical
  assert.match(block,/for\(const entry of chosen\)/);
  assert.ok(block.indexOf('const chosen=')<block.indexOf("new DecompressionStream('deflate-raw')"),'Variant selection must happen before decompression');
  assert.doesNotMatch(block,/members\.length>MAX_ITEMS\*4/);
+});
+
+
+test('admin derives Print Master capability from private pixel dimensions',()=>{
+ const html=read('admin/index.html'),admin=read('assets/js/admin.js'),css=read('assets/css/admin.css');
+ assert.match(html,/Print Master quality/);
+ assert.match(html,/Needs a larger print master/);
+ assert.match(html,/Prodigi Sandbox dashboard/);
+ assert.match(html,/sandbox-beta-dashboard\.pwinty\.com/);
+ assert.match(admin,/PRINT_MASTER_SKUS/);
+ assert.match(admin,/privatePrintAssetFor/);
+ assert.match(admin,/printPpiFor/);
+ assert.match(admin,/printMasterStatusFor/);
+ assert.match(admin,/pixel_width/);
+ assert.match(admin,/pixel_height/);
+ assert.match(admin,/needs_upgrade/);
+ assert.match(admin,/show-print-upgrades/);
+ assert.match(admin,/print-master-filter/);
+ assert.match(css,/print-master-line/);
+ assert.match(css,/print-master-stats/);
+});
+
+test('Print Master selection prefers real private printable assets and never public previews',()=>{
+ const admin=read('assets/js/admin.js');
+ const start=admin.indexOf('function privatePrintAssetFor');
+ const end=admin.indexOf('function printPpiFor');
+ const block=admin.slice(start,end);
+ assert.match(block,/bucket_name==='art-originals'/);
+ assert.match(block,/print:3,master:2,digital:1/);
+ assert.doesNotMatch(block,/portfolio/);
+ assert.doesNotMatch(block,/art-previews/);
 });
