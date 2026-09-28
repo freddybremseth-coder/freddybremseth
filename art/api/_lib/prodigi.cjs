@@ -305,6 +305,64 @@ async function submitOrder({ session, artwork, asset, sku, quantity, shippingMet
   return body && body.order ? body.order : null;
 }
 
+async function getPrintOrder(stripeSessionId) {
+  if (!stripeSessionId) return null;
+  const client = supabaseAdmin();
+  if (!client) return null;
+  const { data, error } = await client
+    .from('art_print_orders')
+    .select('*')
+    .eq('stripe_session_id', stripeSessionId)
+    .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
+async function savePrintOrder(record) {
+  const client = supabaseAdmin();
+  if (!client) return null;
+  const row = {
+    stripe_session_id: record.stripe_session_id,
+    artwork_id: record.artwork_id,
+    prodigi_order_id: record.prodigi_order_id || null,
+    prodigi_environment: prodigiEnvironment(),
+    sku: record.sku,
+    quantity: record.quantity || 1,
+    destination_country: record.destination_country,
+    shipping_method: record.shipping_method || null,
+    amount_total_cents: Number.isFinite(Number(record.amount_total_cents)) ? Number(record.amount_total_cents) : null,
+    currency: 'eur',
+    state: record.state || 'paid',
+    prodigi_stage: record.prodigi_stage || null,
+    issues: Array.isArray(record.issues) ? record.issues : [],
+    customer_email: record.customer_email || null,
+    last_error: record.last_error || null,
+    updated_at: new Date().toISOString()
+  };
+  const { data, error } = await client
+    .from('art_print_orders')
+    .upsert(row, { onConflict: 'stripe_session_id' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function patchPrintOrder(stripeSessionId, patch) {
+  const client = supabaseAdmin();
+  if (!client || !stripeSessionId) return null;
+  const clean = { ...patch, updated_at: new Date().toISOString() };
+  delete clean.stripe_session_id;
+  const { data, error } = await client
+    .from('art_print_orders')
+    .update(clean)
+    .eq('stripe_session_id', stripeSessionId)
+    .select()
+    .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
 async function findOrderByMerchantReference(reference) {
   if (!reference || !prodigiConfigured()) return null;
   const params = new URLSearchParams();
@@ -329,5 +387,8 @@ module.exports = {
   createQuote,
   retailFromQuote,
   submitOrder,
-  findOrderByMerchantReference
+  findOrderByMerchantReference,
+  getPrintOrder,
+  savePrintOrder,
+  patchPrintOrder
 };
