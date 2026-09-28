@@ -10,6 +10,7 @@
  const safeLink=x=>{try{const u=new URL(x);return (u.protocol==='https:'||u.protocol==='http:')?u.toString():null}catch{return null}};
  const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const detailHref=art=>(art.dynamic?'/artwork/':'/verk/')+encodeURIComponent(art.id)+'/';
+ const useDedicatedArtworkPage=()=>window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
  const currentSlug=()=>{const m=location.pathname.match(/^\/(?:verk|artwork)\/([a-z0-9-]+)\/?$/);return m?m[1]:null};
  const collectionName=art=>state.collections.find(c=>c.id===art.collection_id)?.name||'Studio Archive';
  const visibleArt=()=>state.art.filter(art=>!state.variantById.has(art.id));
@@ -20,9 +21,12 @@
   const frag=document.createDocumentFragment();
   for(const art of arts){
    const card=document.createElement('article');card.className='art-card'+(art.id==='drmmetrappen-til-manen'?' art-card-landscape-feature':'');
-   const button=document.createElement('button');button.type='button';button.setAttribute('aria-label','View '+art.title);
-   button.innerHTML=`<span class="art-photo"><img loading="lazy" src="${art.id==='drmmetrappen-til-manen'?art.image:art.thumb}" alt="${escapeHtml(art.title)}, ${escapeHtml(art.category)} digital artwork" width="${art.width}" height="${art.height}"><span class="art-overlay">Explore artwork ↗</span></span><span class="art-card-meta"><span><span class="art-title">${escapeHtml(art.title)}</span><span class="art-category">${escapeHtml(collectionName(art))} · ${art.digital_available===false?'Gallery preview':`€${(art.price_cents/100).toFixed(0)} digital`}</span></span><span class="art-number">${String(art.number).padStart(3,'0')}</span></span>`;
-   button.addEventListener('click',()=>openArt(art,true));card.appendChild(button);
+   const open=document.createElement('a');open.href=detailHref(art);open.className='art-card-open';open.setAttribute('aria-label','View '+art.title);
+   open.innerHTML=`<span class="art-photo"><img loading="lazy" src="${art.id==='drmmetrappen-til-manen'?art.image:art.thumb}" alt="${escapeHtml(art.title)}, ${escapeHtml(art.category)} digital artwork" width="${art.width}" height="${art.height}"><span class="art-overlay">Explore artwork ↗</span></span><span class="art-card-meta"><span><span class="art-title">${escapeHtml(art.title)}</span><span class="art-category">${escapeHtml(collectionName(art))} · ${art.digital_available===false?'Gallery preview':`€${(art.price_cents/100).toFixed(0)} digital`}</span></span><span class="art-number">${String(art.number).padStart(3,'0')}</span></span>`;
+   open.addEventListener('click',event=>{
+    if(useDedicatedArtworkPage()||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
+    event.preventDefault();openArt(art,true);
+   });card.appendChild(open);
    if(state.printApi.print_configured){
     const print=document.createElement('button');print.type='button';print.className='art-card-print';
     print.innerHTML='<span>Fine-art print</span><strong>Choose size & price ↗</strong>';
