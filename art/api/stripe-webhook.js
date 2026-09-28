@@ -3,8 +3,8 @@ const Stripe=require('stripe');
 const {findArtworkForPrint,findPrintAsset,submitOrder,printCheckoutReady}=require('./_lib/prodigi.cjs');
 
 async function rawBody(req){
-  if(Buffer.isBuffer(req.body))return req.body;
-  if(typeof req.body==='string')return Buffer.from(req.body);
+  // Do not access req.body before reading the stream: Vercel exposes body as a lazy
+  // parsed helper and Stripe signature verification needs the exact raw bytes.
   const chunks=[];
   for await(const chunk of req)chunks.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk));
   return Buffer.concat(chunks);
