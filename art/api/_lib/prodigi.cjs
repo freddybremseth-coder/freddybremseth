@@ -251,21 +251,8 @@ function aspectDelta(asset, product) {
 function candidateSkusForAsset(asset) {
   const width = Number(asset && asset.pixel_width || 0);
   const height = Number(asset && asset.pixel_height || 0);
-  const small = ['GLOBAL-FAP-4X6','GLOBAL-FAP-5X7','GLOBAL-FAP-6X8'];
-  if (!width || !height) return small;
-  const ratio = Math.min(width, height) / Math.max(width, height);
-  const closest = CANDIDATE_SKUS
-    .filter(sku => !small.includes(sku))
-    .map(sku => {
-      const match = sku.match(/-(\d+)X(\d+)$/);
-      const a = Number(match && match[1] || 1);
-      const b = Number(match && match[2] || 1);
-      return { sku, delta: Math.abs(ratio - Math.min(a, b) / Math.max(a, b)), area: a * b };
-    })
-    .sort((x, y) => x.delta - y.delta || x.area - y.area)
-    .slice(0, 3)
-    .map(item => item.sku);
-  return [...new Set([...small, ...closest])];
+  if (!width || !height) return [];
+  return [...CANDIDATE_SKUS];
 }
 
 async function productDetailsBatch(skus, concurrency = 2) {
@@ -347,6 +334,7 @@ async function eligibleProducts(artworkId, countryCode) {
   const qualityFloor = asset.preview_fallback ? 220 : 200;
   const products = candidates
     .filter(product => Math.min(Number(product.dimensions?.width || 0), Number(product.dimensions?.height || 0)) >= MIN_FINE_ART_SHORT_SIDE_IN)
+    .filter(product => Number(product.aspect_delta || 0) <= 0.15)
     .filter(product => product.quality && product.quality.effective_ppi >= qualityFloor)
     .slice(0, 6);
   return { asset, products };
