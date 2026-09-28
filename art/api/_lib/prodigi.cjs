@@ -319,6 +319,13 @@ function localProductForSku(sku, asset) {
   };
 }
 
+function isCuratedFineArtProduct(product, qualityFloor = 200) {
+  return Math.min(Number(product?.dimensions?.width || 0), Number(product?.dimensions?.height || 0)) >= MIN_FINE_ART_SHORT_SIDE_IN
+    && Number(product?.aspect_delta || 0) <= 0.15
+    && Boolean(product?.quality)
+    && Number(product.quality.effective_ppi || 0) >= qualityFloor;
+}
+
 async function eligibleProducts(artworkId, countryCode) {
   const country = cleanCountry(countryCode);
   if (!country || !prodigiConfigured()) return { asset: null, products: [] };
@@ -333,9 +340,7 @@ async function eligibleProducts(artworkId, countryCode) {
     });
   const qualityFloor = asset.preview_fallback ? 220 : 200;
   const products = candidates
-    .filter(product => Math.min(Number(product.dimensions?.width || 0), Number(product.dimensions?.height || 0)) >= MIN_FINE_ART_SHORT_SIDE_IN)
-    .filter(product => Number(product.aspect_delta || 0) <= 0.15)
-    .filter(product => product.quality && product.quality.effective_ppi >= qualityFloor)
+    .filter(product => isCuratedFineArtProduct(product, qualityFloor))
     .slice(0, 6);
   return { asset, products };
 }
@@ -526,6 +531,7 @@ module.exports = {
   MIN_FINE_ART_SHORT_SIDE_IN,
   skuDimensions,
   fineArtRetailFloorCents,
+  isCuratedFineArtProduct,
   cleanCountry,
   cleanSku,
   prodigiEnvironment,
