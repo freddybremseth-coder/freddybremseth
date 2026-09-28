@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 test('admin UI and all dependencies are self-contained and expose no service key',()=>{
  const html=read('admin/index.html'),js=read('assets/js/admin.js'),config=read('assets/js/gallery-config.js'),css=read('assets/css/admin.css');
- for(const item of ['source-files','collection-default','style-default','review-list','upload-mode','catalog-list','login-form'])assert.ok(html.includes('id="'+item+'"'));
+ for(const item of ['source-files','collection-default','style-default','review-list','upload-mode','catalog-list','login-form','print-live-status','print-order-list'])assert.ok(html.includes('id="'+item+'"'));
  assert.match(html,/noindex,nofollow/);
  assert.ok(!/SERVICE_ROLE_KEY|service_role/.test(js+config+html),'Admin must not expose server secrets');
  assert.match(js,/art_gallery_admin_users/);
@@ -22,6 +22,10 @@ test('admin UI and all dependencies are self-contained and expose no service key
  assert.match(js,/Smart ZIP ready/);
  assert.match(js,/assetRole/);
  assert.match(js,/logical artworks, not to raw image-variant count/);
+ assert.match(js,/fetch\('\/api\/status'/);
+ assert.match(js,/art_print_orders\?select=/);
+ assert.match(js,/renderPrintReadiness\(printStatus\|\|\{\}\)/);
+ assert.match(js,/renderPrintOrders\(state\.printOrders\)/);
  assert.match(js,/MAX_ITEMS=100/);
  assert.match(js,/MAX_ZIP=500\*1024\*1024/);
  assert.match(js,/ZIP exceeds 500 MB/);
