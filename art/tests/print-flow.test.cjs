@@ -185,3 +185,15 @@ test('curated shop stays separate from the gallery purchase flow',()=>{
  assert.match(builder,/['"]shop['"]/);
  assert.match(pages,/domain\+'\/shop\/'/);
 });
+
+
+test('gallery print dialog explains exact readiness blocker',()=>{
+ const client=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ assert.match(client,/function printBlockerMessage/);
+ assert.match(client,/SUPABASE_SERVICE_ROLE_KEY is missing from the Art Vercel project/);
+ assert.match(client,/Prodigi Sandbox is working/);
+ assert.match(client,/STRIPE_WEBHOOK_SECRET/);
+ assert.match(client,/representative sample print still needs approval/);
+ assert.match(client,/lastPrintOptions=data/);
+ assert.match(client,/printBlockerMessage\(lastPrintOptions\)/);
+});
