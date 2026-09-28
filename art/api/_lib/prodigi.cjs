@@ -1,7 +1,5 @@
 'use strict';
 
-const { createClient } = require('@supabase/supabase-js');
-
 const CANDIDATE_SKUS = [
   'GLOBAL-FAP-8X10',
   'GLOBAL-FAP-8X12',
@@ -55,6 +53,7 @@ function printCheckoutReady() {
 
 function supabaseAdmin() {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  const { createClient } = require('@supabase/supabase-js');
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false }
   });
