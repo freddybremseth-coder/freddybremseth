@@ -1,5 +1,5 @@
 'use strict';
-const {prodigiConfigured,prodigiEnvironment,printCheckoutReady,findArtworkForPrint,eligibleProducts}=require('./_lib/prodigi.cjs');
+const {prodigiConfigured,prodigiEnvironment,printCheckoutStatus,printCheckoutReady,findArtworkForPrint,eligibleProducts}=require('./_lib/prodigi.cjs');
 
 module.exports=async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
@@ -16,6 +16,7 @@ module.exports=async(req,res)=>{
       configured:true,
       sales_enabled:printCheckoutReady(),
       environment:prodigiEnvironment(),
+      checkout_status:printCheckoutStatus(),
       artwork:{id:artwork.id,title:artwork.title},
       master_ready:!!asset,
       asset_source:asset&&asset.preview_fallback?'archive_preview':'master',

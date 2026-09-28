@@ -15,7 +15,7 @@
   if(units==='cm')return {primary:trim(w)+' × '+trim(h)+' cm',secondary:trim(w/2.54)+' × '+trim(h/2.54)+' in',max:Math.max(w,h)/2.54};
   return {primary:trim(w)+' × '+trim(h)+' '+units,secondary:'',max:Math.max(w,h)};
  };
- let quote=null;
+ let quote=null,readiness=null;
  function setMessage(message,type=''){
   const node=$('artwork-print-message');node.textContent=message;node.dataset.state=type;
  }
@@ -37,6 +37,7 @@
    const response=await fetch('/api/print-options?artwork_id='+encodeURIComponent(artworkId)+'&country='+encodeURIComponent(country),{headers:{Accept:'application/json'}});
    const data=await response.json();
    if(!response.ok)throw Error(data.error||'Print sizes are unavailable');
+   readiness=data.checkout_status||null;
    if(!data.configured){host.innerHTML='<p class="print-size-empty">Print ordering is temporarily unavailable.</p>';setMessage('Print ordering is temporarily unavailable.');return}
    if(!Array.isArray(data.products)||!data.products.length){host.innerHTML='<p class="print-size-empty">No print size is available for this destination yet.</p>';setMessage('No print size is available for this destination yet.');return}
    host.replaceChildren();
@@ -68,7 +69,17 @@
    summary.hidden=false;
    const buy=$('artwork-print-buy');buy.hidden=false;buy.disabled=!data.checkout_enabled;
    buy.textContent=data.checkout_enabled?'Buy this print securely ↗':'Online checkout is not live yet';
-   setMessage(data.checkout_enabled?'Secure checkout by Stripe. Production starts only after payment is confirmed.':'Print size and price are available, but customer checkout has not been switched to live production yet.',data.checkout_enabled?'ready':'locked');
+   let lockedMessage='Print size and price are available, but customer checkout has not been switched to live production yet.';
+   if(!data.checkout_enabled&&readiness){
+    if(readiness.environment!=='live')lockedMessage='Prodigi is connected in SANDBOX test mode. Sizes and prices work, but real customer purchases require PRODIGI_ENVIRONMENT=live and a Prodigi Live API key.';
+    else if(!readiness.stripe)lockedMessage='Prodigi is live, but the Stripe server key is missing from the Art Vercel project.';
+    else if(!readiness.webhook)lockedMessage='Prodigi and Stripe are connected, but STRIPE_WEBHOOK_SECRET is still missing for print fulfilment.';
+    else if(!readiness.private_storage)lockedMessage='Print checkout still needs SUPABASE_SERVICE_ROLE_KEY in the Art Vercel project to access the private print master.';
+    else if(!readiness.sample_approved)lockedMessage='Live production is connected, but PRINT_SAMPLE_APPROVED is still false.';
+    else if(!readiness.legal_approved)lockedMessage='Live production is connected, but PRINT_LEGAL_APPROVED is still false.';
+    else if(!readiness.sales_enabled)lockedMessage='Everything is connected, but PRINT_SALES_ENABLED is still false.';
+   }
+   setMessage(data.checkout_enabled?'Secure checkout by Stripe. Production starts only after payment is confirmed.':lockedMessage,data.checkout_enabled?'ready':'locked');
   }catch(error){quote=null;$('artwork-print-quote').hidden=true;$('artwork-print-buy').hidden=true;setMessage(error.message||'Price unavailable','error')}
  }
  async function checkout(){
