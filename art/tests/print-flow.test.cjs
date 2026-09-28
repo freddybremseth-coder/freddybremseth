@@ -118,3 +118,30 @@ test('dynamic artwork print flow explains the exact live checkout blocker',()=>{
  assert.match(client,/PRINT_LEGAL_APPROVED/);
  assert.match(client,/PRINT_SALES_ENABLED/);
 });
+
+
+test('Prodigi size discovery limits catalogue fan-out and tolerates per-SKU failures',()=>{
+ const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
+ assert.match(source,/productDetailsBatch\(candidates, 2\)/);
+ assert.match(source,/\.slice\(0, 3\)/);
+ assert.match(source,/GLOBAL-FAP-4X6/);
+ assert.match(source,/GLOBAL-FAP-5X7/);
+ assert.match(source,/GLOBAL-FAP-6X8/);
+ assert.match(source,/Prodigi product lookup failed/);
+ assert.match(source,/PRODIGI_CATALOG_UNAVAILABLE/);
+});
+
+test('Prodigi print asset selection can use a higher-resolution private digital JPEG',()=>{
+ const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
+ assert.match(source,/\['print', 'master', 'digital'\]/);
+ assert.match(source,/pixels\(b\) - pixels\(a\)/);
+});
+
+test('Prodigi failures return safe actionable diagnostics',()=>{
+ const options=fs.readFileSync(path.join(root,'api/print-options.js'),'utf8');
+ const client=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ assert.match(options,/PRODIGI_TIMEOUT/);
+ assert.match(options,/PRODIGI_HTTP_/);
+ assert.match(client,/Sandbox and Live API keys are separate/);
+ assert.match(client,/rate-limiting size lookup/);
+});
