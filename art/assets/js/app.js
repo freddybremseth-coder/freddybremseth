@@ -254,9 +254,12 @@
    const recommended=data.products.find(product=>product.quality?.recommended&&dimensionData(product).maxInches>=14&&dimensionData(product).maxInches<=24)
     ||data.products.find(product=>product.quality?.recommended)
     ||data.products[Math.min(1,data.products.length-1)];
+   const archiveCopy=data.asset_source==='archive_preview'
+    ?' This archived work is offered only in small formats that keep print resolution above our quality floor.'
+    :'';
    $('print-help').textContent=data.sales_enabled
-    ?'Choose a size. Your complete artwork is fitted to the paper without cropping; a border may appear when proportions differ.'
-    :'Print sizes are working in '+String(data.environment||'sandbox').toUpperCase()+' test mode. Your complete artwork is fitted without cropping; customer checkout stays locked until live production is approved.';
+    ?'Choose a size. Your complete artwork is fitted to the paper without cropping; a border may appear when proportions differ.'+archiveCopy
+    :'Print sizes are working in '+String(data.environment||'sandbox').toUpperCase()+' test mode. Your complete artwork is fitted without cropping; customer checkout stays locked until live production is approved.'+archiveCopy;
    selectPrintSku(recommended.sku,true);
   }catch(error){
    size.replaceChildren(new Option('Print options unavailable',''));host.replaceChildren();

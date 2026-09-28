@@ -18,6 +18,7 @@ module.exports=async(req,res)=>{
       environment:prodigiEnvironment(),
       artwork:{id:artwork.id,title:artwork.title},
       master_ready:!!asset,
+      asset_source:asset&&asset.preview_fallback?'archive_preview':'master',
       products:products.map(product=>({
         sku:product.sku,
         description:product.description,
