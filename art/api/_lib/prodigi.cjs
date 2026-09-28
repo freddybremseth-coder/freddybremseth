@@ -373,7 +373,7 @@ function retailFromQuote(quoteResult) {
   const roundTo = Math.max(100, Number(process.env.PRINT_ROUND_TO_CENTS || 500));
   const curatedFloor = fineArtRetailFloorCents(quoteResult.sku) * quoteResult.quantity;
   if (!curatedFloor) throw Object.assign(new Error('Fine-art print size is below the curated minimum'), { code: 'PRINT_SIZE_BELOW_MINIMUM' });
-  const product = roundUp(Math.max(wholesaleItems * multiplier, curatedFloor), roundTo);
+  const product = Math.max(roundUp(wholesaleItems * multiplier, roundTo), curatedFloor);
   const shipping = roundUp(wholesaleShipping, 100);
   return {
     currency: 'eur',
