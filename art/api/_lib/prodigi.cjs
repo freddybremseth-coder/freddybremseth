@@ -92,15 +92,25 @@ function supabasePublic() {
 
 async function prodigiRequest(path, options = {}) {
   if (!prodigiConfigured()) throw Object.assign(new Error('Prodigi is not configured'), { code: 'PRODIGI_NOT_CONFIGURED' });
-  const response = await fetch(prodigiBaseUrl() + path, {
-    ...options,
-    headers: {
-      'X-API-Key': process.env.PRODIGI_API_KEY,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...(options.headers || {})
-    }
-  });
+  const { timeoutMs = 6000, ...fetchOptions } = options;
+  let response;
+  try {
+    response = await fetch(prodigiBaseUrl() + path, {
+      ...fetchOptions,
+      signal: fetchOptions.signal || AbortSignal.timeout(timeoutMs),
+      headers: {
+        'X-API-Key': process.env.PRODIGI_API_KEY,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(fetchOptions.headers || {})
+      }
+    });
+  } catch (error) {
+    const code = error?.name === 'TimeoutError' || error?.name === 'AbortError'
+      ? 'PRODIGI_TIMEOUT'
+      : 'PRODIGI_NETWORK_ERROR';
+    throw Object.assign(new Error(code), { code });
+  }
   let body = {};
   try { body = await response.json(); } catch {}
   if (!response.ok) {
@@ -172,7 +182,7 @@ async function productDetails(sku) {
   const cached = productCache.get(safe);
   if (cached && Date.now() - cached.at < PRODUCT_CACHE_TTL_MS) return cached.value;
   try {
-    const body = await prodigiRequest('/v4.0/products/' + encodeURIComponent(safe), { method: 'GET' });
+    const body = await prodigiRequest('/v4.0/products/' + encodeURIComponent(safe), { method: 'GET', timeoutMs: 3000 });
     const value = body && body.product ? body.product : null;
     productCache.set(safe, { at: Date.now(), value });
     return value;
