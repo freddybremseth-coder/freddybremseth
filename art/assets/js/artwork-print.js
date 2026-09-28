@@ -12,7 +12,10 @@
  };
  const primaryLabel=(product,primary)=>{
   const index=primary.findIndex(item=>item.sku===product.sku);
-  return index===0?'Fine Art':index===1?'Gallery · Most popular':index===primary.length-1?'Statement':'Fine Art';
+  if(primary.length===1)return 'Fine Art';
+  if(index===0)return 'Fine Art';
+  if(index===primary.length-1)return 'Statement';
+  return 'Gallery · Most popular';
  };
  const dimensionData=product=>{
   const d=product?.dimensions||{},w=Number(d.width||0),h=Number(d.height||0),units=String(d.units||'in').toLowerCase();
