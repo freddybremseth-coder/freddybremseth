@@ -1,6 +1,12 @@
 'use strict';
 
+const crypto = require('node:crypto');
+
 const CANDIDATE_SKUS = [
+  'GLOBAL-FAP-4X6',
+  'GLOBAL-FAP-5X7',
+  'GLOBAL-FAP-6X8',
+  'GLOBAL-FAP-6X9',
   'GLOBAL-FAP-8X10',
   'GLOBAL-FAP-8X12',
   'GLOBAL-FAP-10X10',
@@ -91,12 +97,12 @@ async function findArtworkForPrint(artworkId) {
   if (!client) return null;
   const { data, error } = await client
     .from('art_gallery_works')
-    .select('id,title_en,description_en,pixel_width,pixel_height,published,review_status')
+    .select('id,title_en,description_en,pixel_width,pixel_height,published,review_status,public_preview_path')
     .eq('id', artworkId)
     .eq('published', true)
     .maybeSingle();
   if (error || !data) return null;
-  return { id: data.id, title: data.title_en || data.id, description: data.description_en || '', pixel_width: data.pixel_width, pixel_height: data.pixel_height, review_status: data.review_status };
+  return { id: data.id, title: data.title_en || data.id, description: data.description_en || '', pixel_width: data.pixel_width, pixel_height: data.pixel_height, review_status: data.review_status, public_preview_path: data.public_preview_path || '' };
 }
 
 async function findPrintAsset(artworkId) {
@@ -108,9 +114,7 @@ async function findPrintAsset(artworkId) {
     .select('artwork_id,asset_role,bucket_name,object_path,mime_type,pixel_width,pixel_height,verified_at')
     .eq('artwork_id', artworkId)
     .in('asset_role', ['print', 'master']);
-  if (error || !Array.isArray(data) || !data.length) return null;
-
-  const ranked = data
+  const ranked = !error && Array.isArray(data) ? data
     .filter(row => row.bucket_name === (process.env.ART_STORAGE_BUCKET || 'art-originals'))
     .filter(row => ['image/jpeg', 'image/png'].includes(String(row.mime_type || '').toLowerCase()) || /\.(jpe?g|png)$/i.test(row.object_path || ''))
     .sort((a, b) => {
@@ -118,8 +122,22 @@ async function findPrintAsset(artworkId) {
       const verified = row => row.verified_at ? 1 : 0;
       const pixels = row => Number(row.pixel_width || 0) * Number(row.pixel_height || 0);
       return role(b) - role(a) || verified(b) - verified(a) || pixels(b) - pixels(a);
-    });
-  return ranked[0] || null;
+    }) : [];
+  if (ranked[0]) return ranked[0];
+
+  const artwork = await findArtworkForPrint(artworkId);
+  if (!artwork || !artwork.public_preview_path || !Number(artwork.pixel_width) || !Number(artwork.pixel_height)) return null;
+  return {
+    artwork_id: artwork.id,
+    asset_role: 'archive-preview',
+    bucket_name: 'art-previews',
+    object_path: artwork.public_preview_path,
+    mime_type: 'image/webp',
+    pixel_width: artwork.pixel_width,
+    pixel_height: artwork.pixel_height,
+    verified_at: null,
+    preview_fallback: true
+  };
 }
 
 async function productDetails(sku) {
@@ -168,16 +186,17 @@ function fitQuality(asset, required) {
   const requiredWidth = Number(required && required.width || 0);
   const requiredHeight = Number(required && required.height || 0);
   if (!width || !height || !requiredWidth || !requiredHeight) return null;
-  const scaleA = Math.min(requiredWidth / width, requiredHeight / height);
-  const scaleB = Math.min(requiredWidth / height, requiredHeight / width);
-  const scaleNeeded = Math.min(scaleA, scaleB);
+  const sameOrientation = (width >= height) === (requiredWidth >= requiredHeight);
+  const scaleNeeded = sameOrientation
+    ? Math.min(requiredWidth / width, requiredHeight / height)
+    : Math.min(requiredWidth / height, requiredHeight / width);
   const effectivePpi = Math.round(300 / Math.max(scaleNeeded, 0.01));
   return {
     scale_needed: Number(scaleNeeded.toFixed(3)),
     effective_ppi: effectivePpi,
-    recommended: scaleNeeded <= 1,
-    acceptable: scaleNeeded <= 2.5,
-    label: scaleNeeded <= 1 ? 'Recommended quality' : scaleNeeded <= 1.5 ? 'Very good quality' : scaleNeeded <= 2.5 ? 'Good quality' : 'Standard quality'
+    recommended: effectivePpi >= 280,
+    acceptable: effectivePpi >= 200,
+    label: effectivePpi >= 280 ? 'Recommended quality' : effectivePpi >= 240 ? 'Very good quality' : effectivePpi >= 200 ? 'Good quality' : 'Standard quality'
   };
 }
 
@@ -234,8 +253,12 @@ async function eligibleProducts(artworkId, countryCode) {
       const area = p => Number(p.dimensions && p.dimensions.width || 0) * Number(p.dimensions && p.dimensions.height || 0);
       return area(a) - area(b);
     });
-  const preferred = shippable.filter(product => product.quality.acceptable);
-  const products = (preferred.length ? preferred : shippable.slice(0, 1)).slice(0, 12);
+  const preferred = asset.preview_fallback
+    ? shippable.filter(product => product.quality.effective_ppi >= 220)
+    : shippable.filter(product => product.quality.acceptable);
+  const products = asset.preview_fallback
+    ? preferred.slice(0, 3)
+    : (preferred.length ? preferred : shippable.slice(0, 1)).slice(0, 12);
   return { asset, products };
 }
 
@@ -279,9 +302,23 @@ function retailFromQuote(quoteResult) {
   };
 }
 
+function previewPrintAssetUrl(asset, expiresIn = 86400) {
+  if (!asset || !asset.preview_fallback || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  const expires = Math.floor(Date.now() / 1000) + Math.max(300, Math.min(7 * 86400, Number(expiresIn || 86400)));
+  const message = asset.artwork_id + ':' + expires;
+  const sig = crypto.createHmac('sha256', process.env.SUPABASE_SERVICE_ROLE_KEY).update(message).digest('hex');
+  const url = new URL('/functions/v1/art-print-asset', process.env.SUPABASE_URL);
+  url.searchParams.set('artwork_id', asset.artwork_id);
+  url.searchParams.set('expires', String(expires));
+  url.searchParams.set('sig', sig);
+  return url.toString();
+}
+
 async function signedPrintUrl(asset, expiresIn = 86400) {
+  if (!asset) return null;
+  if (asset.preview_fallback) return previewPrintAssetUrl(asset, expiresIn);
   const client = supabaseAdmin();
-  if (!client || !asset) return null;
+  if (!client) return null;
   const { data, error } = await client.storage
     .from(asset.bucket_name || process.env.ART_STORAGE_BUCKET || 'art-originals')
     .createSignedUrl(asset.object_path, expiresIn);
@@ -414,6 +451,7 @@ module.exports = {
   printCheckoutReady,
   findArtworkForPrint,
   findPrintAsset,
+  previewPrintAssetUrl,
   productDetails,
   fitQuality,
   eligibleProducts,
