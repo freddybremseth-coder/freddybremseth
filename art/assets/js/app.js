@@ -1,6 +1,6 @@
 (()=>{'use strict';
  const $=id=>document.getElementById(id);
- const state={art:[],styles:[],collections:[],filtered:[],count:18,category:'all',style:'all',orientation:'all',motif:'all',colour:'all',price:'all',search:'',sort:'discover',mixSeed:0,selected:null,lang:'en',checkout:false,print:{byArtworkId:{},defaultPrintUrl:''},variants:[],variantById:new Map(),variantsByPrimary:new Map()};
+ const state={art:[],styles:[],collections:[],filtered:[],count:18,category:'all',style:'all',orientation:'all',motif:'all',colour:'all',price:'all',search:'',sort:'discover',mixSeed:0,selected:null,lang:'en',checkout:false,print:{byArtworkId:{},defaultPrintUrl:''},printApi:{},variants:[],variantById:new Map(),variantsByPrimary:new Map()};
  const copy={en:{all:'All styles',loading:'Loading the gallery…',results:'artworks',more:'View more artworks ↓',buy:'Buy digital edition · €50 ↗',unavailable:'Digital checkout opening soon',agree:'Please accept the digital delivery terms first.',checkoutError:'Checkout is temporarily unavailable. No payment was taken.',pending:'Confirming your payment…',paid:'Payment confirmed. Your download is available below.',failed:'This payment has not yet been confirmed. You have not been charged by this page.',fileMissing:'Your payment was verified, but the file is not yet ready. Please keep the Stripe confirmation link and contact the gallery.',download:'Download artwork ↓'},no:{all:'Alle stiler',loading:'Laster galleriet…',results:'kunstverk',more:'Vis flere kunstverk ↓',buy:'Kjøp digital utgave · €50 ↗',unavailable:'Digital betaling åpner snart',agree:'Godta vilkårene for digital levering først.',checkoutError:'Betaling er midlertidig utilgjengelig. Ingen betaling er gjennomført.',pending:'Kontrollerer betalingen…',paid:'Betalingen er bekreftet. Du kan laste ned kunstverket.',failed:'Betalingen er ennå ikke bekreftet. Du er ikke belastet av denne siden.',fileMissing:'Betalingen er bekreftet, men filen er ennå ikke tilgjengelig. Ta vare på Stripe-lenken og kontakt galleriet.',download:'Last ned kunstverket ↓'}};
  const text=key=>copy[state.lang][key];
  const DISCOVERY_ENDPOINT='https://realtyflow.chatgenius.pro/api/public/search-discovery';
@@ -169,6 +169,69 @@
   $('no-results').hidden=state.filtered.length!==0;
  }
  function printLinkFor(art){return safeLink(state.print.byArtworkId?.[art.id]||state.print.defaultPrintUrl||art.print_url)}
+ let activePrintQuote=null;
+ const money=cents=>'€'+(Number(cents||0)/100).toFixed(2);
+ async function refreshPrintOptions(){
+  if(!state.selected)return;
+  const size=$('print-size'),country=$('print-country').value;
+  size.disabled=true;size.replaceChildren(new Option('Checking verified sizes…',''));
+  $('print-quote-button').disabled=true;$('print-quote').hidden=true;$('print-checkout-button').hidden=true;activePrintQuote=null;
+  $('print-help').textContent='Checking the private master against Prodigi product requirements…';
+  try{
+   const response=await fetch('/api/print-options?artwork_id='+encodeURIComponent(state.selected.id)+'&country='+encodeURIComponent(country),{headers:{Accept:'application/json'}});
+   const data=await response.json();
+   if(!response.ok)throw Error(data.error||'Print options unavailable');
+   size.replaceChildren();
+   if(!data.configured){size.append(new Option('Print provider not configured yet',''));$('print-help').textContent='Prodigi is prepared in the site code, but the API key has not been connected yet.';return}
+   if(!Array.isArray(data.products)||!data.products.length){size.append(new Option('No verified size for this destination',''));$('print-help').textContent='No Prodigi size currently passes the resolution and destination checks for this artwork.';return}
+   size.append(new Option('Choose a size…',''));
+   for(const product of data.products){const d=product.dimensions||{};const units=d.units||'in';size.append(new Option((d.width&&d.height?d.width+' × '+d.height+' '+units+' · ':'')+product.description,product.sku))}
+   size.disabled=false;$('print-quote-button').disabled=false;
+   $('print-help').textContent=data.sales_enabled?'Live Prodigi fulfilment is available after the final quote.':'Sizes are verified in '+String(data.environment||'sandbox')+'; live checkout remains safely disabled until production approval.';
+  }catch(error){size.replaceChildren(new Option('Print options unavailable',''));$('print-help').textContent=error.message||'Print options are temporarily unavailable.'}
+ }
+ function openPrintDialog(){
+  if(!state.selected)return;
+  $('print-title').textContent=state.selected.title+' · fine-art print';
+  $('print-intro').textContent='Enhanced matte fine-art paper. Only sizes that match the private master and destination are shown.';
+  activePrintQuote=null;$('print-quote').hidden=true;$('print-checkout-button').hidden=true;
+  const dialog=$('print-dialog');if(!dialog.open)dialog.showModal();void refreshPrintOptions();
+ }
+ async function quotePrint(){
+  if(!state.selected||!$('print-size').value)return;
+  const button=$('print-quote-button');button.disabled=true;button.textContent='Calculating…';
+  try{
+   const response=await fetch('/api/print-quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:state.selected.id,sku:$('print-size').value,country:$('print-country').value,quantity:1})});
+   const data=await response.json();if(!response.ok)throw Error(data.error||'Quote unavailable');
+   activePrintQuote=data;
+   const summary=$('print-quote');summary.innerHTML='<strong>'+escapeHtml(data.description||'Fine-art print')+'</strong><span>Print '+money(data.product_cents)+'</span><span>'+escapeHtml(data.shipping_method||'Standard')+' shipping '+money(data.shipping_cents)+'</span><b>Total '+money(data.total_cents)+'</b>';summary.hidden=false;
+   const buy=$('print-checkout-button');buy.hidden=!data.checkout_enabled;buy.disabled=!data.checkout_enabled;
+   $('print-help').textContent=data.checkout_enabled?'Secure Stripe checkout. Prodigi receives the print order only after payment is confirmed.':'This is a live Prodigi quote, but customer checkout is still locked until live production, sample and legal approval are enabled.';
+  }catch(error){activePrintQuote=null;$('print-quote').hidden=true;$('print-checkout-button').hidden=true;showToast(error.message||'Print quote unavailable')}
+  finally{button.disabled=!$('print-size').value;button.textContent='Calculate print & shipping'}
+ }
+ async function beginPrintCheckout(){
+  if(!state.selected||!activePrintQuote)return;
+  const button=$('print-checkout-button');button.disabled=true;button.textContent='Starting secure checkout…';
+  try{
+   const response=await fetch('/api/create-print-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:state.selected.id,sku:activePrintQuote.sku,country:activePrintQuote.country,quantity:activePrintQuote.quantity||1})});
+   const data=await response.json();if(!response.ok||!safeLink(data.url)||!data.url.startsWith('https://checkout.stripe.com/'))throw Error(data.error||'Print checkout unavailable');
+   location.assign(data.url);
+  }catch(error){showToast(error.message||'Print checkout unavailable');button.disabled=false;button.textContent='Buy physical print ↗'}
+ }
+ async function verifyPrintOrder(sessionId){
+  const dialog=$('print-status-dialog');if(!dialog.open)dialog.showModal();$('print-status').textContent='Checking payment and fulfilment…';$('print-tracking').hidden=true;
+  try{
+   const response=await fetch('/api/print-order-status?session_id='+encodeURIComponent(sessionId),{headers:{Accept:'application/json'}});
+   const data=await response.json();
+   if(response.status===202){$('print-status').textContent=data.status||'Payment confirmed. Preparing your print order.';return}
+   if(!response.ok)throw Error(data.error||'Print order unavailable');
+   const stage=data.stage?' · '+data.stage:'';
+   $('print-status').textContent='Payment confirmed. Your Prodigi order has been submitted'+stage+'.';
+   const tracking=(data.shipments||[]).find(item=>safeLink(item.tracking_url));
+   if(tracking){$('print-tracking').href=tracking.tracking_url;$('print-tracking').hidden=false}
+  }catch(error){$('print-status').textContent=error.message||'The order could not be checked right now. Keep your Stripe confirmation.'}
+ }
  function updateBuy(){const btn=$('checkout-button');const available=state.selected?.digital_available!==false;btn.disabled=!available||!state.checkout||!$('digital-consent').checked;btn.textContent=!available?'Edition not yet available':state.checkout?text('buy'):text('unavailable')}
  function fillRelated(art){
   const host=$('dialog-related');host.replaceChildren();
@@ -217,7 +280,7 @@
   }
   host.append(heading,choices);
  }
- function openArt(art,push){state.selected=art;renderVariants(art);$('dialog-image').src=art.image;$('dialog-image').alt=art.title;$('dialog-title').textContent=art.title;$('dialog-index').textContent='ARTWORK / '+String(art.number).padStart(3,'0');$('dialog-category').textContent=art.category;$('dialog-collection').textContent=collectionName(art)+(art.digital_available===false?' · Gallery preview':' · Digital artwork €'+(art.price_cents/100).toFixed(0));$('dialog-story').textContent=art.story;$('dialog-edition').textContent=art.edition;$('dialog-size').textContent=art.width+' × '+art.height+' px (public preview source)';$('digital-consent').checked=false;const forSale=art.digital_available!==false;$('digital-consent').closest('.consent').hidden=!forSale;const label=$('dialog-price-label');label.textContent=forSale?'Digital edition':'Gallery preview · Not yet for sale';if(forSale){const strong=document.createElement('strong');strong.textContent='€'+(art.price_cents/100).toFixed(0);label.appendChild(strong)}$('checkout-help').textContent=forSale?'Secure checkout by Stripe · The full-size file is not publicly accessible.':'This work is displayed for viewing. No paid download or physical edition has been configured.';updateBuy();fillRelated(art);const url=printLinkFor(art);$('print-link').hidden=!url;$('print-placeholder').hidden=!!url;if(url)$('print-link').href=url;
+ function openArt(art,push){state.selected=art;renderVariants(art);$('dialog-image').src=art.image;$('dialog-image').alt=art.title;$('dialog-title').textContent=art.title;$('dialog-index').textContent='ARTWORK / '+String(art.number).padStart(3,'0');$('dialog-category').textContent=art.category;$('dialog-collection').textContent=collectionName(art)+(art.digital_available===false?' · Gallery preview':' · Digital artwork €'+(art.price_cents/100).toFixed(0));$('dialog-story').textContent=art.story;$('dialog-edition').textContent=art.edition;$('dialog-size').textContent=art.width+' × '+art.height+' px (public preview source)';$('digital-consent').checked=false;const forSale=art.digital_available!==false;$('digital-consent').closest('.consent').hidden=!forSale;const label=$('dialog-price-label');label.textContent=forSale?'Digital edition':'Gallery preview · Not yet for sale';if(forSale){const strong=document.createElement('strong');strong.textContent='€'+(art.price_cents/100).toFixed(0);label.appendChild(strong)}$('checkout-help').textContent=forSale?'Secure checkout by Stripe · The full-size file is not publicly accessible.':'This work is displayed for viewing. No paid download or physical edition has been configured.';updateBuy();fillRelated(art);const url=printLinkFor(art),apiPrint=!!state.printApi.print_configured;$('print-button').hidden=!apiPrint;$('print-link').hidden=apiPrint||!url;$('print-placeholder').hidden=apiPrint||!!url;if(url)$('print-link').href=url;
   if(push&&location.pathname!==detailHref(art))history.pushState({art:art.id},'',detailHref(art));
   const dialog=$('art-dialog');dialog.classList.toggle('landscape-artwork',art.id==='drmmetrappen-til-manen');if(!dialog.open)dialog.showModal();document.title=art.title+' — Freddy Bremseth Art';}
  function closeArt(){const lightbox=$('art-zoom-dialog');if(lightbox.open)lightbox.close();const dialog=$('art-dialog');if(dialog.open)dialog.close()}
@@ -292,7 +355,7 @@
    state.variantsByPrimary=new Map();
    for(const row of state.variants){const items=state.variantsByPrimary.get(row.primary_id)||[];items.push(row);state.variantsByPrimary.set(row.primary_id,items)}
    if(state.art.some(art=>!state.collections.some(c=>c.id===art.collection_id)))throw Error('Artwork without a curated collection');
-   state.checkout=!!status.sales_enabled;state.print=print;makeCollections();
+   state.checkout=!!status.sales_enabled;state.print=print;state.printApi=status||{};makeCollections();
    $('art-count').textContent=visibleArt().length;$('end-number').textContent=visibleArt().length;
    render();$('year').textContent=new Date().getFullYear();
    const slug=currentSlug();if(slug){const match=state.art.find(a=>a.id===slug);if(match)openArt(match,false)}
@@ -320,6 +383,14 @@
  $('zoom-close').addEventListener('click',()=>$('art-zoom-dialog').close());
  $('art-zoom-dialog').addEventListener('click',event=>{if(event.target===$('art-zoom-dialog'))event.currentTarget.close()});
  $('checkout-button').addEventListener('click',beginCheckout);
+  $('print-button').addEventListener('click',openPrintDialog);
+  $('print-close').addEventListener('click',()=>$('print-dialog').close());
+  $('print-dialog').addEventListener('click',event=>{if(event.target===$('print-dialog'))event.currentTarget.close()});
+  $('print-country').addEventListener('change',refreshPrintOptions);
+  $('print-size').addEventListener('change',()=>{$('print-quote-button').disabled=!$('print-size').value;$('print-quote').hidden=true;$('print-checkout-button').hidden=true;activePrintQuote=null});
+  $('print-quote-button').addEventListener('click',quotePrint);
+  $('print-checkout-button').addEventListener('click',beginPrintCheckout);
+  $('print-status-close').addEventListener('click',()=>$('print-status-dialog').close());
  for(const button of document.querySelectorAll('#art-dialog .dialog-close'))button.addEventListener('click',()=>closeArt());$('art-dialog').addEventListener('close',()=>{if(currentSlug()){history.replaceState({},'','/');document.title='Freddy Bremseth Art — Art that stays with you'}});$('art-dialog').addEventListener('click',e=>{if(e.target===$('art-dialog'))closeArt()});$('purchase-close').addEventListener('click',()=>$('purchase-dialog').close());$('purchase-retry').addEventListener('click',()=>{const id=new URLSearchParams(location.search).get('session_id');if(id)verifyPurchase(id)});addEventListener('popstate',()=>{const slug=currentSlug();const art=state.art.find(a=>a.id===slug);if(art)openArt(art,false);else closeArt()});
  trackSearchDiscovery();
  init();
