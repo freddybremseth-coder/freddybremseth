@@ -70,7 +70,9 @@ test('new gallery previews have no advertised price or enabled paid checkout',()
  assert.match(html,/id="dialog-price-label"/);
  assert.match(app,/digital_available===false/);
  assert.match(app,/Edition not yet available/);
- assert.match(checkout,/art\.digital_available===false/);
+ assert.match(checkout,/findDigitalPurchase/);
+ const catalog=fs.readFileSync(path.join(root,'api/_lib/catalog.cjs'),'utf8');
+ assert.match(catalog,/eq\('digital_available',true\)/);
  const previewOnly=artworks.filter(a=>a.digital_available===false);
  for(const art of previewOnly)assert.equal(art.price_cents,null);
 });

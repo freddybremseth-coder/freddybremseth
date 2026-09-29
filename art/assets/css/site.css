@@ -521,3 +521,17 @@ dialog.landscape-artwork .dialog-photo img {
 .print-promotion{display:block;font-size:.9rem;margin-top:.35rem}
 .print-normal-price{display:block;text-decoration:line-through;opacity:.58;font-size:.88rem}
 @media(max-width:760px){.print-more-size-grid{grid-template-columns:1fr}}
+
+
+/* Complete artwork purchase flow */
+.print-all-sizes{grid-column:1/-1;margin:.2rem 0 0;font-size:.84rem;opacity:.66}
+.digital-edition-shop{margin-top:1.35rem;padding:1.35rem;border:1px solid rgba(80,65,52,.22);background:rgba(247,242,234,.72)}
+.digital-edition-shop h2{margin:.2rem 0 .5rem}
+.digital-edition-shop>p:not(.eyebrow){margin:.2rem 0 1rem;opacity:.78}
+.digital-consent{display:flex;gap:.65rem;align-items:flex-start;margin:1rem 0;font-size:.88rem;line-height:1.45}
+.digital-consent input{margin-top:.2rem;flex:0 0 auto}
+#artwork-digital-download{margin-top:.8rem}
+@media(max-width:760px){
+ .digital-edition-shop{margin-top:1rem;padding:1.05rem}
+ .digital-edition-shop .btn{min-height:54px}
+}
