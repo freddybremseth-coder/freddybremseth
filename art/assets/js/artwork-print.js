@@ -80,6 +80,8 @@
     const extraHost=document.createElement('div');extraHost.className='print-more-size-grid';
     for(const product of extras)extraHost.appendChild(createButton(product,'Additional size'));
     more.appendChild(extraHost);host.appendChild(more);
+   }else{
+    const all=document.createElement('p');all.className='print-all-sizes';all.textContent='All available fine-art sizes are shown for this artwork.';host.appendChild(all);
    }
    const chosen=primary[Math.min(1,primary.length-1)]||primary[0];
    setMessage(data.asset_source==='archive_preview'
@@ -148,10 +150,38 @@
    setMessage('Payment confirmed. Your print order has been submitted'+(data.stage?' · '+data.stage:'')+'.','ready');
   }catch(error){setMessage(error.message||'Payment was received. Keep your Stripe confirmation while the print order is checked.','error')}
  }
+ const digitalConsent=$('artwork-digital-consent'),digitalBuy=$('artwork-digital-buy'),digitalMessage=$('artwork-digital-message'),digitalDownload=$('artwork-digital-download');
+ if(digitalConsent&&digitalBuy){
+  digitalConsent.addEventListener('change',()=>{digitalBuy.disabled=!digitalConsent.checked});
+  digitalBuy.addEventListener('click',async()=>{
+   if(!digitalConsent.checked)return;
+   digitalBuy.disabled=true;digitalBuy.textContent='Opening secure checkout…';
+   try{
+    const response=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({artwork_id:artworkId,digital_consent:true})});
+    const data=await response.json();
+    if(!response.ok||typeof data.url!=='string'||!data.url.startsWith('https://checkout.stripe.com/'))throw Error(data.error||'Digital checkout unavailable');
+    location.assign(data.url);
+   }catch(error){
+    digitalMessage.textContent=error.message||'Digital checkout unavailable';
+    digitalMessage.dataset.state='error';digitalBuy.disabled=false;digitalBuy.textContent='Buy Digital Edition · €50 ↗';
+   }
+  });
+ }
+ async function showDigitalDownload(sessionId){
+  if(!digitalMessage||!digitalDownload)return;
+  digitalMessage.textContent='Payment received. Preparing your private download…';
+  try{
+   const response=await fetch('/api/confirm-download?session_id='+encodeURIComponent(sessionId),{headers:{Accept:'application/json'}});
+   const data=await response.json();if(!response.ok||!data.download_url)throw Error(data.error||'Download is not ready yet');
+   digitalDownload.innerHTML='<a class="btn btn-dark btn-full" href="'+esc(data.download_url)+'" rel="nofollow">Download high-resolution artwork ↗</a><p class="checkout-help">Private link · expires in 5 minutes.</p>';
+   digitalDownload.hidden=false;digitalMessage.textContent='Payment verified. Your Digital Edition is ready.';digitalMessage.dataset.state='ready';
+  }catch(error){digitalMessage.textContent=error.message||'Payment was received. Keep your Stripe confirmation and try again.';digitalMessage.dataset.state='error'}
+ }
  $('artwork-print-country').addEventListener('change',()=>void loadOptions());
  $('artwork-print-quantity').addEventListener('change',()=>{if($('artwork-print-sku').value)void updateQuote()});
  $('artwork-print-buy').addEventListener('click',checkout);
- const params=new URLSearchParams(location.search),session=params.get('print_session_id');
+ const params=new URLSearchParams(location.search),session=params.get('print_session_id'),digitalSession=params.get('session_id');
  if(session&&/^cs_(test_|live_)?[a-zA-Z0-9_]+$/.test(session))void showOrderStatus(session);
+ if(digitalSession&&/^cs_(test_|live_)?[a-zA-Z0-9_]+$/.test(digitalSession))void showDigitalDownload(digitalSession);
  void loadOptions();
 })();
