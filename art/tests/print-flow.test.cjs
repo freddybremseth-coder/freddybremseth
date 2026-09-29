@@ -320,5 +320,5 @@ test('dynamic artwork pages offer Digital Edition and preserve secure download f
  assert.match(confirm,/findDigitalPurchase/);
  assert.match(catalog,/art_gallery_assets/);
  assert.match(catalog,/\['digital','master'\]/);
- assert.match(catalog,/bucket_name:'art-originals'/);
+ assert.match(catalog,/eq\('bucket_name','art-originals'\)/);
 });
