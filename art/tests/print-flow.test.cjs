@@ -301,3 +301,24 @@ test('print promotions require explicit dates and never become permanent by acci
  assert.equal(prodigi.activePrintPromotion(new Date('2026-10-06T00:00:00Z')),null);
  for(const key of keys){if(before[key]===undefined)delete process.env[key];else process.env[key]=before[key]}
 });
+
+
+test('dynamic artwork pages offer Digital Edition and preserve secure download flow',()=>{
+ const page=fs.readFileSync(path.join(root,'api/artwork-page.js'),'utf8');
+ const client=fs.readFileSync(path.join(root,'assets/js/artwork-print.js'),'utf8');
+ const checkout=fs.readFileSync(path.join(root,'api/create-checkout.js'),'utf8');
+ const confirm=fs.readFileSync(path.join(root,'api/confirm-download.js'),'utf8');
+ const catalog=fs.readFileSync(path.join(root,'api/_lib/catalog.cjs'),'utf8');
+ assert.match(page,/digital_available/);
+ assert.match(page,/Digital Edition · €50/);
+ assert.match(page,/artwork-digital-consent/);
+ assert.match(client,/\/api\/create-checkout/);
+ assert.match(client,/\/api\/confirm-download\?session_id=/);
+ assert.match(client,/All available fine-art sizes are shown/);
+ assert.match(checkout,/findDigitalPurchase/);
+ assert.match(checkout,/artwork\/'/);
+ assert.match(confirm,/findDigitalPurchase/);
+ assert.match(catalog,/art_gallery_assets/);
+ assert.match(catalog,/\['digital','master'\]/);
+ assert.match(catalog,/bucket_name:'art-originals'/);
+});
