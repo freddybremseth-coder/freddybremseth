@@ -438,3 +438,29 @@ a[href^="mailto:"]{text-underline-offset:3px}
   .fb-reveal{opacity:1!important;transform:none!important}
   ::view-transition-old(root),::view-transition-new(root){animation:none!important}
 }
+
+
+/* Server-rendered article pages */
+.article-page{background:var(--fb-paper)}
+.article-hero{min-height:auto;padding-bottom:72px}
+.article-hero h1{max-width:14ch;font-size:clamp(3rem,6.5vw,6.4rem)}
+.article-date{margin-top:24px!important;color:rgba(252,251,248,.58)!important;font-size:.84rem!important}
+.article-content-section{padding-top:64px}
+.article-shell{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:clamp(34px,6vw,84px);align-items:start}
+.article-prose{max-width:780px}
+.article-cover{width:100%;aspect-ratio:16/9;object-fit:cover;margin:0 0 44px;border-radius:var(--fb-radius-lg);box-shadow:var(--fb-shadow)}
+.article-prose>p{margin:0 0 22px;color:#45545d;font-size:1.06rem;line-height:1.84}
+.article-prose>h2{margin:56px 0 16px;color:var(--fb-ink);font-family:var(--fb-display);font-size:clamp(2rem,3.2vw,3.25rem);font-weight:520;line-height:1.04}
+.article-prose>h3{margin:38px 0 12px;color:var(--fb-ink);font-family:var(--fb-display);font-size:1.65rem;font-weight:520}
+.article-prose>ul{margin:8px 0 28px;padding-left:22px;color:#45545d}
+.article-prose>ul li{margin:8px 0;line-height:1.7}
+.article-author{margin-top:64px;padding:28px;border-top:1px solid var(--fb-line);border-bottom:1px solid var(--fb-line)}
+.article-author strong{display:block;color:var(--fb-ink);font-family:var(--fb-display);font-size:1.5rem;font-weight:520}
+.article-author p{margin:8px 0 12px}
+.article-author a{color:var(--fb-travertine-dark);font-weight:750}
+.article-rail{position:sticky;top:112px;display:grid;gap:4px;padding:24px;border:1px solid var(--fb-line);border-radius:var(--fb-radius);background:rgba(252,251,248,.92);box-shadow:var(--fb-shadow)}
+.article-rail>a,.article-related>a{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--fb-line);color:var(--fb-ink);font-size:.9rem;font-weight:650}
+.article-rail>a:hover,.article-related>a:hover{color:var(--fb-travertine-dark)}
+.article-related{display:grid;margin-top:22px}
+.article-related .section-label{margin-bottom:8px}
+@media(max-width:900px){.article-shell{grid-template-columns:1fr}.article-rail{position:static;max-width:780px}}
