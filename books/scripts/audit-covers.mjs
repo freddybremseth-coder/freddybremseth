@@ -17,7 +17,9 @@ const knownRemoteCovers = new Set([
   'red-revolution', 'the-cables-beneath-the-world', 'hvordan-makt-fungerer',
   'declutter-digital-life', 'fra-jord-til-bord', 'polyfenolens-kraft', 'let-me-explain-you',
   'spania-2030', 'olive-oil-cookbook', 'the-olive-oil-cure', 'relationship-blueprint',
-  'time-mastery', 'guide-lalfas-albir-en', 'guide-lalfas-albir-no', 'guide-el-campello-no'
+  'time-mastery', 'guide-lalfas-albir-en', 'guide-lalfas-albir-no', 'guide-el-campello-no',
+  'birokt-og-oliven', 'kunsten-a-hoste-tidlig', 'premium-olive-oil-processing',
+  'growing-premium-olives', 'hidden-systems-of-power', 'victoria-andreas'
 ]);
 const problems = [];
 const unillustrated = [];
