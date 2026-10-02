@@ -41,22 +41,22 @@
   var recoveredCovers = {
     'arms-power': 'assets/covers/arms-power.png',
     'lev-100-ar': 'assets/covers/lev-100-ar.jpg',
-    'declutter-digital-life': 'api/cover?id=declutter-digital-life',
-    'fra-jord-til-bord': 'api/cover?id=fra-jord-til-bord',
-    'polyfenolens-kraft': 'api/cover?id=polyfenolens-kraft',
-    'let-me-explain-you': 'api/cover?id=let-me-explain-you',
-    'spania-2030': 'api/cover?id=spania-2030',
-    'olive-oil-cookbook': 'api/cover?id=olive-oil-cookbook',
-    'the-olive-oil-cure': 'api/cover?id=the-olive-oil-cure',
-    'relationship-blueprint': 'api/cover?id=relationship-blueprint',
-    'time-mastery': 'api/cover?id=time-mastery',
-    'guide-lalfas-albir-en': 'api/cover?id=guide-lalfas-albir-en',
-    'guide-lalfas-albir-no': 'api/cover?id=guide-lalfas-albir-no',
-    'guide-el-campello-no': 'api/cover?id=guide-el-campello-no',
-    'birokt-og-oliven': 'api/cover?id=birokt-og-oliven',
-    'kunsten-a-hoste-tidlig': 'api/cover?id=kunsten-a-hoste-tidlig',
-    'premium-olive-oil-processing': 'api/cover?id=premium-olive-oil-processing',
-    'growing-premium-olives': 'api/cover?id=growing-premium-olives'
+    'declutter-digital-life': 'assets/covers/declutter-digital-life.webp',
+    'fra-jord-til-bord': 'assets/covers/fra-jord-til-bord.webp',
+    'polyfenolens-kraft': 'assets/covers/polyfenolens-kraft.webp',
+    'let-me-explain-you': 'assets/covers/skatt-og-staten.webp',
+    'spania-2030': 'assets/covers/spania-2030.webp',
+    'olive-oil-cookbook': 'assets/covers/olive-oil-cookbook.webp',
+    'the-olive-oil-cure': 'assets/covers/the-olive-oil-cure.webp',
+    'relationship-blueprint': 'assets/covers/relationship-blueprint.webp',
+    'time-mastery': 'assets/covers/time-mastery.webp',
+    'guide-lalfas-albir-en': 'assets/covers/guide-lalfas-albir-en.jpg',
+    'guide-lalfas-albir-no': 'assets/covers/guide-lalfas-albir-no.jpg',
+    'guide-el-campello-no': 'assets/covers/guide-el-campello-no.jpg',
+    'birokt-og-oliven': 'assets/covers/birokt-og-oliven.webp',
+    'kunsten-a-hoste-tidlig': 'assets/covers/kunsten-a-hoste-tidlig.webp',
+    'premium-olive-oil-processing': 'assets/covers/premium-olive-oil-processing.webp',
+    'growing-premium-olives': 'assets/covers/growing-premium-olives.webp'
   };
   series.forEach(function (s) {
     (s.books || []).forEach(function (b) {
@@ -65,8 +65,8 @@
   });
 
   var recoveredSeriesCovers = {
-    'hidden-systems-of-power': 'api/cover?id=hidden-systems-of-power',
-    'victoria-andreas': 'api/cover?id=victoria-andreas'
+    'hidden-systems-of-power': 'assets/covers/hidden-systems-of-power-series.webp',
+    'victoria-andreas': 'assets/covers/victoria-andreas-series.webp'
   };
   series.forEach(function (s) {
     if (recoveredSeriesCovers[s.id]) s.cover = recoveredSeriesCovers[s.id];
