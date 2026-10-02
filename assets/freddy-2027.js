@@ -33,6 +33,22 @@
     }
   }
 
+  const footer = document.querySelector(".footer");
+  if (footer && !footer.querySelector(".fb-brand-network")) {
+    const network = document.createElement("nav");
+    network.className = "fb-brand-network";
+    network.setAttribute("aria-label", "Freddy Bremseth prosjektnettverk");
+    network.innerHTML = '<strong>Freddy Bremseth network</strong>' +
+      '<a href="https://www.zenecohomes.com/">Zen Eco Homes</a>' +
+      '<a href="https://www.pinosoecolife.com/">Pinoso Eco Life</a>' +
+      '<a href="https://www.donaanna.com/">Doña Anna</a>' +
+      '<a href="https://www.chatgenius.pro/">ChatGenius</a>' +
+      '<a href="https://books.freddybremseth.com/">Books</a>' +
+      '<a href="https://art.freddybremseth.com/">Art</a>' +
+      '<a href="https://remaster.freddybremseth.com/">Re-Master Freddy</a>';
+    footer.appendChild(network);
+  }
+
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduceMotion) return;
 
