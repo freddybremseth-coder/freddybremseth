@@ -243,3 +243,23 @@ textarea{min-height:150px;resize:vertical}
 @media(max-width:900px){.reading-paths{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.reading-paths{grid-template-columns:1fr}.reading-path{min-height:220px;padding:24px}.reading-path strong{left:24px}}
 @media(prefers-reduced-motion:reduce){.reading-path,.series-card,.book-cell .cover,.detail .cover{transition:none!important}}
+
+/* Freddy Bremseth entity network — visible, restrained, and secondary to book discovery. */
+.books-brand-network{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:center;
+  gap:.5rem 1rem;
+  max-width:980px;
+  font:500 12px/1.5 var(--sans);
+}
+.books-brand-network strong{
+  color:var(--gold);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.books-brand-network a{color:#cfd0d6;opacity:.72;text-decoration:none}
+.books-brand-network a:hover,
+.books-brand-network a:focus-visible{color:#fff;opacity:1;text-decoration:underline;text-underline-offset:3px}
+.seo-network-footer{margin-top:64px}
