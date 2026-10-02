@@ -464,3 +464,32 @@ a[href^="mailto:"]{text-underline-offset:3px}
 .article-related{display:grid;margin-top:22px}
 .article-related .section-label{margin-bottom:8px}
 @media(max-width:900px){.article-shell{grid-template-columns:1fr}.article-rail{position:static;max-width:780px}}
+
+.fb-brand-network{
+  max-width:var(--container,1180px);
+  margin:0 auto;
+  padding:1rem clamp(1rem,4vw,2rem) 1.4rem;
+  border-top:1px solid rgba(23,32,39,.12);
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:.5rem 1rem;
+  font-size:.72rem;
+  line-height:1.5;
+}
+.fb-brand-network strong{
+  color:var(--accent,#8d6b3d);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.fb-brand-network a{
+  color:inherit;
+  opacity:.62;
+  text-decoration:none;
+}
+.fb-brand-network a:hover,
+.fb-brand-network a:focus-visible{
+  opacity:1;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
