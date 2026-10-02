@@ -7,6 +7,36 @@
           "value": "books.freddybremseth.com"
         }
       ],
+      "src": "/api/(.*)",
+      "dest": "/books/api/$1"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/(en|es)/(book|series|topics)/(.*)",
+      "dest": "/books/index.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/(book|series|topics)/(.*)",
+      "dest": "/books/index.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
       "src": "/assets/(.*)",
       "dest": "/books/assets/$1"
     },
@@ -103,52 +133,72 @@
     {
       "src": "/index.html",
       "status": 308,
-      "headers": { "Location": "/" }
+      "headers": {
+        "Location": "/"
+      }
     },
     {
       "src": "/home.html",
       "status": 308,
-      "headers": { "Location": "/" }
+      "headers": {
+        "Location": "/"
+      }
     },
     {
       "src": "/project/index.html",
       "status": 308,
-      "headers": { "Location": "/" }
+      "headers": {
+        "Location": "/"
+      }
     },
     {
       "src": "/project/eiendomsradgiver-spania.html",
       "status": 308,
-      "headers": { "Location": "/eiendomsradgiver-spania.html" }
+      "headers": {
+        "Location": "/eiendomsradgiver-spania.html"
+      }
     },
     {
       "src": "/project/ai-og-salgsstrategi.html",
       "status": 308,
-      "headers": { "Location": "/ai-og-salgsstrategi.html" }
+      "headers": {
+        "Location": "/ai-og-salgsstrategi.html"
+      }
     },
     {
       "src": "/project/entreprenor-og-strategi.html",
       "status": 308,
-      "headers": { "Location": "/entreprenor-og-strategi.html" }
+      "headers": {
+        "Location": "/entreprenor-og-strategi.html"
+      }
     },
     {
       "src": "/project/foredrag-og-radgivning.html",
       "status": 308,
-      "headers": { "Location": "/foredrag-og-radgivning.html" }
+      "headers": {
+        "Location": "/foredrag-og-radgivning.html"
+      }
     },
     {
       "src": "/project/olivenolje-og-dona-anna.html",
       "status": 308,
-      "headers": { "Location": "/olivenolje-og-dona-anna.html" }
+      "headers": {
+        "Location": "/olivenolje-og-dona-anna.html"
+      }
     },
     {
       "src": "/project/struktur.html",
       "status": 308,
-      "headers": { "Location": "/struktur.html" }
+      "headers": {
+        "Location": "/struktur.html"
+      }
     },
     {
       "src": "/project/forfatter.html",
       "status": 308,
-      "headers": { "Location": "https://books.freddybremseth.com/" }
+      "headers": {
+        "Location": "https://books.freddybremseth.com/"
+      }
     },
     {
       "src": "/sitemap.xml",
