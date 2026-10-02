@@ -18,6 +18,10 @@ const routes = [
   'topics/geopolitics-power',
   'topics/psychological-thrillers',
   'topics/money-economics',
+  'topics/mediterranean-living',
+  'topics/spain-costa-blanca',
+  'topics/health-balanced-life',
+  'topics/childrens-books',
 ];
 series.forEach(s => {
   routes.push('series/' + s.id);

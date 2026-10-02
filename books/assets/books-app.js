@@ -168,6 +168,58 @@
     }).join('');
     var allSeriesCards = SERIES.map(seriesCard).join('');
 
+    var reading = LANG === 'en'
+      ? {
+          kicker: 'Find your next read',
+          title: 'Choose by what you want to explore',
+          intro: 'Start with a theme, then move into a series or individual book.',
+          items: [
+            ['Psychological thrillers','Identity, guilt, institutions and morally difficult choices.','topics/psychological-thrillers'],
+            ['Money, power & geopolitics','Clear explanations and deeper systems behind economics, resources and global power.','topics/geopolitics-power'],
+            ['Mediterranean life & olives','Olive oil, cultivation, food, longevity and the practical Mediterranean life.','topics/mediterranean-living'],
+            ['Spain & Costa Blanca','Guides to places, property choices and life in Spain.','topics/spain-costa-blanca'],
+            ['Health & a balanced life','Time, relationships, digital life, wellbeing and personal experience.','topics/health-balanced-life'],
+            ['Children’s books','Simple picture-led books for seeing, pointing, learning and talking together.','topics/childrens-books']
+          ]
+        }
+      : LANG === 'es'
+        ? {
+            kicker: 'Encuentra tu próxima lectura',
+            title: 'Elige por lo que quieres explorar',
+            intro: 'Empieza por un tema y continúa hacia una serie o un libro concreto.',
+            items: [
+              ['Thrillers psicológicos','Identidad, culpa, instituciones y decisiones moralmente difíciles.','topics/psychological-thrillers'],
+              ['Dinero, poder y geopolítica','Explicaciones claras y sistemas detrás de la economía, los recursos y el poder global.','topics/geopolitics-power'],
+              ['Vida mediterránea y olivos','Aceite de oliva, cultivo, alimentación, longevidad y vida mediterránea práctica.','topics/mediterranean-living'],
+              ['España y Costa Blanca','Guías sobre lugares, vivienda y vida en España.','topics/spain-costa-blanca'],
+              ['Salud y vida equilibrada','Tiempo, relaciones, vida digital, bienestar y experiencia personal.','topics/health-balanced-life'],
+              ['Libros infantiles','Libros visuales sencillos para mirar, señalar, aprender y conversar juntos.','topics/childrens-books']
+            ]
+          }
+        : {
+            kicker: 'Finn din neste bok',
+            title: 'Velg etter det du vil utforske',
+            intro: 'Start med et tema, og gå videre til en serie eller enkeltbok.',
+            items: [
+              ['Psykologiske thrillere','Identitet, skyld, institusjoner og moralsk vanskelige valg.','topics/psychological-thrillers'],
+              ['Penger, makt og geopolitikk','Forklaringer og systemene bak økonomi, ressurser og global makt.','topics/geopolitics-power'],
+              ['Middelhavsliv og oliven','Olivenolje, dyrking, mat, levetid og det praktiske middelhavslivet.','topics/mediterranean-living'],
+              ['Spania og Costa Blanca','Guider til steder, boligvalg og livet i Spania.','topics/spain-costa-blanca'],
+              ['Helse og et balansert liv','Tid, relasjoner, digitalt liv, helse og personlige erfaringer.','topics/health-balanced-life'],
+              ['Barnebøker','Enkle, visuelle bøker for å se, peke, lære og snakke sammen.','topics/childrens-books']
+            ]
+          };
+    var readingPaths = '<section class="reading-paths-section"><div class="container">' +
+      '<p class="kicker">' + esc(reading.kicker) + '</p>' +
+      '<h2 class="reading-paths-title">' + esc(reading.title) + '</h2>' +
+      '<p class="reading-paths-intro">' + esc(reading.intro) + '</p>' +
+      '<div class="reading-paths">' + reading.items.map(function (item, index) {
+        return '<a class="reading-path" href="' + href(item[2].split('/')[0], item[2].split('/')[1]) + '">' +
+          '<span class="reading-path-index">0' + (index + 1) + '</span>' +
+          '<h3>' + esc(item[0]) + '</h3><p>' + esc(item[1]) + '</p><strong>' +
+          (LANG === 'en' ? 'Explore →' : LANG === 'es' ? 'Explorar →' : 'Utforsk →') + '</strong></a>';
+      }).join('') + '</div></div></section>';
+
     return '' +
       '<section class="hero"><div class="hero-inner">' +
       '<p class="kicker">' + esc(t('heroKicker')) + '</p>' +
@@ -176,6 +228,7 @@
       '<div class="btns"><a class="btn btn-primary" href="' + href('library') + '">' + esc(t('ctaBrowse')) + '</a>' +
       '<a class="btn btn-secondary" href="' + href('about') + '">' + esc(t('ctaAbout')) + '</a></div>' +
       '</div></section>' +
+      readingPaths +
       latest +
       '<section><div class="container"><h2 class="serif" style="font-size:26px">' + esc(t('galleryTitle')) + '</h2>' +
       galleryBlock(gallery) + '<p><a href="' + href('library') + '">' + esc(t('ctaBrowse')) + '</a></p></div></section>' +

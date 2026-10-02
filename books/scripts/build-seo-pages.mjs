@@ -21,6 +21,18 @@ const prefixFor = (lang) => lang === 'no' ? '' : `/${lang}`;
 const pathFor = (lang, route = '') => `${prefixFor(lang)}${route ? `/${route}` : '/'}`;
 const absolute = (lang, route = '') => `${ORIGIN}${pathFor(lang, route)}`;
 const coverUrl = cover => cover ? `${ORIGIN}/${String(cover).replace(/^\//, '')}` : `${ORIGIN}/assets/author/freddy-bremseth.jpg`;
+const metaDescription = value => {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (text.length <= 165) return text;
+  return text.slice(0, 162).replace(/\s+\S*$/, '') + '…';
+};
+const breadcrumbName = (lang, route, title) => {
+  if (!route) return title;
+  if (route === 'library') return lang === 'en' ? 'Library' : lang === 'es' ? 'Biblioteca' : 'Bibliotek';
+  if (route === 'about') return lang === 'en' ? 'About the author' : lang === 'es' ? 'Sobre el autor' : 'Om forfatteren';
+  if (route === 'contact') return lang === 'en' ? 'Contact' : lang === 'es' ? 'Contacto' : 'Kontakt';
+  return title;
+};
 
 function hreflangs(route) {
   return [
@@ -33,17 +45,31 @@ function chrome(lang, title, description, route, body, schema, image) {
   const canonical = absolute(lang, route);
   const langAttr = lang === 'no' ? 'no' : lang;
   const imageUrl = image ? coverUrl(image) : `${ORIGIN}/assets/og-books.jpg`;
+  const metaDesc = metaDescription(description);
+  const crumb = {
+    '@context':'https://schema.org',
+    '@type':'BreadcrumbList',
+    itemListElement: route ? [
+      {'@type':'ListItem',position:1,name:lang === 'en' ? 'Books' : lang === 'es' ? 'Libros' : 'Bøker',item:absolute(lang, '')},
+      {'@type':'ListItem',position:2,name:breadcrumbName(lang, route, title),item:canonical}
+    ] : [
+      {'@type':'ListItem',position:1,name:breadcrumbName(lang, route, title),item:canonical}
+    ]
+  };
   return `<!DOCTYPE html>
 <html lang="${langAttr}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${esc(title)}</title>
-  <meta name="description" content="${esc(description).slice(0, 320)}" />
+  <meta name="description" content="${esc(metaDesc)}" />
+  <meta name="author" content="Freddy Bremseth" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
   <link rel="canonical" href="${esc(canonical)}" />
   ${hreflangs(route)}
   <meta property="og:title" content="${esc(title)}" />
-  <meta property="og:description" content="${esc(description).slice(0, 320)}" />
+  <meta property="og:description" content="${esc(metaDesc)}" />
+  <meta property="og:site_name" content="Freddy Bremseth Books" />
   <meta property="og:type" content="${route.startsWith('book/') ? 'book' : 'website'}" />
   <meta property="og:url" content="${esc(canonical)}" />
   <meta property="og:image" content="${esc(imageUrl)}" />
@@ -53,6 +79,7 @@ function chrome(lang, title, description, route, body, schema, image) {
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/books.css" />
   <script type="application/ld+json">${JSON.stringify(schema).replace(/</g, '\\u003c')}</script>
+  <script type="application/ld+json">${JSON.stringify(crumb).replace(/</g, '\\u003c')}</script>
 </head>
 <body>
   <div id="app">${body}</div>
@@ -84,7 +111,10 @@ function homePage(lang) {
       : 'Psykologiske thrillere og sakprosa om økonomi, makt, geopolitikk, helse, oliven, jordbruk og livet i Spania.';
   const cards = series.map(s => `<article><h2><a href="${prefixFor(lang)}/series/${esc(s.id)}">${esc(pick(s.title, lang))}</a></h2><p>${esc(pick(s.desc, lang))}</p><ul>${(s.books || []).map(b => `<li><a href="${prefixFor(lang)}/book/${esc(b.id)}">${esc(b.title)}</a></li>`).join('')}</ul></article>`).join('');
   const body = `<main style="max-width:1100px;margin:40px auto;padding:0 24px">${nav(lang)}<h1>${esc(title)}</h1><p>${esc(desc)}</p>${cards}</main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'ProfilePage', mainEntity: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/', jobTitle: lang === 'en' ? 'Author' : lang === 'es' ? 'Autor' : 'Forfatter' } };
+  const schema = { '@context': 'https://schema.org', '@graph': [
+    { '@type': 'WebSite', '@id': ORIGIN + '/#website', url: absolute(lang, ''), name: 'Freddy Bremseth Books', inLanguage: lang, publisher: { '@id': 'https://www.freddybremseth.com/#person' } },
+    { '@type': 'ProfilePage', '@id': absolute(lang, '') + '#profile', url: absolute(lang, ''), mainEntity: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/', jobTitle: lang === 'en' ? 'Author' : lang === 'es' ? 'Autor' : 'Forfatter', knowsAbout: ['Psychological thrillers','Crime fiction','Economics','Geopolitics','Mediterranean living','Olive oil','Spain'] } }
+  ] };
   return chrome(lang, title, desc, '', body, schema);
 }
 
@@ -95,7 +125,7 @@ function seriesPage(s, lang) {
   const title = `${name} — Freddy Bremseth`;
   const books = (s.books || []).map((b) => `<article><h2><a href="${prefixFor(lang)}/book/${esc(b.id)}">${esc(b.title)}</a></h2><p>${esc(pick(b.descShort, lang))}</p>${b.cover ? `<img src="/${esc(b.cover)}" alt="${esc(b.title)} book cover" loading="lazy" width="220" />` : ''}</article>`).join('');
   const body = `<main style="max-width:1000px;margin:40px auto;padding:0 24px">${nav(lang)}<p><a href="${prefixFor(lang) || '/'}">← ${lang === 'en' ? 'All books' : lang === 'es' ? 'Todos los libros' : 'Alle bøker'}</a></p><h1>${esc(name)}</h1><p>${esc(desc)}</p>${books}</main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'CreativeWorkSeries', name, description: desc, url: absolute(lang, route), author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, hasPart: (s.books || []).map((b, i) => ({ '@type': 'Book', name: b.title, position: i + 1, url: absolute(lang, `book/${b.id}`) })) };
+  const schema = { '@context': 'https://schema.org', '@type': 'CreativeWorkSeries', '@id': absolute(lang, route) + '#series', name, description: desc, url: absolute(lang, route), genre: pick(s.tag, lang), author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, hasPart: (s.books || []).map((b, i) => ({ '@type': 'Book', name: b.title, position: i + 1, url: absolute(lang, `book/${b.id}`) })) };
   return chrome(lang, title, desc, route, body, schema, s.cover);
 }
 
@@ -115,21 +145,21 @@ function bookPage(s, b, lang) {
   const buy = b.amazon ? `<p><a href="${esc(b.amazon)}" rel="nofollow sponsored noopener">Amazon</a></p>` : '';
   const sample = b.samplePath ? `<p><a href="/${esc(b.samplePath)}">${lang === 'en' ? 'Read a free sample' : lang === 'es' ? 'Leer una muestra gratis' : 'Les gratis prøvekapittel'}</a></p>` : '';
   const body = `<main style="max-width:920px;margin:40px auto;padding:0 24px">${nav(lang)}<p><a href="${prefixFor(lang)}/series/${esc(s.id)}">← ${esc(pick(s.title, lang))}</a></p><article><h1>${esc(b.title)}</h1>${b.subtitle ? `<p>${esc(b.subtitle)}</p>` : ''}${b.cover ? `<img src="/${esc(b.cover)}" alt="${esc(b.title)} book cover by Freddy Bremseth" width="320" />` : ''}<p>${esc(desc)}</p>${b.words ? `<p>${Number(b.words).toLocaleString('en-US')} words${b.pages ? ` · ${b.pages} pages` : ''}</p>` : ''}${sample}${buy}</article></main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'Book', name: b.title, description: desc, url: absolute(lang, route), image: b.cover ? coverUrl(b.cover) : undefined, author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, isPartOf: { '@type': 'CreativeWorkSeries', name: pick(s.title, lang), url: absolute(lang, `series/${s.id}`) }, inLanguage: lang, numberOfPages: b.pages || undefined };
+  const schema = { '@context': 'https://schema.org', '@type': 'Book', '@id': absolute(lang, route) + '#book', name: b.title, description: desc, url: absolute(lang, route), image: b.cover ? coverUrl(b.cover) : undefined, author: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' }, isPartOf: { '@type': 'CreativeWorkSeries', '@id': absolute(lang, `series/${s.id}`) + '#series', name: pick(s.title, lang), url: absolute(lang, `series/${s.id}`) }, genre: pick(s.tag, lang), inLanguage: lang, numberOfPages: b.pages || undefined, sameAs: b.amazon || undefined };
   return chrome(lang, title, short, route, body, schema, b.cover);
 }
 
 function simplePage(route, lang) {
   const map = {
     about: {
-      no: ['Om Freddy Bremseth', 'Forfatter av psykologiske thrillere og sakprosa om økonomi, geopolitikk, makt, helse, oliven, jordbruk og livet i Spania.'],
-      en: ['About Freddy Bremseth', 'Author of psychological thrillers and nonfiction about economics, geopolitics, power, health, olives, agriculture and life in Spain.'],
-      es: ['Sobre Freddy Bremseth', 'Autor de thrillers psicológicos y no ficción sobre economía, geopolítica, poder, salud, olivos, agricultura y la vida en España.'],
+      no: ['Om Freddy Bremseth', 'Møt Freddy Bremseth, forfatter av psykologiske thrillere, krim og sakprosa om økonomi, makt, helse, oliven, Spania og middelhavsliv.'],
+      en: ['About Freddy Bremseth', 'Meet Freddy Bremseth, author of psychological thrillers, crime fiction and nonfiction about economics, power, health, olives, Spain and Mediterranean living.'],
+      es: ['Sobre Freddy Bremseth', 'Conoce a Freddy Bremseth, autor de thrillers psicológicos, novela negra y no ficción sobre economía, poder, salud, olivos, España y vida mediterránea.'],
     },
     library: {
-      no: ['Bibliotek', 'Utforsk alle bøker og serier av Freddy Bremseth.'],
-      en: ['Library', 'Explore all books and series by Freddy Bremseth.'],
-      es: ['Biblioteca', 'Explora todos los libros y series de Freddy Bremseth.'],
+      no: ['Bibliotek', 'Utforsk hele bokkatalogen til Freddy Bremseth: psykologiske thrillere, krim, økonomi, geopolitikk, helse, Spania, oliven og barnebøker.'],
+      en: ['Library', 'Explore Freddy Bremseth’s complete book catalogue: psychological thrillers, crime, economics, geopolitics, health, Spain, olives and children’s books.'],
+      es: ['Biblioteca', 'Explora el catálogo completo de Freddy Bremseth: thrillers psicológicos, novela negra, economía, geopolítica, salud, España, olivos y libros infantiles.'],
     },
     contact: {
       no: ['Kontakt', 'Kontakt forfatter Freddy Bremseth.'],
@@ -139,7 +169,11 @@ function simplePage(route, lang) {
   };
   const [heading, desc] = map[route][lang];
   const body = `<main style="max-width:900px;margin:40px auto;padding:0 24px">${nav(lang)}<h1>${esc(heading)}</h1><p>${esc(desc)}</p>${route === 'library' ? series.map(s => `<h2><a href="${prefixFor(lang)}/series/${esc(s.id)}">${esc(pick(s.title, lang))}</a></h2>`).join('') : ''}</main>`;
-  const schema = { '@context': 'https://schema.org', '@type': 'WebPage', name: heading, description: desc, url: absolute(lang, route), about: { '@type': 'Person', '@id': 'https://www.freddybremseth.com/#person', name: 'Freddy Bremseth', url: 'https://www.freddybremseth.com/' } };
+  const schema = route === 'library'
+    ? { '@context':'https://schema.org', '@type':'CollectionPage', name:heading, description:desc, url:absolute(lang, route), isPartOf:{'@id':ORIGIN+'/#website'}, mainEntity:{'@type':'ItemList',numberOfItems:series.length,itemListElement:series.map((s,i)=>({'@type':'ListItem',position:i+1,name:pick(s.title,lang),url:absolute(lang,`series/${s.id}`)}))} }
+    : route === 'about'
+      ? { '@context':'https://schema.org', '@type':'ProfilePage', name:heading, description:desc, url:absolute(lang, route), mainEntity:{'@type':'Person','@id':'https://www.freddybremseth.com/#person',name:'Freddy Bremseth',url:'https://www.freddybremseth.com/',jobTitle:lang==='en'?'Author':lang==='es'?'Autor':'Forfatter'} }
+      : { '@context':'https://schema.org', '@type':'ContactPage', name:heading, description:desc, url:absolute(lang, route), about:{'@id':'https://www.freddybremseth.com/#person'} };
   return chrome(lang, `${heading} — Freddy Bremseth`, desc, route, body, schema);
 }
 
