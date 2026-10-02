@@ -17,6 +17,24 @@ const COVERS = {
   'hvordan-makt-fungerer': {
     epub: 'Hvordan_Makt_Fungerer_Freddy_Bremseth.epub',
   },
+  'declutter-digital-life': { file: 'covers/declutter-digital-life.webp', type: 'image/webp' },
+  'fra-jord-til-bord': { file: 'covers/fra-jord-til-bord.webp', type: 'image/webp' },
+  'polyfenolens-kraft': { file: 'covers/polyfenolens-kraft.webp', type: 'image/webp' },
+  'let-me-explain-you': { file: 'covers/skatt-og-staten.webp', type: 'image/webp' },
+  'spania-2030': { file: 'covers/spania-2030.webp', type: 'image/webp' },
+  'olive-oil-cookbook': { file: 'covers/olive-oil-cookbook.webp', type: 'image/webp' },
+  'the-olive-oil-cure': { file: 'covers/the-olive-oil-cure.webp', type: 'image/webp' },
+  'relationship-blueprint': { file: 'covers/relationship-blueprint.webp', type: 'image/webp' },
+  'time-mastery': { file: 'covers/time-mastery.webp', type: 'image/webp' },
+  'guide-lalfas-albir-en': { epub: 'Let_Me_Guide_You_LAlfas_del_Pi_Albir_English_FINAL.epub' },
+  'guide-lalfas-albir-no': { epub: 'Let_Me_Guide_You_LAlfas_del_Pi_Albir_Norsk_FINAL.epub' },
+  'guide-el-campello-no': { epub: 'Let_Me_Guide_You_El_Campello_Norsk_FINAL.epub' },
+  'birokt-og-oliven': { file: 'covers/birokt-og-oliven.webp', type: 'image/webp' },
+  'kunsten-a-hoste-tidlig': { file: 'covers/kunsten-a-hoste-tidlig.webp', type: 'image/webp' },
+  'premium-olive-oil-processing': { file: 'covers/premium-olive-oil-processing.webp', type: 'image/webp' },
+  'growing-premium-olives': { file: 'covers/growing-premium-olives.webp', type: 'image/webp' },
+  'hidden-systems-of-power': { file: 'covers/hidden-systems-of-power-series.webp', type: 'image/webp' },
+  'victoria-andreas': { file: 'covers/victoria-andreas-series.webp', type: 'image/webp' },
 };
 
 function mimeFor(name) {
