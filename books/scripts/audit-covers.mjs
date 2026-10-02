@@ -13,7 +13,12 @@ for (const file of ['books-data.js', 'books-extra.js', 'books-catalog-fixes.js']
   vm.runInContext(source, context, { filename: file, timeout: 2000 });
 }
 const series = context.window.BOOKS_SERIES || [];
-const knownRemoteCovers = new Set(['red-revolution', 'the-cables-beneath-the-world', 'hvordan-makt-fungerer']);
+const knownRemoteCovers = new Set([
+  'red-revolution', 'the-cables-beneath-the-world', 'hvordan-makt-fungerer',
+  'declutter-digital-life', 'fra-jord-til-bord', 'polyfenolens-kraft', 'let-me-explain-you',
+  'spania-2030', 'olive-oil-cookbook', 'the-olive-oil-cure', 'relationship-blueprint',
+  'time-mastery', 'guide-lalfas-albir-en', 'guide-lalfas-albir-no', 'guide-el-campello-no'
+]);
 const problems = [];
 const unillustrated = [];
 let staticCount = 0;
