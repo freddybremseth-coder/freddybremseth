@@ -86,6 +86,7 @@ const home = read("home.html");
 for (const token of [
   "https://www.freddybremseth.com/#person",
   "https://www.freddybremseth.com/#projects",
+  "https://no.linkedin.com/in/freddybremseth",
   "https://www.chatgenius.pro/",
   "https://www.zenecohomes.com/",
   "https://www.pinosoecolife.com/",
