@@ -23,9 +23,9 @@ const topics = [
       es: 'Libros sobre geopolítica, poder y orden mundial'
     },
     desc: {
-      no: 'Utforsk bøker om geopolitikk, strategiske ressurser, kapital, krig, energi, valuta, forsyningskjeder og de strukturelle systemene som former global makt.',
-      en: 'Explore books on geopolitics, strategic resources, capital, war, energy, currency, supply chains and the structural systems that shape global power.',
-      es: 'Explora libros sobre geopolítica, recursos estratégicos, capital, guerra, energía, divisas, cadenas de suministro y los sistemas estructurales que moldean el poder global.'
+      no: 'Sakprosa om strategiske ressurser, kapital, krig, energi, valuta, forsyningskjeder og de strukturelle systemene som former global makt.',
+      en: 'Nonfiction about strategic resources, capital, war, energy, currency, supply chains and the structural systems that shape global power.',
+      es: 'No ficción sobre recursos estratégicos, capital, guerra, energía, divisas, cadenas de suministro y los sistemas estructurales que moldean el poder global.'
     }
   },
   {
@@ -65,9 +65,9 @@ const topics = [
       es: 'Libros sobre aceite de oliva, vida mediterránea y cultivo'
     },
     desc: {
-      no: 'Utforsk bøker om olivenolje, polyfenoler, tidlig høsting, dyrking, mat, levetid og praktisk middelhavsliv.',
-      en: 'Explore books about olive oil, polyphenols, early harvest, cultivation, food, longevity and practical Mediterranean living.',
-      es: 'Explora libros sobre aceite de oliva, polifenoles, cosecha temprana, cultivo, alimentación, longevidad y vida mediterránea práctica.'
+      no: 'Olivenolje, polyfenoler, tidlig høsting, dyrking, mat, levetid og praktisk middelhavsliv — samlet i Mediterraneo Vital.',
+      en: 'Olive oil, polyphenols, early harvest, cultivation, food, longevity and practical Mediterranean living — collected in Mediterraneo Vital.',
+      es: 'Aceite de oliva, polifenoles, cosecha temprana, cultivo, alimentación, longevidad y vida mediterránea práctica — reunidos en Mediterraneo Vital.'
     }
   },
   {
@@ -88,14 +88,14 @@ const topics = [
     id: 'health-balanced-life',
     seriesIds: ['balanced-life'],
     title: {
-      no: 'Bøker om helse, tid, relasjoner og et balansert liv',
-      en: 'Books about Health, Time, Relationships and a Balanced Life',
-      es: 'Libros sobre salud, tiempo, relaciones y una vida equilibrada'
+      no: 'Bøker om tid, relasjoner og et balansert liv',
+      en: 'Books about Time, Relationships and a Balanced Life',
+      es: 'Libros sobre tiempo, relaciones y una vida equilibrada'
     },
     desc: {
-      no: 'Personlige og praktiske bøker om tid, digitale vaner, relasjoner, livsvalg, farskap og hvordan hverdagen kan bli mer balansert.',
-      en: 'Personal and practical books about time, digital habits, relationships, life choices, fatherhood and building a more balanced everyday life.',
-      es: 'Libros personales y prácticos sobre tiempo, hábitos digitales, relaciones, decisiones de vida, paternidad y una vida cotidiana más equilibrada.'
+      no: 'Praktiske bøker om tid, digitale vaner, relasjoner, livsvalg og hvordan hverdagen kan bli mer balansert.',
+      en: 'Practical books about time, digital habits, relationships, life choices and building a more balanced everyday life.',
+      es: 'Libros prácticos sobre tiempo, hábitos digitales, relaciones, decisiones de vida y una vida cotidiana más equilibrada.'
     }
   },
   {
@@ -146,7 +146,7 @@ function page(topic, lang) {
       }
     ]
   };
-  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | Freddy Bremseth</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${esc(abs(lang,route))}">${langs.map(l=>`<link rel="alternate" hreflang="${l}" href="${esc(abs(l,route))}">`).join('')}<link rel="alternate" hreflang="x-default" href="${esc(abs('no',route))}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:type" content="website"><script type="application/ld+json">${JSON.stringify(schema).replace(/</g,'\\u003c')}</script><link rel="stylesheet" href="/assets/books.css"></head><body><main style="max-width:1000px;margin:40px auto;padding:0 24px"><nav><a href="${prefix(lang)||'/'}">${lang==='en'?'Books':lang==='es'?'Libros':'Bøker'}</a> · <a href="${prefix(lang)}/library">${lang==='en'?'Library':lang==='es'?'Biblioteca':'Bibliotek'}</a> · <a href="https://www.freddybremseth.com/">Freddy Bremseth</a></nav><h1>${esc(title)}</h1><p>${esc(desc)}</p><p><a href="${prefix(lang)}/library">${lang==='en'?'Browse the full library':lang==='es'?'Ver toda la biblioteca':'Se hele biblioteket'} →</a></p><h2>${lang==='en'?'Related series':lang==='es'?'Series relacionadas':'Relaterte serier'}</h2><ul>${related}</ul>${items}</main><script src="/assets/books-growth.js"></script><script defer src="/assets/seo-referral-tracker.js"></script></body></html>`;
+  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | Freddy Bremseth</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${esc(abs(lang,route))}">${langs.map(l=>`<link rel="alternate" hreflang="${l}" href="${esc(abs(l,route))}">`).join('')}<link rel="alternate" hreflang="x-default" href="${esc(abs('no',route))}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:type" content="website"><meta property="og:url" content="${esc(abs(lang,route))}"><script type="application/ld+json">${JSON.stringify(schema).replace(/</g,'\\u003c')}</script><link rel="stylesheet" href="/assets/books.css"></head><body><div id="app"><main style="max-width:1000px;margin:40px auto;padding:0 24px"><nav><a href="${prefix(lang)||'/'}">${lang==='en'?'Books':lang==='es'?'Libros':'Bøker'}</a> · <a href="${prefix(lang)}/library">${lang==='en'?'Library':lang==='es'?'Biblioteca':'Bibliotek'}</a> · <a href="https://www.freddybremseth.com/">Freddy Bremseth</a></nav><h1>${esc(title)}</h1><p>${esc(desc)}</p><p><a href="${prefix(lang)}/library">${lang==='en'?'Browse the full library':lang==='es'?'Ver toda la biblioteca':'Se hele biblioteket'} →</a></p><h2>${lang==='en'?'Related series':lang==='es'?'Series relacionadas':'Relaterte serier'}</h2><ul>${related}</ul>${items}</main></div><script src="/assets/books-data.js"></script><script src="/assets/books-extra.js"></script><script src="/assets/books-catalog-fixes.js"></script><script src="/assets/sample-overrides.js"></script><script src="/assets/books-i18n.js"></script><script src="/assets/books-app.js"></script><script src="/assets/books-sample-links.js"></script><script src="/assets/books-growth.js"></script><script defer src="/assets/seo-referral-tracker.js"></script></body></html>`;
 }
 
 for (const lang of langs) {
