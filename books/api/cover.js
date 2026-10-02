@@ -29,6 +29,12 @@ const COVERS = {
   'guide-lalfas-albir-en': { epub: 'Let_Me_Guide_You_LAlfas_del_Pi_Albir_English_FINAL.epub' },
   'guide-lalfas-albir-no': { epub: 'Let_Me_Guide_You_LAlfas_del_Pi_Albir_Norsk_FINAL.epub' },
   'guide-el-campello-no': { epub: 'Let_Me_Guide_You_El_Campello_Norsk_FINAL.epub' },
+  'birokt-og-oliven': { file: 'covers/birokt-og-oliven.webp', type: 'image/webp' },
+  'kunsten-a-hoste-tidlig': { file: 'covers/kunsten-a-hoste-tidlig.webp', type: 'image/webp' },
+  'premium-olive-oil-processing': { file: 'covers/premium-olive-oil-processing.webp', type: 'image/webp' },
+  'growing-premium-olives': { file: 'covers/growing-premium-olives.webp', type: 'image/webp' },
+  'hidden-systems-of-power': { file: 'covers/hidden-systems-of-power-series.webp', type: 'image/webp' },
+  'victoria-andreas': { file: 'covers/victoria-andreas-series.webp', type: 'image/webp' },
 };
 
 function mimeFor(name) {
