@@ -57,7 +57,7 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/(en|es)/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you)/?",
+      "src": "/(en|es)/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you|anatomy-of-empires|hidden-systems-of-power|victoria-andreas|empire-after-the-empire)/?",
       "dest": "/books/seo/$1/series/$2.html"
     },
     {
@@ -67,8 +67,28 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you)/?",
+      "src": "/series/(michael-thorne|elias-holm|power-behind-curtain|mediterraneo-vital|balanced-life|let-me-explain|let-me-guide-you|anatomy-of-empires|hidden-systems-of-power|victoria-andreas|empire-after-the-empire)/?",
       "dest": "/books/seo/no/series/$1.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/(en|es)/topics/(geopolitics-power|psychological-thrillers|money-economics|mediterranean-living|spain-costa-blanca|health-balanced-life|childrens-books)/?",
+      "dest": "/books/$1/topics/$2.html"
+    },
+    {
+      "has": [
+        {
+          "type": "host",
+          "value": "books.freddybremseth.com"
+        }
+      ],
+      "src": "/topics/(geopolitics-power|psychological-thrillers|money-economics|mediterranean-living|spain-costa-blanca|health-balanced-life|childrens-books)/?",
+      "dest": "/books/topics/$1.html"
     },
     {
       "has": [
