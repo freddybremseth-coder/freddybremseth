@@ -8,6 +8,8 @@ template=template.replace(/Explore \d+ digital artworks/,`Explore ${catalog.leng
 fs.writeFileSync(path.join(root,'index.html'),template);
 const domain='https://art.freddybremseth.com';
 const encode=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const curation=JSON.parse(fs.readFileSync(path.join(root,'assets/collections.json'),'utf8'));
+const collectionFor=art=>art.collection_id||curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
 const collectionById=new Map(curation.collections.map(collection=>[collection.id,collection]));
 
 const artworkNavHeader='<header class="site-header"><a class="brand" href="/" aria-label="Freddy Bremseth Art — home"><span class="brand-symbol">FB<span class="brand-star">✳</span></span><span class="brand-name">FREDDY BREMSETH <small>ART STUDIO &amp; GALLERY</small></span></a><nav aria-label="Main navigation"><a href="/#collections-featured">Collections</a><a href="/#collection">All artworks</a><a href="/shop/">Shop</a><a href="/#approach">The artist</a><a href="/#collect">Collect art</a></nav><div class="nav-right"><a class="nav-cta" href="/#collection">Explore gallery <span>↗</span></a></div></header>';
@@ -59,8 +61,6 @@ for(const art of catalog){
 
 // First-class collection pages generated from the curated collection taxonomy.
 // These remain usable, linkable and indexable without JavaScript.
-const curation=JSON.parse(fs.readFileSync(path.join(root,'assets/collections.json'),'utf8'));
-const collectionFor=art=>art.collection_id||curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
 const collectionUrls=[];
 const navHeader='<header class="site-header"><a class="brand" href="/" aria-label="Freddy Bremseth Art — home"><span class="brand-symbol">FB<span class="brand-star">✳</span></span><span class="brand-name">FREDDY BREMSETH <small>ART STUDIO &amp; GALLERY</small></span></a><nav aria-label="Main navigation"><a href="/#collections-featured">Collections</a><a href="/#collection">All artworks</a><a href="/#approach">The artist</a><a href="/#collect">Collect art</a></nav><div class="nav-right"><a class="nav-cta" href="/#collection">All artworks <span>↗</span></a></div></header>';
 const footer='<footer class="footer"><div class="footer-top"><a class="footer-brand" href="/">FREDDY BREMSETH <em>ART</em></a><p>Art that stays with you. Stories you can live with.</p></div><div class="footer-links"><span>© '+new Date().getFullYear()+' Freddy Bremseth Art.</span><div><a href="/legal/license.html">Digital license</a><a href="/legal/terms.html">Purchase terms</a><a href="/legal/privacy.html">Privacy</a><a href="https://freddybremseth.com/">Main website ↗</a></div></div></footer>';
