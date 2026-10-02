@@ -8,27 +8,59 @@ template=template.replace(/Explore \d+ digital artworks/,`Explore ${catalog.leng
 fs.writeFileSync(path.join(root,'index.html'),template);
 const domain='https://art.freddybremseth.com';
 const encode=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const curation=JSON.parse(fs.readFileSync(path.join(root,'assets/collections.json'),'utf8'));
+const collectionFor=art=>art.collection_id||curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
+const collectionById=new Map(curation.collections.map(collection=>[collection.id,collection]));
+
+const artworkNavHeader='<header class="site-header"><a class="brand" href="/" aria-label="Freddy Bremseth Art — home"><span class="brand-symbol">FB<span class="brand-star">✳</span></span><span class="brand-name">FREDDY BREMSETH <small>ART STUDIO &amp; GALLERY</small></span></a><nav aria-label="Main navigation"><a href="/#collections-featured">Collections</a><a href="/#collection">All artworks</a><a href="/shop/">Shop</a><a href="/#approach">The artist</a><a href="/#collect">Collect art</a></nav><div class="nav-right"><a class="nav-cta" href="/#collection">Explore gallery <span>↗</span></a></div></header>';
+const artworkFooter='<footer class="footer"><div class="footer-top"><a class="footer-brand" href="/">FREDDY BREMSETH <em>ART</em></a><p>Art that stays with you. Stories you can live with.</p></div><div class="footer-links"><span>© '+new Date().getFullYear()+' Freddy Bremseth Art.</span><div><a href="/legal/license.html">Digital license</a><a href="/legal/terms.html">Purchase terms</a><a href="/legal/privacy.html">Privacy</a><a href="https://freddybremseth.com/">Main website ↗</a><a href="https://books.freddybremseth.com/">Books ↗</a></div></div></footer>';
 for(const art of catalog){
  const target=path.join(root,'verk',art.id);fs.mkdirSync(target,{recursive:true});
  const title=`${art.title} — Freddy Bremseth Art`;
  const sale=art.digital_available!==false;
- const desc=`${art.title}: ${art.story} Explore this ${art.category.toLowerCase()} digital artwork by Freddy Bremseth. ${sale?'Digital edition €50.':'Gallery preview. Editions not yet available.'}`;
- let html=template.replace('<html lang="en">','<html lang="en">')
- .replace(/<title>[^<]*<\/title>/,`<title>${encode(title)}</title>`)
- .replace(/<meta name="description" content="[^"]*">/,`<meta name="description" content="${encode(desc)}">`)
- .replace('href="https://art.freddybremseth.com/"','href="'+domain+'/verk/'+art.id+'/"')
- .replace(/<meta property="og:title" content="[^"]*">/,`<meta property="og:title" content="${encode(title)}">`)
- .replace(/<meta property="og:description" content="[^"]*">/,`<meta property="og:description" content="${encode(desc)}">`)
- .replace(/<meta property="og:image" content="[^"]*">/,`<meta property="og:image" content="${domain+art.image}">`)
- .replace('<div id="gallery" class="gallery-collections" aria-live="polite"><p>Loading the gallery…</p></div>',`<div id="gallery" class="gallery-grid" aria-live="polite"><article class="art-card${art.id==='drmmetrappen-til-manen'?' art-card-landscape-feature':''}"><a href="#collection" aria-label="${encode(art.title)}"><span class="art-photo"><img src="${art.image}" alt="${encode(art.title)} — Freddy Bremseth Art" width="${art.width}" height="${art.height}"></span><span class="art-card-meta"><span><span class="art-title">${encode(art.title)}</span><span class="art-category">${encode(art.category)} · ${sale?'Digital artwork €50':'Gallery preview · Not for sale'}</span></span></span></a><p>${encode(art.story)}</p></article></div>`)
- .replace('</head>',`<script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@type':'VisualArtwork',name:art.title,description:art.story,artform:'Digital art',creator:{'@type':'Person',name:'Freddy Bremseth',url:'https://freddybremseth.com/'},image:domain+art.image,url:domain+'/verk/'+art.id+'/'}).replaceAll('<','\\u003c')}</script></head>`);
+ const collectionId=collectionFor(art)||'studio-archive';
+ const collection=collectionById.get(collectionId);
+ const collectionName=collection?.name||'Studio Archive';
+ const canonical=domain+'/verk/'+art.id+'/';
+ const image=domain+art.image;
+ const story=String(art.story||'A digital artwork by Freddy Bremseth.');
+ const metaDescription=(story+' Explore this '+String(art.category||'digital art').toLowerCase()+' work in '+collectionName+'.').replace(/\s+/g,' ').trim().slice(0,165);
+ const visualArtwork={
+   '@context':'https://schema.org',
+   '@type':'VisualArtwork',
+   '@id':canonical+'#artwork',
+   name:art.title,
+   description:story,
+   artform:'Digital art',
+   artMedium:'AI-assisted digital composition',
+   creator:{'@type':'Person','@id':'https://www.freddybremseth.com/#person',name:'Freddy Bremseth',url:'https://www.freddybremseth.com/'},
+   copyrightHolder:{'@id':'https://www.freddybremseth.com/#person'},
+   image,
+   url:canonical,
+   isPartOf:{'@type':'CollectionPage',name:collectionName,url:domain+'/collections/'+collectionId+'/'},
+   width:art.width||undefined,
+   height:art.height||undefined,
+   offers:sale?{'@type':'Offer',price:'50.00',priceCurrency:'EUR',availability:'https://schema.org/InStock',url:domain+'/?artwork='+encodeURIComponent(art.id)+'#collection'}:undefined
+ };
+ const breadcrumbs={
+   '@context':'https://schema.org',
+   '@type':'BreadcrumbList',
+   itemListElement:[
+     {'@type':'ListItem',position:1,name:'Gallery',item:domain+'/'},
+     {'@type':'ListItem',position:2,name:collectionName,item:domain+'/collections/'+collectionId+'/'},
+     {'@type':'ListItem',position:3,name:art.title,item:canonical}
+   ]
+ };
+ const collect= sale
+  ? '<a class="btn btn-dark" href="/?artwork='+encodeURIComponent(art.id)+'#collection">Collect digital edition · €50 ↗</a>'
+  : '<span class="artwork-availability">Gallery preview · Edition not currently available</span>';
+ const dimensions=art.width&&art.height?art.width+' × '+art.height+' px public preview':'Public gallery preview';
+ const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f4f0e9"><meta name="robots" content="index,follow,max-image-preview:large"><meta name="author" content="Freddy Bremseth"><title>'+encode(title)+'</title><meta name="description" content="'+encode(metaDescription)+'"><link rel="canonical" href="'+canonical+'"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><meta property="og:type" content="article"><meta property="og:site_name" content="Freddy Bremseth Art"><meta property="og:url" content="'+canonical+'"><meta property="og:title" content="'+encode(title)+'"><meta property="og:description" content="'+encode(metaDescription)+'"><meta property="og:image" content="'+image+'"><meta name="twitter:card" content="summary_large_image"><link rel="stylesheet" href="/assets/css/site.css"><script type="application/ld+json">'+JSON.stringify(visualArtwork).replaceAll('<','\\u003c')+'</script><script type="application/ld+json">'+JSON.stringify(breadcrumbs).replaceAll('<','\\u003c')+'</script></head><body class="artwork-seo-page"><a class="skip" href="#artwork-detail">Skip to artwork</a><div class="announcement"><span class="ann-dot"></span> Art that stays with you <span class="ann-separator">✳</span> Individual artwork</div>'+artworkNavHeader+'<main class="collection-landing artwork-detail-page"><div class="collection-landing-inner"><nav class="collection-crumbs" aria-label="Breadcrumb"><a href="/">Gallery</a><span aria-hidden="true">/</span><a href="/collections/'+encodeURIComponent(collectionId)+'/">'+encode(collectionName)+'</a><span aria-hidden="true">/</span><span aria-current="page">'+encode(art.title)+'</span></nav><section class="artwork-detail-hero" id="artwork-detail"><div class="artwork-detail-copy"><p class="eyebrow"><span class="line"></span> '+encode(String(art.category||'DIGITAL ART').toUpperCase())+'</p><h1>'+encode(art.title)+'</h1><p class="artwork-story">'+encode(story)+'</p><dl class="artwork-facts"><div><dt>Collection</dt><dd><a href="/collections/'+encodeURIComponent(collectionId)+'/">'+encode(collectionName)+'</a></dd></div><div><dt>Format</dt><dd>'+encode(art.orientation||'Digital artwork')+'</dd></div><div><dt>Preview</dt><dd>'+encode(dimensions)+'</dd></div><div><dt>Artist</dt><dd>Freddy Bremseth</dd></div></dl><div class="artwork-actions">'+collect+'<a class="btn btn-outline" href="/collections/'+encodeURIComponent(collectionId)+'/">More from this collection ↗</a><a class="text-link" href="/#collection">Browse all artworks ↗</a></div></div>'+(art.id==='drmmetrappen-til-manen'?'<div class="art-card art-card-landscape-feature">':'')+'<figure class="artwork-detail-figure"><img src="'+encode(art.image)+'" alt="'+encode(art.title)+' — Freddy Bremseth Art" width="'+art.width+'" height="'+art.height+'" fetchpriority="high"><figcaption>Public gallery preview · The full composition is shown without intentional cropping.</figcaption></figure>'+(art.id==='drmmetrappen-til-manen'?'</div>':'')+'</section><section class="artwork-context"><p class="eyebrow"><span class="line"></span> BEHIND THE IMAGE</p><h2>A work from <em>'+encode(collectionName)+'</em>.</h2><p>'+encode(story)+'</p><p>This work is presented as part of the '+encode(collectionName)+' collection. Explore related works to see how the visual language develops across the series, or return to the gallery to discover a different path through the collection.</p><div class="artwork-context-links"><a class="text-link" href="/collections/'+encodeURIComponent(collectionId)+'/">Explore '+encode(collectionName)+' ↗</a><a class="text-link" href="/#approach">Read about the artistic approach ↗</a></div></section></div></main>'+artworkFooter+'<script defer src="/assets/js/seo-referral-tracker.js"></script></body></html>';
  fs.writeFileSync(path.join(target,'index.html'),html);
 }
 
 // First-class collection pages generated from the curated collection taxonomy.
 // These remain usable, linkable and indexable without JavaScript.
-const curation=JSON.parse(fs.readFileSync(path.join(root,'assets/collections.json'),'utf8'));
-const collectionFor=art=>art.collection_id||curation.byArtworkId[art.id]||curation.byStyle[art.style_id];
 const collectionUrls=[];
 const navHeader='<header class="site-header"><a class="brand" href="/" aria-label="Freddy Bremseth Art — home"><span class="brand-symbol">FB<span class="brand-star">✳</span></span><span class="brand-name">FREDDY BREMSETH <small>ART STUDIO &amp; GALLERY</small></span></a><nav aria-label="Main navigation"><a href="/#collections-featured">Collections</a><a href="/#collection">All artworks</a><a href="/#approach">The artist</a><a href="/#collect">Collect art</a></nav><div class="nav-right"><a class="nav-cta" href="/#collection">All artworks <span>↗</span></a></div></header>';
 const footer='<footer class="footer"><div class="footer-top"><a class="footer-brand" href="/">FREDDY BREMSETH <em>ART</em></a><p>Art that stays with you. Stories you can live with.</p></div><div class="footer-links"><span>© '+new Date().getFullYear()+' Freddy Bremseth Art.</span><div><a href="/legal/license.html">Digital license</a><a href="/legal/terms.html">Purchase terms</a><a href="/legal/privacy.html">Privacy</a><a href="https://freddybremseth.com/">Main website ↗</a></div></div></footer>';
@@ -61,7 +93,8 @@ for(const collection of curation.collections){
  const description=collection.description+(works.length?' Discover '+works.length+' digital artworks in this curated collection.':' New works in this collection are added from the private studio catalogue.');
  const cards=works.map(art=>'<article class="art-card'+(art.id==='drmmetrappen-til-manen'?' art-card-landscape-feature':'')+'"><a href="/verk/'+encodeURIComponent(art.id)+'/" aria-label="Explore '+encode(art.title)+'"><span class="art-photo"><img loading="lazy" src="'+encode(art.id==='drmmetrappen-til-manen'?art.image:art.thumb)+'" alt="'+encode(art.title)+'" width="'+art.width+'" height="'+art.height+'"></span><span class="art-card-meta"><span><span class="art-title">'+encode(art.title)+'</span><span class="art-category">'+encode(art.category)+' · '+(art.digital_available===false?'Gallery preview · Not for sale':'Digital edition €50')+'</span></span><span class="art-number">'+String(art.number).padStart(3,'0')+'</span></span></a></article>').join('\n');
  const siblings=curation.collections.filter(c=>c.id!==collection.id).map(c=>'<a href="/collections/'+encodeURIComponent(c.id)+'/">'+encode(c.name)+' ↗</a>').join('');
- const structured={'@context':'https://schema.org','@type':'CollectionPage',name:collection.name,description,url,mainEntity:{'@type':'ItemList',numberOfItems:works.length,itemListElement:works.map((art,i)=>({'@type':'ListItem',position:i+1,name:art.title,url:domain+'/verk/'+art.id+'/'}))}};
+ const structured={'@context':'https://schema.org','@type':'CollectionPage','@id':url+'#collection',name:collection.name,description,url,isPartOf:{'@id':domain+'/#website'},about:{'@id':'https://www.freddybremseth.com/#person'},creator:{'@id':'https://www.freddybremseth.com/#person'},mainEntity:{'@type':'ItemList',numberOfItems:works.length,itemListElement:works.map((art,i)=>({'@type':'ListItem',position:i+1,name:art.title,url:domain+'/verk/'+art.id+'/'}))}};
+ const collectionBreadcrumbs={'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Gallery',item:domain+'/'},{'@type':'ListItem',position:2,name:'Collections',item:domain+'/#collections-featured'},{'@type':'ListItem',position:3,name:collection.name,item:url}]};
  const ogImage=cover?'<meta property="og:image" content="'+domain+encode(cover)+'">':'';
  const heroFigure=cover
   ?'<figure id="collection-cover-figure"><img id="collection-cover-img" src="'+encode(cover)+'" alt="A selected artwork from '+encode(collection.name)+'" fetchpriority="high"><figcaption>Selected work from this collection · Digital gallery preview</figcaption></figure>'

@@ -485,8 +485,11 @@
    state.checkout=!!status.sales_enabled;state.print=print;state.printApi=status||{};makeCollections();
    $('art-count').textContent=visibleArt().length;$('end-number').textContent=visibleArt().length;
    render();$('year').textContent=new Date().getFullYear();
-   const slug=currentSlug();if(slug){const match=state.art.find(a=>a.id===slug);if(match)openArt(match,false)}
    const params=new URLSearchParams(location.search);
+   const slug=currentSlug();
+   const requestedArtwork=params.get('artwork');
+   const requestedId=slug||(requestedArtwork&&/^[a-z0-9-]{2,120}$/.test(requestedArtwork)?requestedArtwork:null);
+   if(requestedId){const match=state.art.find(a=>a.id===requestedId);if(match)openArt(match,false)}
    const printSessionId=params.get('print_session_id');
    const sessionId=params.get('session_id');
    if(printSessionId&&/^cs_(test_|live_)?[a-zA-Z0-9_]+$/.test(printSessionId))verifyPrintOrder(printSessionId);
