@@ -21,6 +21,18 @@ const prefixFor = (lang) => lang === 'no' ? '' : `/${lang}`;
 const pathFor = (lang, route = '') => `${prefixFor(lang)}${route ? `/${route}` : '/'}`;
 const absolute = (lang, route = '') => `${ORIGIN}${pathFor(lang, route)}`;
 const coverUrl = cover => cover ? `${ORIGIN}/${String(cover).replace(/^\//, '')}` : `${ORIGIN}/assets/author/freddy-bremseth.jpg`;
+const metaDescription = value => {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (text.length <= 165) return text;
+  return text.slice(0, 162).replace(/\s+\S*$/, '') + '…';
+};
+const breadcrumbName = (lang, route, title) => {
+  if (!route) return title;
+  if (route === 'library') return lang === 'en' ? 'Library' : lang === 'es' ? 'Biblioteca' : 'Bibliotek';
+  if (route === 'about') return lang === 'en' ? 'About the author' : lang === 'es' ? 'Sobre el autor' : 'Om forfatteren';
+  if (route === 'contact') return lang === 'en' ? 'Contact' : lang === 'es' ? 'Contacto' : 'Kontakt';
+  return title;
+};
 
 function hreflangs(route) {
   return [
