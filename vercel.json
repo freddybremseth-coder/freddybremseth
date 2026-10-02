@@ -17,26 +17,6 @@
           "value": "books.freddybremseth.com"
         }
       ],
-      "src": "/(en|es)/(book|series|topics)/(.*)",
-      "dest": "/books/index.html"
-    },
-    {
-      "has": [
-        {
-          "type": "host",
-          "value": "books.freddybremseth.com"
-        }
-      ],
-      "src": "/(book|series|topics)/(.*)",
-      "dest": "/books/index.html"
-    },
-    {
-      "has": [
-        {
-          "type": "host",
-          "value": "books.freddybremseth.com"
-        }
-      ],
       "src": "/assets/(.*)",
       "dest": "/books/assets/$1"
     },
