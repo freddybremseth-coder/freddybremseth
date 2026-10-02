@@ -82,8 +82,26 @@ for (const token of ["BlogPosting","BreadcrumbList","Cache-Control","mainEntityO
 const sitemap = read("api/sitemap.js");
 if (!sitemap.includes("/artikler/") || !sitemap.includes("website-content")) errors.push("api/sitemap.js: article discovery missing");
 
+const home = read("home.html");
+for (const token of [
+  "https://www.freddybremseth.com/#person",
+  "https://www.freddybremseth.com/#projects",
+  "https://www.chatgenius.pro/",
+  "https://www.zenecohomes.com/",
+  "https://www.pinosoecolife.com/",
+  "https://www.donaanna.com/",
+  "https://books.freddybremseth.com/",
+  "https://art.freddybremseth.com/",
+  "https://remaster.freddybremseth.com/"
+]) {
+  if (!home.includes(token)) errors.push(`home.html: authority hub project graph missing ${token}`);
+}
+if (!home.includes('"@type":"ItemList"')) errors.push("home.html: authority hub project graph ItemList missing");
+
 if (errors.length) {
   console.error("\nFreddy root SEO/AEO/GEO audit failed:\n- " + errors.join("\n- "));
   process.exit(1);
 }
 console.log("Freddy root SEO/AEO/GEO audit passed.");
+
+
