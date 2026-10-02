@@ -83,6 +83,19 @@ function chrome(lang, title, description, route, body, schema, image) {
 </head>
 <body>
   <div id="app">${body}</div>
+  <footer class="site-footer seo-network-footer"><div class="container">
+    <span class="footer-line">Freddy Bremseth · books, projects and creative work</span>
+    <nav class="books-brand-network" aria-label="Freddy Bremseth prosjektnettverk">
+      <strong>Freddy Bremseth network</strong>
+      <a href="https://www.freddybremseth.com/">FreddyBremseth.com</a>
+      <a href="https://www.zenecohomes.com/">Zen Eco Homes</a>
+      <a href="https://www.pinosoecolife.com/">Pinoso Eco Life</a>
+      <a href="https://www.donaanna.com/">Doña Anna</a>
+      <a href="https://www.chatgenius.pro/">ChatGenius</a>
+      <a href="https://art.freddybremseth.com/">Art</a>
+      <a href="https://remaster.freddybremseth.com/">Re-Master Freddy</a>
+    </nav>
+  </div></footer>
   <script src="/assets/books-data.js"></script>
   <script src="/assets/books-i18n.js"></script>
   <script src="/assets/books-app.js"></script>
