@@ -4,6 +4,16 @@ on:
   pull_request:
     paths:
       - 'assets/search-discovery.js'
+      - 'assets/freddy-2027.css'
+      - 'assets/freddy-2027.js'
+      - 'api/article.js'
+      - 'api/sitemap.js'
+      - 'artikler/index.html'
+      - 'entreprenor-og-strategi.html'
+      - 'struktur.html'
+      - 'avtale.html'
+      - 'vercel.json'
+      - 'scripts/audit-root-seo.mjs'
       - 'home.html'
       - 'index.html'
       - 'en/index.html'
@@ -48,3 +58,6 @@ jobs:
         run: node --test scripts/test-root-search-discovery.mjs
       - name: Validate localized personal hub and artwork links
         run: node scripts/build-i18n.mjs && node --test scripts/test-art-hub-locales.mjs
+
+      - name: Freddy root SEO/AEO/GEO contracts
+        run: node scripts/audit-root-seo.mjs
