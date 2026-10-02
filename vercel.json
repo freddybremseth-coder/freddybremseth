@@ -106,7 +106,7 @@
     },
     {
       "src": "/artikler/([^./]+)",
-      "dest": "/artikler/index.html"
+      "dest": "/api/article?slug=$1"
     },
     {
       "src": "/book",
