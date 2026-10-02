@@ -101,6 +101,10 @@
       "dest": "/books/index.html"
     },
     {
+      "src": "/sitemap.xml",
+      "dest": "/api/sitemap"
+    },
+    {
       "src": "/",
       "dest": "/home.html"
     },
