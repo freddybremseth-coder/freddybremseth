@@ -120,6 +120,102 @@
       '</div>';
   }
 
+  var TOPICS = {
+    'psychological-thrillers': {
+      seriesIds: ['michael-thorne', 'elias-holm'],
+      title: {
+        no: 'Psykologiske thrillere om identitet, skyld og makt',
+        en: 'Psychological Thrillers about Identity, Guilt and Power',
+        es: 'Thrillers psicológicos sobre identidad, culpa y poder'
+      },
+      desc: {
+        no: 'Mørke thrillere og krimserier om identitet, moralsk ansvar, manipulering, institusjoner og mennesker som tvinges til å tvile på det de tror de vet.',
+        en: 'Dark thrillers and crime series about identity, moral responsibility, manipulation, institutions and people forced to question what they think they know.',
+        es: 'Thrillers oscuros y series criminales sobre identidad, responsabilidad moral, manipulación, instituciones y personas obligadas a cuestionar lo que creen saber.'
+      }
+    },
+    'geopolitics-power': {
+      seriesIds: ['power-behind-curtain', 'hidden-systems-of-power'],
+      title: {
+        no: 'Bøker om geopolitikk, makt og verdensorden',
+        en: 'Books on Geopolitics, Power and the World Order',
+        es: 'Libros sobre geopolítica, poder y orden mundial'
+      },
+      desc: {
+        no: 'Sakprosa om strategiske ressurser, kapital, krig, energi, valuta, forsyningskjeder og de strukturelle systemene som former global makt.',
+        en: 'Nonfiction about strategic resources, capital, war, energy, currency, supply chains and the structural systems that shape global power.',
+        es: 'No ficción sobre recursos estratégicos, capital, guerra, energía, divisas, cadenas de suministro y los sistemas estructurales que moldean el poder global.'
+      }
+    },
+    'money-economics': {
+      seriesIds: ['let-me-explain'],
+      title: {
+        no: 'Bøker om penger, økonomi, bank og finans',
+        en: 'Books about Money, Economics, Banking and Finance',
+        es: 'Libros sobre dinero, economía, banca y finanzas'
+      },
+      desc: {
+        no: 'Klare forklaringer på hvordan penger, banker, kreditt, skatt, inflasjon, renter, gjeld og økonomiske insentiver faktisk fungerer.',
+        en: 'Clear explanations of how money, banks, credit, taxes, inflation, interest rates, debt and economic incentives actually work.',
+        es: 'Explicaciones claras de cómo funcionan realmente el dinero, los bancos, el crédito, los impuestos, la inflación, los tipos de interés, la deuda y los incentivos económicos.'
+      }
+    },
+    'mediterranean-living': {
+      seriesIds: ['mediterraneo-vital'],
+      title: {
+        no: 'Bøker om olivenolje, middelhavsliv og dyrking',
+        en: 'Books about Olive Oil, Mediterranean Living and Growing',
+        es: 'Libros sobre aceite de oliva, vida mediterránea y cultivo'
+      },
+      desc: {
+        no: 'Olivenolje, polyfenoler, tidlig høsting, dyrking, mat, levetid og praktisk middelhavsliv — samlet i Mediterraneo Vital.',
+        en: 'Olive oil, polyphenols, early harvest, cultivation, food, longevity and practical Mediterranean living — collected in Mediterraneo Vital.',
+        es: 'Aceite de oliva, polifenoles, cosecha temprana, cultivo, alimentación, longevidad y vida mediterránea práctica — reunidos en Mediterraneo Vital.'
+      }
+    },
+    'spain-costa-blanca': {
+      seriesIds: ['let-me-guide-you'],
+      title: {
+        no: 'Bøker og guider om Spania og Costa Blanca',
+        en: 'Books and Guides about Spain and Costa Blanca',
+        es: 'Libros y guías sobre España y Costa Blanca'
+      },
+      desc: {
+        no: 'Guider til steder, områder, boligvalg og hverdagsliv i Spania, med særlig vekt på Costa Blanca.',
+        en: 'Guides to towns, areas, property choices and everyday life in Spain, with a strong focus on Costa Blanca.',
+        es: 'Guías sobre ciudades, zonas, vivienda y vida cotidiana en España, con especial atención a la Costa Blanca.'
+      }
+    },
+    'health-balanced-life': {
+      seriesIds: ['balanced-life'],
+      title: {
+        no: 'Bøker om tid, relasjoner og et balansert liv',
+        en: 'Books about Time, Relationships and a Balanced Life',
+        es: 'Libros sobre tiempo, relaciones y una vida equilibrada'
+      },
+      desc: {
+        no: 'Praktiske bøker om tid, digitale vaner, relasjoner, livsvalg og hvordan hverdagen kan bli mer balansert.',
+        en: 'Practical books about time, digital habits, relationships, life choices and building a more balanced everyday life.',
+        es: 'Libros prácticos sobre tiempo, hábitos digitales, relaciones, decisiones de vida y una vida cotidiana más equilibrada.'
+      }
+    },
+    'childrens-books': {
+      seriesIds: ['victoria-andreas'],
+      title: {
+        no: 'Barnebøker for å se, peke og lære sammen',
+        en: 'Children’s Books for Looking, Pointing and Learning Together',
+        es: 'Libros infantiles para mirar, señalar y aprender juntos'
+      },
+      desc: {
+        no: 'Enkle, visuelle barnebøker med Victoria, Andreas og fuglevennen Pip — laget for små barn og voksne som vil se, peke, snakke og lære sammen.',
+        en: 'Simple visual books with Victoria, Andreas and their bird friend Pip — made for young children and adults who want to look, point, talk and learn together.',
+        es: 'Libros visuales sencillos con Victoria, Andreas y su amigo Pip — creados para niños pequeños y adultos que quieren mirar, señalar, hablar y aprender juntos.'
+      }
+    }
+  };
+
+  function topicById(id) { return TOPICS[id] || null; }
+
   function seriesCard(s) {
     var topCls = 'top' + (s.coverFit === 'contain' ? ' fit-contain' : '') + (s.coverBg ? ' bg-' + s.coverBg : '');
     var top = s.cover ? '<div class="' + topCls + '"><img src="' + esc(asset(s.cover)) + '" alt="" loading="lazy" decoding="async" width="360" height="200"></div>' : '<div class="top placeholder"><span>' + esc(pick(s.title)) + '</span></div>';
@@ -283,6 +379,31 @@
       '</div></section>';
   }
 
+  function viewTopic() {
+    var topic = topicById(R.slug);
+    if (!topic) return notFound();
+    var selected = SERIES.filter(function (s) { return topic.seriesIds.indexOf(s.id) !== -1; });
+    var seriesCards = selected.map(seriesCard).join('');
+    var books = [];
+    selected.forEach(function (s) {
+      (s.books || []).forEach(function (b) { books.push({ s: s, b: b }); });
+    });
+    var bookCards = books.map(function (o) { return coverCell(o.s, o.b); }).join('');
+    var labels = LANG === 'en'
+      ? { kicker: 'Explore by theme', series: 'Series in this theme', books: 'Books in this theme', back: 'All books' }
+      : LANG === 'es'
+        ? { kicker: 'Explorar por tema', series: 'Series de este tema', books: 'Libros de este tema', back: 'Todos los libros' }
+        : { kicker: 'Utforsk etter tema', series: 'Serier i dette temaet', books: 'Bøker i dette temaet', back: 'Alle bøker' };
+    return '<section class="topic-page"><div class="container">' +
+      '<p class="breadcrumb"><a href="' + href('library') + '">← ' + esc(labels.back) + '</a></p>' +
+      '<p class="kicker">' + esc(labels.kicker) + '</p>' +
+      '<h1>' + esc(pick(topic.title)) + '</h1>' +
+      '<p class="topic-intro">' + esc(pick(topic.desc)) + '</p>' +
+      (seriesCards ? '<h2 class="serif topic-section-title">' + esc(labels.series) + '</h2><div class="series-grid">' + seriesCards + '</div>' : '') +
+      (bookCards ? '<h2 class="serif topic-section-title">' + esc(labels.books) + '</h2><div class="book-grid">' + bookCards + '</div>' : '') +
+      '</div></section>';
+  }
+
   function viewSeries() {
     var s = seriesById(R.slug);
     if (!s) return notFound();
@@ -432,6 +553,7 @@
     var desc = t('heroSubtitle');
     if (R.view === 'book') { var f = findBook(R.slug); if (f) { title = f.book.title + ' — Freddy Bremseth'; desc = pick(f.book.descShort) || desc; } }
     else if (R.view === 'series') { var s = seriesById(R.slug); if (s) { title = pick(s.title) + ' — Freddy Bremseth'; desc = pick(s.desc) || desc; } }
+    else if (R.view === 'topics') { var topic = topicById(R.slug); if (topic) { title = pick(topic.title) + ' — Freddy Bremseth'; desc = pick(topic.desc) || desc; } }
     else if (R.view === 'about') title = t('aboutTitle') + ' — Freddy Bremseth';
     else if (R.view === 'library') title = t('seriesPageTitle') + ' — Freddy Bremseth';
     else if (R.view === 'contact') title = t('contactTitle') + ' — Freddy Bremseth';
@@ -445,6 +567,7 @@
       case 'about': body = viewAbout(); break;
       case 'library': body = viewLibrary(); break;
       case 'series': body = viewSeries(); break;
+      case 'topics': body = viewTopic(); break;
       case 'book': body = viewBook(); break;
       case 'contact': body = viewContact(); break;
       default: body = viewHome();
