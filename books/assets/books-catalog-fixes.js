@@ -52,12 +52,24 @@
     'time-mastery': 'api/cover?id=time-mastery',
     'guide-lalfas-albir-en': 'api/cover?id=guide-lalfas-albir-en',
     'guide-lalfas-albir-no': 'api/cover?id=guide-lalfas-albir-no',
-    'guide-el-campello-no': 'api/cover?id=guide-el-campello-no'
+    'guide-el-campello-no': 'api/cover?id=guide-el-campello-no',
+    'birokt-og-oliven': 'api/cover?id=birokt-og-oliven',
+    'kunsten-a-hoste-tidlig': 'api/cover?id=kunsten-a-hoste-tidlig',
+    'premium-olive-oil-processing': 'api/cover?id=premium-olive-oil-processing',
+    'growing-premium-olives': 'api/cover?id=growing-premium-olives'
   };
   series.forEach(function (s) {
     (s.books || []).forEach(function (b) {
       if (recoveredCovers[b.id]) b.cover = recoveredCovers[b.id];
     });
+  });
+
+  var recoveredSeriesCovers = {
+    'hidden-systems-of-power': 'api/cover?id=hidden-systems-of-power',
+    'victoria-andreas': 'api/cover?id=victoria-andreas'
+  };
+  series.forEach(function (s) {
+    if (recoveredSeriesCovers[s.id]) s.cover = recoveredSeriesCovers[s.id];
   });
 
   var latest = {
