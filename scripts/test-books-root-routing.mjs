@@ -38,7 +38,7 @@ console.log("PASS root Books public routing:", urls.length, "indexable book URLs
 
 const nonBookUrls = [...sitemap.matchAll(/<loc>https:\/\/books\.freddybremseth\.com([^<]+)<\/loc>/g)]
   .map(match => match[1]).filter(pagePath => !pagePath.includes("/book/"));
-assert.equal(nonBookUrls.length, 33, "Unexpected home, series and info sitemap routes");
+assert.ok(nonBookUrls.length >= 66, "Unexpectedly sparse home, topic, series and info sitemap routes");
 const hostRules = cfg.routes.filter(rule =>
   rule.has?.some(condition => condition.type === "host" && condition.value === "books.freddybremseth.com"));
 const fallbackIndex = hostRules.findIndex(rule => rule.dest === "/books/index.html");
