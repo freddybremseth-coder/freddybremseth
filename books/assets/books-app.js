@@ -92,9 +92,15 @@
     return '<footer class="site-footer"><div class="container">' +
       '<img class="footer-logo" src="' + esc(asset('assets/logo.png')) + '" alt="Freddy Bremseth — Bøker & serier" loading="lazy" decoding="async">' +
       '<span class="footer-line">' + esc(t('footerLine')) + '</span>' +
-      '<nav aria-label="Freddy Bremseth websites">' +
-      '<a href="https://www.freddybremseth.com/">Freddy Bremseth</a> · ' +
-      '<a href="https://art.freddybremseth.com/">Freddy Bremseth Art</a>' +
+      '<nav class="books-brand-network" aria-label="Freddy Bremseth prosjektnettverk">' +
+      '<strong>Freddy Bremseth network</strong>' +
+      '<a href="https://www.freddybremseth.com/">FreddyBremseth.com</a>' +
+      '<a href="https://www.zenecohomes.com/">Zen Eco Homes</a>' +
+      '<a href="https://www.pinosoecolife.com/">Pinoso Eco Life</a>' +
+      '<a href="https://www.donaanna.com/">Doña Anna</a>' +
+      '<a href="https://www.chatgenius.pro/">ChatGenius</a>' +
+      '<a href="https://art.freddybremseth.com/">Art</a>' +
+      '<a href="https://remaster.freddybremseth.com/">Re-Master Freddy</a>' +
       '</nav>' +
       '</div></footer>';
   }
