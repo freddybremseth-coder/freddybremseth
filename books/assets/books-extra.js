@@ -15,23 +15,37 @@ window.BOOKS_EXTRA_SERIES = [
       "es": "No ficción · Rusia, revolución y poder estatal"
     },
     "count": {
-      "no": "Bokserie",
-      "en": "Book series",
-      "es": "Serie de libros"
+      "no": "2 bøker",
+      "en": "2 books",
+      "es": "2 libros"
     },
     "desc": {
       "no": "En strukturell historie om de politiske ordenene som vokste frem etter det russiske imperiets sammenbrudd — revolusjon, borgerkrig, institusjoner, tvang, statsbygging og kampen om hva som skulle komme etter.",
       "en": "A structural history of the political orders that emerged from the collapse of the Russian Empire — revolution, civil war, institutions, coercion, state-building and the struggle over what came next.",
       "es": "Una historia estructural de los órdenes políticos que surgieron tras el colapso del Imperio ruso: revolución, guerra civil, instituciones, coerción, construcción del Estado y la lucha por lo que vino después."
     },
-    "cover": "api/cover?id=red-revolution",
+    "cover": "assets/covers/the-empire-of-the-tsars.jpg",
+    "coverFit": "contain",
+    "coverBg": "dark",
     "placeholderCount": 0,
     "books": [
+      {
+        "id": "the-empire-of-the-tsars",
+        "title": "The Empire of the Tsars",
+        "subtitle": "How Russia Became a Continental Superpower",
+        "cover": "assets/covers/the-empire-of-the-tsars.jpg",
+        "seriesNumber": 1,
+        "descShort": {
+          "no": "En historie om russisk statsmakt, imperial ekspansjon, reform og sammenbrudd fra Moskvariket til 1917.",
+          "en": "A history of Russian state power, imperial expansion, reform and collapse from Muscovy to 1917.",
+          "es": "Una historia del poder estatal ruso, la expansión imperial, la reforma y el colapso desde Moscovia hasta 1917."
+        }
+      },
       {
         "id": "red-revolution",
         "title": "Red Revolution",
         "subtitle": "How the Bolsheviks Seized Power and Built the Soviet State",
-        "cover": "api/cover?id=red-revolution",
+        "cover": "assets/covers/red-revolution.jpg",
         "words": 42876,
         "descShort": {
           "en": "Red Revolution explains how the Bolsheviks moved from revolutionary opposition to state power after the fall of the Romanov monarchy, tracing dual power, October 1917, civil war, War Communism, famine, Kronstadt, NEP and the creation of the Soviet Union.",
@@ -53,7 +67,7 @@ window.BOOKS_EXTRA_SERIES = [
         "id": "the-cables-beneath-the-world",
         "title": "The Cables Beneath the World",
         "subtitle": "How Undersea Networks, Landing Stations and Data Corridors Control the Digital Age",
-        "cover": "api/cover?id=the-cables-beneath-the-world",
+        "cover": "assets/covers/the-cables-beneath-the-world.jpg",
         "words": 70772,
         "pages": 254,
         "descShort": {
@@ -76,7 +90,7 @@ window.BOOKS_EXTRA_SERIES = [
         "id": "hvordan-makt-fungerer",
         "title": "Hvordan makt fungerer",
         "subtitle": "En praktisk guide til politikk, institusjoner, penger, media og geopolitikk",
-        "cover": "api/cover?id=hvordan-makt-fungerer",
+        "cover": "assets/covers/hvordan-makt-fungerer.jpg",
         "words": 61559,
         "descShort": {
           "no": "En praktisk og evidensstyrt guide til hvordan makt faktisk virker — i politikk, institusjoner, penger, selskaper, medier, teknologi og geopolitikk.",

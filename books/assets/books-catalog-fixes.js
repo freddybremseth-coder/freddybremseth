@@ -56,7 +56,11 @@
     'birokt-og-oliven': 'assets/covers/birokt-og-oliven.webp',
     'kunsten-a-hoste-tidlig': 'assets/covers/kunsten-a-hoste-tidlig.webp',
     'premium-olive-oil-processing': 'assets/covers/premium-olive-oil-processing.webp',
-    'growing-premium-olives': 'assets/covers/growing-premium-olives.webp'
+    'growing-premium-olives': 'assets/covers/growing-premium-olives.webp',
+    'hvordan-makt-fungerer': 'assets/covers/hvordan-makt-fungerer.jpg',
+    'the-cables-beneath-the-world': 'assets/covers/the-cables-beneath-the-world.jpg',
+    'red-revolution': 'assets/covers/red-revolution.jpg',
+    'the-empire-of-the-tsars': 'assets/covers/the-empire-of-the-tsars.jpg'
   };
   series.forEach(function (s) {
     (s.books || []).forEach(function (b) {
@@ -70,6 +74,20 @@
   };
   series.forEach(function (s) {
     if (recoveredSeriesCovers[s.id]) s.cover = recoveredSeriesCovers[s.id];
+  });
+
+  // Portrait series artwork must be shown as artwork, not cropped into a
+  // landscape banner. Keep the full cover visible on library/series cards.
+  var seriesCoverLayout = {
+    'hidden-systems-of-power': { fit: 'contain', bg: 'dark' },
+    'victoria-andreas': { fit: 'contain', bg: 'light' },
+    'empire-after-the-empire': { fit: 'contain', bg: 'dark' }
+  };
+  series.forEach(function (s) {
+    var layout = seriesCoverLayout[s.id];
+    if (!layout) return;
+    s.coverFit = layout.fit;
+    s.coverBg = layout.bg;
   });
 
   var latest = {
