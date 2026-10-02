@@ -219,3 +219,27 @@ textarea{min-height:150px;resize:vertical}
   color: var(--gold);
   overflow-wrap: anywhere;
 }
+
+
+/* Books 2027 discovery layer — keeps the literary navy/gold/serif identity. */
+.reading-paths-section{background:#fbf8f1;border-block:1px solid var(--border)}
+.reading-paths-title{max-width:760px;margin:0;font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.02em}
+.reading-paths-intro{max-width:680px;margin:12px 0 30px;color:var(--body2);font-size:17px}
+.reading-paths{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.reading-path{position:relative;min-height:245px;padding:28px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);box-shadow:0 18px 45px -38px rgba(18,26,46,.35);transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.reading-path:hover{transform:translateY(-4px);border-color:#c9b78f;box-shadow:0 28px 58px -38px rgba(18,26,46,.4);text-decoration:none;color:var(--ink)}
+.reading-path-index{display:block;margin-bottom:30px;color:var(--gold-dark);font:600 11px/1 var(--sans);letter-spacing:.15em}
+.reading-path h3{font-size:24px;line-height:1.08;margin-bottom:12px}
+.reading-path p{color:var(--body2);font-size:14px;line-height:1.65;margin:0 0 24px}
+.reading-path strong{position:absolute;left:28px;bottom:24px;color:var(--gold-dark);font-size:13px}
+.site-header{box-shadow:0 12px 30px -28px rgba(0,0,0,.7)}
+.hero{position:relative;overflow:hidden;background:radial-gradient(circle at 82% 14%,rgba(184,134,58,.18),transparent 28rem),linear-gradient(155deg,var(--navy),var(--navy2))}
+.hero:after{content:"";position:absolute;inset:auto 7% 0 auto;width:220px;height:1px;background:linear-gradient(90deg,transparent,rgba(184,134,58,.65))}
+.hero h1{font-size:clamp(36px,5.5vw,64px);font-weight:600;letter-spacing:-.025em}
+.series-card,.book-cell .cover,.detail .cover{transition:transform .22s ease,box-shadow .22s ease}
+.series-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(18,26,46,.13);text-decoration:none}
+.book-cell:hover .cover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(18,26,46,.2)}
+:where(a,button,input,textarea):focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+@media(max-width:900px){.reading-paths{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.reading-paths{grid-template-columns:1fr}.reading-path{min-height:220px;padding:24px}.reading-path strong{left:24px}}
+@media(prefers-reduced-motion:reduce){.reading-path,.series-card,.book-cell .cover,.detail .cover{transition:none!important}}
