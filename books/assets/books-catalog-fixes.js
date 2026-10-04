@@ -70,12 +70,12 @@
 
   var recoveredSeriesCovers = {
     'michael-thorne': 'assets/series/michael-thorne-editorial.webp',
-    'elias-holm': 'assets/covers/elias-holm-series.png',
-    'power-behind-curtain': 'assets/covers/makten-bak-kulissene-series.png',
+    'elias-holm': 'assets/series/elias-holm-2026-final.webp',
+    'power-behind-curtain': 'assets/series/power-behind-curtain-2026-final.webp',
     'mediterraneo-vital': 'assets/series/mediterraneo-vital-editorial.webp',
     'balanced-life': 'assets/series/balanced-life-2026.webp?v=20261004c',
     'let-me-explain': 'assets/series/let-me-explain-2026.webp?v=20261004c',
-    'let-me-guide-you': 'assets/covers/let-me-guide-you-series.png',
+    'let-me-guide-you': 'assets/series/let-me-guide-you-2026-final.webp',
     'anatomy-of-empires': 'assets/series/anatomy-of-empires-2026.webp?v=20261004c',
     'hidden-systems-of-power': 'assets/series/hidden-systems-of-power-2026.webp?v=20261004c',
     'victoria-andreas': 'assets/series/victoria-andreas-editorial.webp',
