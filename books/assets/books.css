@@ -263,3 +263,18 @@ textarea{min-height:150px;resize:vertical}
 .books-brand-network a:hover,
 .books-brand-network a:focus-visible{color:#fff;opacity:1;text-decoration:underline;text-underline-offset:3px}
 .seo-network-footer{margin-top:64px}
+
+
+/* 2026-10-04 unified series identity: crisp editorial SVG artwork */
+.series-card{border-radius:8px;border:1px solid rgba(227,221,207,.7);box-shadow:0 14px 34px -28px rgba(18,26,46,.45)}
+.series-card .top{height:190px;background:#ece6da}
+.series-card .top img{height:190px;object-fit:cover}
+.series-card .body{position:relative;padding:22px 24px 24px;min-height:238px}
+.series-card .body:after{content:"→";position:absolute;right:22px;bottom:19px;color:var(--gold);font-size:22px;line-height:1}
+.series-card .count{padding-right:28px}
+.series-card h3{font-size:23px;line-height:1.12}
+.series-card .tag{letter-spacing:1.8px}
+@media(max-width:560px){
+  .series-card .top,.series-card .top img{height:180px}
+  .series-card .body{min-height:0}
+}
