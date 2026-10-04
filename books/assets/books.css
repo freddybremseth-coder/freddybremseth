@@ -293,10 +293,12 @@ textarea{min-height:150px;resize:vertical}
   position:absolute;
   inset:0;
   background-image:
-    linear-gradient(90deg,rgba(5,22,37,.98) 0%,rgba(5,22,37,.92) 35%,rgba(5,22,37,.46) 58%,rgba(5,22,37,.12) 100%),
-    url('/assets/series/2026-10-homepage/00-homepage-hero-freddy-writing.webp');
-  background-size:cover;
-  background-position:center right;
+    linear-gradient(90deg,rgba(5,22,37,.99) 0%,rgba(5,22,37,.95) 38%,rgba(5,22,37,.55) 62%,rgba(5,22,37,.22) 100%),
+    url('/assets/freddy-bremseth.jpg'),
+    url('/assets/series/let-me-guide-you-2026.webp');
+  background-size:cover,auto 92%,cover;
+  background-position:center,88% 52%,center;
+  background-repeat:no-repeat;
 }
 .home-hero-inner{position:relative;z-index:1;min-height:560px;display:flex;align-items:center}
 .home-hero-copy{max-width:650px;padding:82px 0 88px}
@@ -363,7 +365,7 @@ textarea{min-height:150px;resize:vertical}
 .home-author-quote{margin:0;padding:52px 32px;border-left:1px solid rgba(224,166,79,.45);font-family:var(--serif);font-size:21px;line-height:1.55;font-style:italic;color:#f2efe6;display:flex;flex-direction:column;justify-content:center}
 .home-author-quote cite{margin-top:20px;font-family:var(--sans);font-size:11px;font-style:normal;text-transform:uppercase;letter-spacing:1.6px;color:#e0a64f}
 
-.home-newsletter{padding:54px 0;background:linear-gradient(90deg,rgba(5,25,40,.96),rgba(5,25,40,.78)),url('/assets/series/2026-10-homepage/07-let-me-guide-you.webp') center/cover;color:#fff}
+.home-newsletter{padding:54px 0;background:linear-gradient(90deg,rgba(5,25,40,.96),rgba(5,25,40,.78)),url('/assets/series/let-me-guide-you-2026.webp') center/cover;color:#fff}
 .home-newsletter-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
 .home-newsletter h2{margin-bottom:10px}
 .home-newsletter p:not(.home-kicker){margin:0;max-width:650px;color:#dde4e8}
@@ -380,7 +382,7 @@ textarea{min-height:150px;resize:vertical}
 }
 @media(max-width:760px){
   .home-hero{min-height:auto}
-  .home-hero-media{background-image:linear-gradient(180deg,rgba(5,22,37,.5),rgba(5,22,37,.9) 45%,rgba(5,22,37,1) 72%),url('/assets/series/2026-10-homepage/00-homepage-hero-freddy-writing.webp');background-position:65% top}
+  .home-hero-media{background-image:linear-gradient(180deg,rgba(5,22,37,.42),rgba(5,22,37,.86) 44%,rgba(5,22,37,1) 72%),url('/assets/freddy-bremseth.jpg'),url('/assets/series/let-me-guide-you-2026.webp');background-size:cover,auto 58%,cover;background-position:center,72% 9%,center top;background-repeat:no-repeat}
   .home-hero-inner{min-height:690px;align-items:flex-end}
   .home-hero-copy{padding:280px 0 54px}
   .home-hero h1{font-size:clamp(38px,11vw,56px)}
