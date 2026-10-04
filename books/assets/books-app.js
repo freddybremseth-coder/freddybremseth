@@ -404,7 +404,7 @@
       (latestCards ? '<section class="home-latest-section"><div class="container"><div class="home-section-heading"><h2>' + esc(copy.latest) + '</h2><a href="' + href('library') + '">' + esc(copy.allBooks) + ' →</a></div><div class="home-latest-grid">' + latestCards + '</div>' + (gallery ? '<div class="home-more-titles"><h3>' + (LANG === 'en' ? 'More titles' : LANG === 'es' ? 'Más títulos' : 'Flere titler') + '</h3>' + galleryBlock(gallery) + '</div>' : '') + '</div></section>' : '') +
 
       '<section class="home-about-section"><div class="container home-about-grid">' +
-        '<div class="home-about-photo"><img src="' + esc(asset('assets/freddy-bremseth.jpg')) + '" alt="Freddy Bremseth" loading="lazy" decoding="async"></div>' +
+        '<div class="home-about-photo"><img src="' + esc(asset('assets/hero/freddy-writing.webp')) + '" alt="Freddy Bremseth skriver ved skrivebordet" loading="lazy" decoding="async"></div>' +
         '<div class="home-about-copy"><p class="home-kicker">' + esc(copy.aboutKicker) + '</p><h2>' + esc(copy.aboutTitle) + '</h2><p>' + esc(copy.aboutText) + '</p><a class="btn btn-primary" href="' + href('about') + '">' + esc(copy.aboutCta) + ' →</a></div>' +
         '<blockquote class="home-author-quote">“' + (LANG === 'no' ? 'Gode historier stiller spørsmål vi tar med oss videre. De kan underholde, opplyse – og kanskje også endre hvordan vi ser verden.' : LANG === 'es' ? 'Las buenas historias plantean preguntas que llevamos con nosotros. Pueden entretener, iluminar y quizá cambiar cómo vemos el mundo.' : 'Good stories ask questions we carry with us. They can entertain, illuminate — and perhaps change how we see the world.') + '”<cite>— Freddy Bremseth</cite></blockquote>' +
       '</div></section>' +
