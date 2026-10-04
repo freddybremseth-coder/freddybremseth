@@ -325,6 +325,10 @@
     var selectedSeries = seriesOrder.map(seriesById).filter(Boolean);
     var seriesCards = selectedSeries.map(seriesCard).join('');
 
+    var gallery = shuffle(booksWithCovers()).slice(0, 18).map(function (o) {
+      return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy" decoding="async" width="150" height="225"><span>' + esc(o.b.title) + '</span></a>';
+    }).join('');
+
     var themes = LANG === 'en'
       ? [
           ['Crime & thriller','psychological-thrillers','topics','⌁'],
@@ -370,7 +374,7 @@
       var cover = o.b.cover
         ? '<img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy" decoding="async">'
         : '<span class="ph">' + esc(o.b.title) + '</span>';
-      return '<a class="home-latest-card" href="' + href('book', o.b.id) + '">' +
+      return '<a class="book-cell" href="' + href('book', o.b.id) + '">' +
         '<div class="home-latest-cover">' + cover + '</div>' +
         '<div><span class="home-latest-label">' + esc(pick(o.s.title)) + '</span><h3>' + esc(o.b.title) + '</h3>' +
         (o.b.subtitle ? '<p>' + esc(o.b.subtitle) + '</p>' : '') +
@@ -378,7 +382,7 @@
     }).join('');
 
     return '' +
-      '<section class="home-hero"><div class="home-hero-media" aria-hidden="true"></div><div class="container home-hero-inner">' +
+      '<section class="hero"><div class="home-hero-media" aria-hidden="true"></div><div class="container home-hero-inner">' +
         '<div class="home-hero-copy"><p class="home-kicker">' + esc(copy.kicker) + '</p>' +
         '<h1>' + esc(copy.title) + '</h1><p class="home-hero-intro">' + esc(copy.intro) + '</p>' +
         '<div class="home-hero-actions"><a class="btn btn-primary" href="' + href('library') + '">' + esc(copy.browse) + ' →</a>' +
@@ -397,7 +401,7 @@
         '<div class="home-section-heading"><h2>' + esc(copy.themes) + '</h2><a href="' + href('library') + '">' + esc(copy.allThemes) + ' →</a></div>' +
         '<div class="home-themes-grid">' + themeCards + '</div></div></section>' +
 
-      (latestCards ? '<section class="home-latest-section"><div class="container"><div class="home-section-heading"><h2>' + esc(copy.latest) + '</h2><a href="' + href('library') + '">' + esc(copy.allBooks) + ' →</a></div><div class="home-latest-grid">' + latestCards + '</div></div></section>' : '') +
+      (latestCards ? '<section class="home-latest-section"><div class="container"><div class="home-section-heading"><h2>' + esc(copy.latest) + '</h2><a href="' + href('library') + '">' + esc(copy.allBooks) + ' →</a></div><div class="home-latest-grid">' + latestCards + '</div>' + (gallery ? '<div class="home-more-titles"><h3>' + (LANG === 'en' ? 'More titles' : LANG === 'es' ? 'Más títulos' : 'Flere titler') + '</h3>' + galleryBlock(gallery) + '</div>' : '') + '</div></section>' : '') +
 
       '<section class="home-about-section"><div class="container home-about-grid">' +
         '<div class="home-about-photo"><img src="' + esc(asset('assets/freddy-bremseth.jpg')) + '" alt="Freddy Bremseth" loading="lazy" decoding="async"></div>' +
