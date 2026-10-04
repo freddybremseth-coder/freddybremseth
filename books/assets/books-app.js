@@ -228,123 +228,185 @@
 
   /* ---------- views ---------- */
   function viewHome() {
-    // Build the latest releases in the first render. The old implementation
-    // fetched an unrelated featured cover and then replaced the whole section
-    // in books-latest.js after DOMContentLoaded, causing unnecessary work and
-    // potentially two rounds of image downloads on a simulated mobile device.
+    var copy = LANG === 'en'
+      ? {
+          kicker: 'Stories · ideas · a wider perspective',
+          title: 'Books about people, power and the world around us',
+          intro: 'From psychological crime and thrillers to geopolitics, economics, health, history, Mediterranean life and children’s books. I write for readers who like stories, questions and ideas that stay with them a little longer.',
+          browse: 'Explore the books',
+          series: 'See the series',
+          about: 'About the author',
+          worldsKicker: 'Different genres · the same curiosity',
+          worldsTitle: 'One author, several worlds',
+          worldsText: 'Crime. Power. History. Economics. Health. The Mediterranean. Children’s discoveries. Different genres, but the same curiosity about why people and systems work the way they do.',
+          featuredSeries: 'Selected book series',
+          allSeries: 'See all series',
+          themes: 'Choose by theme',
+          allThemes: 'See all themes',
+          latest: 'Latest / current books',
+          allBooks: 'See all books',
+          aboutKicker: 'About the author',
+          aboutTitle: 'Freddy Bremseth',
+          aboutText: 'I write because I am curious about people, society and the world. Across genres I explore power, history, ideas and the good life — from dark crime stories to sunlit Mediterranean days and large historical dramas.',
+          aboutCta: 'Read more about me',
+          newsletterKicker: 'Stay updated',
+          newsletterTitle: 'Get news about new books',
+          newsletterText: 'Receive news about releases, book series and current themes directly in your inbox. No spam — only what is relevant.',
+          subscribe: 'Subscribe',
+          email: 'Your email address'
+        }
+      : LANG === 'es'
+        ? {
+            kicker: 'Historias · ideas · una perspectiva más amplia',
+            title: 'Libros sobre personas, poder y el mundo que nos rodea',
+            intro: 'Desde novela negra psicológica y thrillers hasta geopolítica, economía, salud, historia, vida mediterránea y libros infantiles. Escribo para lectores a quienes les gustan las historias, las preguntas y las ideas que permanecen un poco más.',
+            browse: 'Explorar los libros',
+            series: 'Ver las series',
+            about: 'Sobre el autor',
+            worldsKicker: 'Géneros distintos · la misma curiosidad',
+            worldsTitle: 'Un autor, varios mundos',
+            worldsText: 'Crimen. Poder. Historia. Economía. Salud. Mediterráneo. Descubrimientos infantiles. Géneros distintos, pero la misma curiosidad por comprender por qué las personas y los sistemas funcionan como lo hacen.',
+            featuredSeries: 'Series destacadas',
+            allSeries: 'Ver todas las series',
+            themes: 'Elegir por tema',
+            allThemes: 'Ver todos los temas',
+            latest: 'Libros nuevos / actuales',
+            allBooks: 'Ver todos los libros',
+            aboutKicker: 'Sobre el autor',
+            aboutTitle: 'Freddy Bremseth',
+            aboutText: 'Escribo porque siento curiosidad por las personas, la sociedad y el mundo. A través de distintos géneros exploro el poder, la historia, las ideas y la buena vida — desde oscuros misterios hasta días mediterráneos y grandes dramas históricos.',
+            aboutCta: 'Leer más sobre mí',
+            newsletterKicker: 'Mantente al día',
+            newsletterTitle: 'Recibe noticias sobre nuevos libros',
+            newsletterText: 'Recibe información sobre lanzamientos, series y temas actuales directamente en tu bandeja de entrada. Sin spam — solo lo relevante.',
+            subscribe: 'Suscribirse',
+            email: 'Tu correo electrónico'
+          }
+        : {
+            kicker: 'Historier · ideer · et større perspektiv',
+            title: 'Bøker om mennesker, makt og verden rundt oss',
+            intro: 'Fra psykologisk krim og thrillere til geopolitikk, økonomi, helse, historie, Middelhavsliv og barnebøker. Jeg skriver for lesere som liker historier, spørsmål og ideer som blir værende litt lenger.',
+            browse: 'Utforsk bøkene',
+            series: 'Se bokseriene',
+            about: 'Om forfatteren',
+            worldsKicker: 'Ulike sjangre · samme nysgjerrighet',
+            worldsTitle: 'Én forfatter, flere verdener',
+            worldsText: 'Krim. Makt. Historie. Økonomi. Helse. Middelhavet. Barnas oppdagelser. Ulike sjangre, men samme nysgjerrighet på hvorfor mennesker og systemer fungerer som de gjør.',
+            featuredSeries: 'Utvalgte bokserier',
+            allSeries: 'Se alle bokserier',
+            themes: 'Velg etter tema',
+            allThemes: 'Se alle temaer',
+            latest: 'Nyeste / aktuelle bøker',
+            allBooks: 'Se alle bøker',
+            aboutKicker: 'Om forfatteren',
+            aboutTitle: 'Freddy Bremseth',
+            aboutText: 'Jeg skriver bøker fordi jeg er nysgjerrig på mennesker, samfunn og verden. Gjennom ulike sjangre utforsker jeg makt, historie, ideer og det gode livet – fra mørke krimgåter til solfylte middelhavsdager og store historiske dramaer.',
+            aboutCta: 'Les mer om meg',
+            newsletterKicker: 'Hold deg oppdatert',
+            newsletterTitle: 'Få nyheter om nye bøker',
+            newsletterText: 'Motta informasjon om nye utgivelser, bokserier og aktuelle temaer rett i innboksen. Ingen spam – bare det som er relevant.',
+            subscribe: 'Abonner',
+            email: 'Din e-postadresse'
+          };
+
+    var seriesOrder = [
+      'michael-thorne',
+      'elias-holm',
+      'power-behind-curtain',
+      'let-me-guide-you',
+      'mediterraneo-vital',
+      'balanced-life',
+      'let-me-explain',
+      'anatomy-of-empires',
+      'hidden-systems-of-power',
+      'victoria-andreas',
+      'empire-after-the-empire'
+    ];
+    var selectedSeries = seriesOrder.map(seriesById).filter(Boolean);
+    var seriesCards = selectedSeries.map(seriesCard).join('');
+
+    var themes = LANG === 'en'
+      ? [
+          ['Crime & thriller','psychological-thrillers','topic','⌁'],
+          ['Power & geopolitics','geopolitics-power','topic','◎'],
+          ['History','anatomy-of-empires','series','Ⅱ'],
+          ['Economics','money-economics','topic','▥'],
+          ['Health & lifestyle','health-balanced-life','topic','◒'],
+          ['Mediterranean & Spain','spain-costa-blanca','topic','☼'],
+          ['Children’s books','childrens-books','topic','◉']
+        ]
+      : LANG === 'es'
+        ? [
+            ['Crimen y thriller','psychological-thrillers','topic','⌁'],
+            ['Poder y geopolítica','geopolitics-power','topic','◎'],
+            ['Historia','anatomy-of-empires','series','Ⅱ'],
+            ['Economía','money-economics','topic','▥'],
+            ['Salud y estilo de vida','health-balanced-life','topic','◒'],
+            ['Mediterráneo y España','spain-costa-blanca','topic','☼'],
+            ['Libros infantiles','childrens-books','topic','◉']
+          ]
+        : [
+            ['Krim & thriller','psychological-thrillers','topic','⌁'],
+            ['Makt & geopolitikk','geopolitics-power','topic','◎'],
+            ['Historie','anatomy-of-empires','series','Ⅱ'],
+            ['Økonomi','money-economics','topic','▥'],
+            ['Helse & livsstil','health-balanced-life','topic','◒'],
+            ['Middelhavet & Spania','spain-costa-blanca','topic','☼'],
+            ['Barnebøker','childrens-books','topic','◉']
+          ];
+    var themeCards = themes.map(function (item) {
+      return '<a class="home-theme-card" href="' + href(item[2], item[1]) + '"><span class="home-theme-icon" aria-hidden="true">' + item[3] + '</span><strong>' + esc(item[0]) + '</strong></a>';
+    }).join('');
+
     var releases = [];
     SERIES.forEach(function (s) {
       (s.books || []).forEach(function (b) {
-        if (b.addedAt) releases.push({ b: b, ts: Date.parse(b.addedAt) || 0 });
+        if (b.addedAt) releases.push({ s: s, b: b, ts: Date.parse(b.addedAt) || 0 });
       });
     });
     releases.sort(function (a, b) { return b.ts - a.ts; });
     releases = releases.slice(0, 3);
-    var latestLabels = LANG === 'en'
-      ? { kicker: 'New releases', title: 'Latest books' }
-      : LANG === 'es'
-        ? { kicker: 'Novedades', title: 'Últimos libros' }
-        : { kicker: 'Nye utgivelser', title: 'Siste bøker' };
-    var latest = '';
-    if (releases.length) {
-      var latestCards = releases.map(function (o) {
-        var b = o.b;
-        var cover = b.cover
-          ? '<img src="' + esc(asset(b.cover)) + '" alt="' + esc(b.title) + '" loading="lazy" decoding="async" width="320" height="480">'
-          : '<span class="ph">' + esc(b.title) + '</span>';
-        return '<a href="' + href('book', b.id) + '" class="book-cell">' +
-          '<div class="cover">' + cover + '</div>' +
-          (b.subtitle ? '<div class="sub">' + esc(b.subtitle) + '</div>' : '<div class="sub">&nbsp;</div>') +
-          '<h3>' + esc(b.title) + '</h3></a>';
-      }).join('');
-      latest = '<section><div class="container">' +
-        '<p class="kicker">' + esc(latestLabels.kicker) + '</p>' +
-        '<h2 class="serif" style="font-size:30px;margin-bottom:24px">' + esc(latestLabels.title) + '</h2>' +
-        '<div class="book-grid">' + latestCards + '</div></div></section>';
-    }
-    // The complete, searchable catalogue remains available from /library.
-    // Limit the homepage's decorative horizontal gallery so the first render
-    // does not create one image node for every catalogue record.
-    var gallery = shuffle(booksWithCovers()).slice(0, 18).map(function (o) {
-      return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy" decoding="async" width="150" height="225"><span>' + esc(o.b.title) + '</span></a>';
+    var latestCards = releases.map(function (o) {
+      var cover = o.b.cover
+        ? '<img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy" decoding="async">'
+        : '<span class="ph">' + esc(o.b.title) + '</span>';
+      return '<a class="home-latest-card" href="' + href('book', o.b.id) + '">' +
+        '<div class="home-latest-cover">' + cover + '</div>' +
+        '<div><span class="home-latest-label">' + esc(pick(o.s.title)) + '</span><h3>' + esc(o.b.title) + '</h3>' +
+        (o.b.subtitle ? '<p>' + esc(o.b.subtitle) + '</p>' : '') +
+        '<strong>' + (LANG === 'en' ? 'Read more →' : LANG === 'es' ? 'Leer más →' : 'Les mer →') + '</strong></div></a>';
     }).join('');
-    var allSeriesCards = SERIES.map(seriesCard).join('');
-
-    var reading = LANG === 'en'
-      ? {
-          kicker: 'Find your next read',
-          title: 'Choose by what you want to explore',
-          intro: 'Start with a theme, then move into a series or individual book.',
-          items: [
-            ['Psychological thrillers','Identity, guilt, institutions and morally difficult choices.','topics/psychological-thrillers'],
-            ['Money, power & geopolitics','Clear explanations and deeper systems behind economics, resources and global power.','topics/geopolitics-power'],
-            ['Mediterranean life & olives','Olive oil, cultivation, food, longevity and the practical Mediterranean life.','topics/mediterranean-living'],
-            ['Spain & Costa Blanca','Guides to places, property choices and life in Spain.','topics/spain-costa-blanca'],
-            ['Health & a balanced life','Time, relationships, digital life, wellbeing and personal experience.','topics/health-balanced-life'],
-            ['Children’s books','Simple picture-led books for seeing, pointing, learning and talking together.','topics/childrens-books']
-          ]
-        }
-      : LANG === 'es'
-        ? {
-            kicker: 'Encuentra tu próxima lectura',
-            title: 'Elige por lo que quieres explorar',
-            intro: 'Empieza por un tema y continúa hacia una serie o un libro concreto.',
-            items: [
-              ['Thrillers psicológicos','Identidad, culpa, instituciones y decisiones moralmente difíciles.','topics/psychological-thrillers'],
-              ['Dinero, poder y geopolítica','Explicaciones claras y sistemas detrás de la economía, los recursos y el poder global.','topics/geopolitics-power'],
-              ['Vida mediterránea y olivos','Aceite de oliva, cultivo, alimentación, longevidad y vida mediterránea práctica.','topics/mediterranean-living'],
-              ['España y Costa Blanca','Guías sobre lugares, vivienda y vida en España.','topics/spain-costa-blanca'],
-              ['Salud y vida equilibrada','Tiempo, relaciones, vida digital, bienestar y experiencia personal.','topics/health-balanced-life'],
-              ['Libros infantiles','Libros visuales sencillos para mirar, señalar, aprender y conversar juntos.','topics/childrens-books']
-            ]
-          }
-        : {
-            kicker: 'Finn din neste bok',
-            title: 'Velg etter det du vil utforske',
-            intro: 'Start med et tema, og gå videre til en serie eller enkeltbok.',
-            items: [
-              ['Psykologiske thrillere','Identitet, skyld, institusjoner og moralsk vanskelige valg.','topics/psychological-thrillers'],
-              ['Penger, makt og geopolitikk','Forklaringer og systemene bak økonomi, ressurser og global makt.','topics/geopolitics-power'],
-              ['Middelhavsliv og oliven','Olivenolje, dyrking, mat, levetid og det praktiske middelhavslivet.','topics/mediterranean-living'],
-              ['Spania og Costa Blanca','Guider til steder, boligvalg og livet i Spania.','topics/spain-costa-blanca'],
-              ['Helse og et balansert liv','Tid, relasjoner, digitalt liv, helse og personlige erfaringer.','topics/health-balanced-life'],
-              ['Barnebøker','Enkle, visuelle bøker for å se, peke, lære og snakke sammen.','topics/childrens-books']
-            ]
-          };
-    var readingPaths = '<section class="reading-paths-section"><div class="container">' +
-      '<p class="kicker">' + esc(reading.kicker) + '</p>' +
-      '<h2 class="reading-paths-title">' + esc(reading.title) + '</h2>' +
-      '<p class="reading-paths-intro">' + esc(reading.intro) + '</p>' +
-      '<div class="reading-paths">' + reading.items.map(function (item, index) {
-        return '<a class="reading-path" href="' + href(item[2].split('/')[0], item[2].split('/')[1]) + '">' +
-          '<span class="reading-path-index">0' + (index + 1) + '</span>' +
-          '<h3>' + esc(item[0]) + '</h3><p>' + esc(item[1]) + '</p><strong>' +
-          (LANG === 'en' ? 'Explore →' : LANG === 'es' ? 'Explorar →' : 'Utforsk →') + '</strong></a>';
-      }).join('') + '</div></div></section>';
 
     return '' +
-      '<section class="hero"><div class="hero-inner">' +
-      '<p class="kicker">' + esc(t('heroKicker')) + '</p>' +
-      '<h1>' + esc(t('heroTitle')) + '</h1>' +
-      '<p>' + esc(t('heroSubtitle')) + '</p>' +
-      '<div class="btns"><a class="btn btn-primary" href="' + href('library') + '">' + esc(t('ctaBrowse')) + '</a>' +
-      '<a class="btn btn-secondary" href="' + href('about') + '">' + esc(t('ctaAbout')) + '</a></div>' +
+      '<section class="home-hero"><div class="home-hero-media" aria-hidden="true"></div><div class="container home-hero-inner">' +
+        '<div class="home-hero-copy"><p class="home-kicker">' + esc(copy.kicker) + '</p>' +
+        '<h1>' + esc(copy.title) + '</h1><p class="home-hero-intro">' + esc(copy.intro) + '</p>' +
+        '<div class="home-hero-actions"><a class="btn btn-primary" href="' + href('library') + '">' + esc(copy.browse) + ' →</a>' +
+        '<a class="btn home-btn-outline" href="#bokserier">' + esc(copy.series) + '</a>' +
+        '<a class="btn home-btn-outline" href="' + href('about') + '">' + esc(copy.about) + '</a></div></div>' +
       '</div></section>' +
-      readingPaths +
-      latest +
-      '<section><div class="container"><h2 class="serif" style="font-size:26px">' + esc(t('galleryTitle')) + '</h2>' +
-      galleryBlock(gallery) + '<p><a href="' + href('library') + '">' + esc(t('ctaBrowse')) + '</a></p></div></section>' +
-      '<section class="section-tint"><div class="container">' +
-      '<h2 class="serif center" style="font-size:30px">' + esc(t('pillarsTitle')) + '</h2>' +
-      '<div class="series-grid">' + allSeriesCards + '</div></div></section>' +
-      '<section><div class="container narrow">' +
-      '<h2 class="serif" style="font-size:28px">' + esc(t('newsletterTitle')) + '</h2>' +
-      '<p>' + esc(t('newsletterText')) + '</p>' +
-      '<form class="inline-form" data-form="newsletter">' +
-      '<input type="email" name="email" required placeholder="' + esc(t('newsletterPlaceholder')) + '">' +
-      '<button class="btn btn-primary" type="submit">' + esc(t('newsletterButton')) + '</button></form>' +
-      '<div class="form-msg" data-msg></div>' +
-      '</div></section>';
+
+      '<section class="home-worlds"><div class="container home-worlds-grid"><div><p class="home-kicker">' + esc(copy.worldsKicker) + '</p><h2>' + esc(copy.worldsTitle) + '</h2></div>' +
+        '<div class="home-worlds-text"><p>' + esc(copy.worldsText) + '</p></div></div></section>' +
+
+      '<section id="bokserier" class="home-series-section"><div class="container">' +
+        '<div class="home-section-heading"><h2>' + esc(copy.featuredSeries) + '</h2><a href="' + href('library') + '">' + esc(copy.allSeries) + ' →</a></div>' +
+        '<div class="series-grid home-series-grid">' + seriesCards + '</div></div></section>' +
+
+      '<section class="home-themes-section"><div class="container">' +
+        '<div class="home-section-heading"><h2>' + esc(copy.themes) + '</h2><a href="' + href('library') + '">' + esc(copy.allThemes) + ' →</a></div>' +
+        '<div class="home-themes-grid">' + themeCards + '</div></div></section>' +
+
+      (latestCards ? '<section class="home-latest-section"><div class="container"><div class="home-section-heading"><h2>' + esc(copy.latest) + '</h2><a href="' + href('library') + '">' + esc(copy.allBooks) + ' →</a></div><div class="home-latest-grid">' + latestCards + '</div></div></section>' : '') +
+
+      '<section class="home-about-section"><div class="container home-about-grid">' +
+        '<div class="home-about-photo"><img src="' + esc(asset('assets/series/2026-10-homepage/00-homepage-hero-freddy-writing.webp')) + '" alt="Freddy Bremseth skriver ved skrivebordet" loading="lazy" decoding="async"></div>' +
+        '<div class="home-about-copy"><p class="home-kicker">' + esc(copy.aboutKicker) + '</p><h2>' + esc(copy.aboutTitle) + '</h2><p>' + esc(copy.aboutText) + '</p><a class="btn btn-primary" href="' + href('about') + '">' + esc(copy.aboutCta) + ' →</a></div>' +
+        '<blockquote class="home-author-quote">“' + (LANG === 'no' ? 'Gode historier stiller spørsmål vi tar med oss videre. De kan underholde, opplyse – og kanskje også endre hvordan vi ser verden.' : LANG === 'es' ? 'Las buenas historias plantean preguntas que llevamos con nosotros. Pueden entretener, iluminar y quizá cambiar cómo vemos el mundo.' : 'Good stories ask questions we carry with us. They can entertain, illuminate — and perhaps change how we see the world.') + '”<cite>— Freddy Bremseth</cite></blockquote>' +
+      '</div></section>' +
+
+      '<section class="home-newsletter"><div class="container home-newsletter-grid"><div><p class="home-kicker">' + esc(copy.newsletterKicker) + '</p><h2>' + esc(copy.newsletterTitle) + '</h2><p>' + esc(copy.newsletterText) + '</p></div>' +
+        '<form class="inline-form home-newsletter-form" data-form="newsletter"><input type="email" name="email" required placeholder="' + esc(copy.email) + '"><button class="btn btn-primary" type="submit">' + esc(copy.subscribe) + '</button><div class="form-msg" data-msg></div></form></div></section>';
   }
 
   function viewAbout() {
