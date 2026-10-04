@@ -69,17 +69,17 @@
   });
 
   var recoveredSeriesCovers = {
-    'michael-thorne': 'assets/covers/michael-thorne-series-2026.svg',
-    'elias-holm': 'assets/covers/elias-holm-series-2026.svg',
-    'power-behind-curtain': 'assets/covers/power-behind-curtain-series-2026.svg',
-    'mediterraneo-vital': 'assets/covers/mediterraneo-vital-series-2026.svg',
-    'balanced-life': 'assets/covers/balanced-life-series-2026.svg',
-    'let-me-explain': 'assets/covers/let-me-explain-series-2026.svg',
-    'let-me-guide-you': 'assets/covers/let-me-guide-you-series-2026.svg',
-    'anatomy-of-empires': 'assets/covers/anatomy-of-empires-series-2026.svg',
-    'hidden-systems-of-power': 'assets/covers/hidden-systems-of-power-series-2026.svg',
-    'victoria-andreas': 'assets/covers/victoria-andreas-series-2026.svg',
-    'empire-after-the-empire': 'assets/covers/empire-after-the-empire-series-2026.svg'
+    'michael-thorne': 'assets/series/michael-thorne-emblem.svg',
+    'elias-holm': 'assets/series/elias-holm-emblem.svg',
+    'power-behind-curtain': 'assets/series/power-behind-curtain-emblem.svg',
+    'mediterraneo-vital': 'assets/series/mediterraneo-vital-emblem.svg',
+    'balanced-life': 'assets/series/balanced-life-emblem.svg',
+    'let-me-explain': 'assets/series/let-me-explain-emblem.svg',
+    'let-me-guide-you': 'assets/series/let-me-guide-you-emblem.svg',
+    'anatomy-of-empires': 'assets/series/anatomy-of-empires-emblem.svg',
+    'hidden-systems-of-power': 'assets/series/hidden-systems-of-power-emblem.svg',
+    'victoria-andreas': 'assets/series/victoria-andreas-emblem.svg',
+    'empire-after-the-empire': 'assets/series/empire-after-the-empire-emblem.svg'
   };
   series.forEach(function (s) {
     if (recoveredSeriesCovers[s.id]) s.cover = recoveredSeriesCovers[s.id];
