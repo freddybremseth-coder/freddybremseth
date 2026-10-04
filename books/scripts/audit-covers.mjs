@@ -33,11 +33,12 @@ function checkCover(cover, identity) {
     dynamicCount++;
     return;
   }
-  if (!/^assets\/covers\/[a-zA-Z0-9._-]+\.(?:jpe?g|png|webp)$/i.test(cover)) {
+  const localCover = cover.split('?')[0];
+  if (!/^assets\/(?:covers|series)\/[a-zA-Z0-9._/-]+\.(?:jpe?g|png|webp)$/i.test(localCover)) {
     problems.push(identity + ': invalid cover path ' + cover);
     return;
   }
-  const file = path.join(root, cover);
+  const file = path.join(root, localCover);
   if (!fs.existsSync(file) || !fs.statSync(file).isFile() || fs.statSync(file).size < 1000) {
     problems.push(identity + ': missing or empty file ' + cover);
   }
