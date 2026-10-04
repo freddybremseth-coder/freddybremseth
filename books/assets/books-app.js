@@ -327,32 +327,32 @@
 
     var themes = LANG === 'en'
       ? [
-          ['Crime & thriller','psychological-thrillers','topic','⌁'],
-          ['Power & geopolitics','geopolitics-power','topic','◎'],
+          ['Crime & thriller','psychological-thrillers','topics','⌁'],
+          ['Power & geopolitics','geopolitics-power','topics','◎'],
           ['History','anatomy-of-empires','series','Ⅱ'],
-          ['Economics','money-economics','topic','▥'],
-          ['Health & lifestyle','health-balanced-life','topic','◒'],
-          ['Mediterranean & Spain','spain-costa-blanca','topic','☼'],
-          ['Children’s books','childrens-books','topic','◉']
+          ['Economics','money-economics','topics','▥'],
+          ['Health & lifestyle','health-balanced-life','topics','◒'],
+          ['Mediterranean & Spain','spain-costa-blanca','topics','☼'],
+          ['Children’s books','childrens-books','topics','◉']
         ]
       : LANG === 'es'
         ? [
-            ['Crimen y thriller','psychological-thrillers','topic','⌁'],
-            ['Poder y geopolítica','geopolitics-power','topic','◎'],
+            ['Crimen y thriller','psychological-thrillers','topics','⌁'],
+            ['Poder y geopolítica','geopolitics-power','topics','◎'],
             ['Historia','anatomy-of-empires','series','Ⅱ'],
-            ['Economía','money-economics','topic','▥'],
-            ['Salud y estilo de vida','health-balanced-life','topic','◒'],
-            ['Mediterráneo y España','spain-costa-blanca','topic','☼'],
-            ['Libros infantiles','childrens-books','topic','◉']
+            ['Economía','money-economics','topics','▥'],
+            ['Salud y estilo de vida','health-balanced-life','topics','◒'],
+            ['Mediterráneo y España','spain-costa-blanca','topics','☼'],
+            ['Libros infantiles','childrens-books','topics','◉']
           ]
         : [
-            ['Krim & thriller','psychological-thrillers','topic','⌁'],
-            ['Makt & geopolitikk','geopolitics-power','topic','◎'],
+            ['Krim & thriller','psychological-thrillers','topics','⌁'],
+            ['Makt & geopolitikk','geopolitics-power','topics','◎'],
             ['Historie','anatomy-of-empires','series','Ⅱ'],
-            ['Økonomi','money-economics','topic','▥'],
-            ['Helse & livsstil','health-balanced-life','topic','◒'],
-            ['Middelhavet & Spania','spain-costa-blanca','topic','☼'],
-            ['Barnebøker','childrens-books','topic','◉']
+            ['Økonomi','money-economics','topics','▥'],
+            ['Helse & livsstil','health-balanced-life','topics','◒'],
+            ['Middelhavet & Spania','spain-costa-blanca','topics','☼'],
+            ['Barnebøker','childrens-books','topics','◉']
           ];
     var themeCards = themes.map(function (item) {
       return '<a class="home-theme-card" href="' + href(item[2], item[1]) + '"><span class="home-theme-icon" aria-hidden="true">' + item[3] + '</span><strong>' + esc(item[0]) + '</strong></a>';
