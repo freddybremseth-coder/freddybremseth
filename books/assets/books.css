@@ -442,3 +442,23 @@ textarea{min-height:150px;resize:vertical}
 .home-more-titles h3{color:#fff;font-size:22px;margin-bottom:8px}
 .home-more-titles .gallery-item span{color:#cbd6dc}
 .home-more-titles .gallery-item img{background:#102d43}
+
+
+/* 2026-10-04 language-aware catalogue */
+.language-books-title{
+  margin:34px 0 14px;
+  font-size:26px;
+  color:var(--ink);
+}
+.language-books-empty{
+  max-width:720px;
+  margin:14px 0 30px;
+  padding:14px 16px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  color:var(--muted);
+  background:var(--panel);
+}
+.topic-section-title + .book-grid{
+  margin-top:14px;
+}

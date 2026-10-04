@@ -67,10 +67,30 @@
     }
     return null;
   }
-  function booksWithCovers() {
+  function bookEditionLang(b) {
+    if (b && b.editionLang) return b.editionLang;
+    if (b && /-en$/.test(b.id || '')) return 'en';
+    if (b && /-es$/.test(b.id || '')) return 'es';
+    if (b && /-no$/.test(b.id || '')) return 'no';
+    return null;
+  }
+  function bookMatchesLang(b, lang) {
+    var edition = bookEditionLang(b);
+    // Legacy/unclassified entries stay visible rather than disappearing. The
+    // production catalog marks known editions explicitly in books-catalog-fixes.js.
+    return edition ? edition === lang : true;
+  }
+  function booksWithCovers(lang) {
     var out = [];
-    SERIES.forEach(function (s) { (s.books || []).forEach(function (b) { if (b.cover) out.push({ s: s, b: b }); }); });
+    SERIES.forEach(function (s) {
+      (s.books || []).forEach(function (b) {
+        if (b.cover && (!lang || bookMatchesLang(b, lang))) out.push({ s: s, b: b });
+      });
+    });
     return out;
+  }
+  function booksInSeriesForLang(s, lang) {
+    return (s.books || []).filter(function (b) { return bookMatchesLang(b, lang); });
   }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
 
@@ -325,7 +345,7 @@
     var selectedSeries = seriesOrder.map(seriesById).filter(Boolean);
     var seriesCards = selectedSeries.map(seriesCard).join('');
 
-    var gallery = shuffle(booksWithCovers()).slice(0, 18).map(function (o) {
+    var gallery = shuffle(booksWithCovers(LANG)).slice(0, 18).map(function (o) {
       return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy" decoding="async" width="150" height="225"><span>' + esc(o.b.title) + '</span></a>';
     }).join('');
 
@@ -365,7 +385,7 @@
     var releases = [];
     SERIES.forEach(function (s) {
       (s.books || []).forEach(function (b) {
-        if (b.addedAt) releases.push({ s: s, b: b, ts: Date.parse(b.addedAt) || 0 });
+        if (b.addedAt && bookMatchesLang(b, LANG)) releases.push({ s: s, b: b, ts: Date.parse(b.addedAt) || 0 });
       });
     });
     releases.sort(function (a, b) { return b.ts - a.ts; });
@@ -431,16 +451,24 @@
   }
 
   function viewLibrary() {
-    var carousel = shuffle(booksWithCovers()).map(function (o) {
+    var languageBooks = shuffle(booksWithCovers(LANG));
+    var carousel = languageBooks.map(function (o) {
       return '<a class="gallery-item" href="' + href('book', o.b.id) + '"><img src="' + esc(asset(o.b.cover)) + '" alt="' + esc(o.b.title) + '" loading="lazy"><span>' + esc(o.b.title) + '</span></a>';
     }).join('');
     var cards = SERIES.map(seriesCard).join('');
+    var langHeading = LANG === 'es' ? 'Libros disponibles en español' : LANG === 'en' ? 'Books available in English' : 'Bøker tilgjengelig på norsk';
+    var emptyText = LANG === 'es'
+      ? 'Todavía hay pocas ediciones en español. Aquí mostramos únicamente los libros que realmente están disponibles en español; las demás series siguen visibles abajo.'
+      : LANG === 'en'
+        ? 'Here we show the books that are actually available in English. The full series catalogue remains visible below.'
+        : 'Her viser vi bøkene som faktisk er tilgjengelige på norsk. Hele serieoversikten vises under.';
     return '<section><div class="container">' +
       '<p class="kicker">' + esc(t('seriesKicker')) + '</p>' +
       '<h1>' + esc(t('seriesPageTitle')) + '</h1>' +
       '<p class="pill">' + esc(t('bundleAllNote')) + '</p>' +
       '<p style="max-width:720px;margin-top:16px">' + esc(t('discountNote')) + '</p>' +
-      galleryBlock(carousel) +
+      '<h2 class="serif language-books-title">' + esc(langHeading) + '</h2>' +
+      (carousel ? galleryBlock(carousel) : '<p class="language-books-empty">' + esc(emptyText) + '</p>') +
       '<div class="series-grid">' + cards + '</div>' +
       '</div></section>';
   }
@@ -452,7 +480,7 @@
     var seriesCards = selected.map(seriesCard).join('');
     var books = [];
     selected.forEach(function (s) {
-      (s.books || []).forEach(function (b) { books.push({ s: s, b: b }); });
+      (s.books || []).forEach(function (b) { if (bookMatchesLang(b, LANG)) books.push({ s: s, b: b }); });
     });
     var bookCards = books.map(function (o) { return coverCell(o.s, o.b); }).join('');
     var labels = LANG === 'en'
@@ -473,7 +501,18 @@
   function viewSeries() {
     var s = seriesById(R.slug);
     if (!s) return notFound();
-    var books = (s.books || []).map(function (b) { return coverCell(s, b); }).join('');
+    var matchingBooks = booksInSeriesForLang(s, LANG);
+    var otherBooks = (s.books || []).filter(function (b) { return !bookMatchesLang(b, LANG); });
+    var books = matchingBooks.map(function (b) { return coverCell(s, b); }).join('');
+    var noBooksText = LANG === 'es'
+      ? 'Todavía no hay una edición en español disponible en esta serie.'
+      : LANG === 'en'
+        ? 'There is not yet an English edition available in this series.'
+        : 'Det finnes foreløpig ingen norsk utgave i denne serien.';
+    var otherTitle = LANG === 'es' ? 'Otras ediciones e idiomas' : LANG === 'en' ? 'Other editions and languages' : 'Andre utgaver og språk';
+    var otherEditions = otherBooks.length
+      ? '<h2 class="serif topic-section-title">' + esc(otherTitle) + '</h2><div class="book-grid">' + otherBooks.map(function (b) { return coverCell(s, b); }).join('') + '</div>'
+      : '';
     var placeholders = '';
     var n = s.placeholderCount || 0;
     if (n > 0) {
@@ -487,7 +526,7 @@
       '<h1>' + esc(pick(s.title)) + '</h1>' +
       '<p style="max-width:720px">' + esc(pick(s.desc)) + '</p>' +
       '<p class="pill" style="margin-top:16px">' + esc(t('bundleSeriesNote')) + '</p>' +
-      '<div class="book-grid">' + books + '</div>' + placeholders +
+      (books ? '<div class="book-grid">' + books + '</div>' : '<p class="language-books-empty">' + esc(noBooksText) + '</p>') + placeholders + otherEditions +
       '</div></section>';
   }
 
@@ -504,7 +543,7 @@
       var meta = [wc, pc].filter(Boolean).join(' · ');
       quote = '<div class="quote">' + esc(b.excerpt) + (meta ? '<span class="meta">' + esc(meta) + '</span>' : '') + '</div>';
     }
-    var siblings = (s.books || []).filter(function (x) { return x.id !== b.id; });
+    var siblings = (s.books || []).filter(function (x) { return x.id !== b.id && bookMatchesLang(x, bookEditionLang(b) || LANG); });
     var more = '';
     if (siblings.length) {
       more = '<section><div class="container"><h2 class="serif" style="font-size:22px">' + esc(t('moreInSeriesLabel')) + '</h2>' +
