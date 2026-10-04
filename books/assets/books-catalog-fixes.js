@@ -106,6 +106,121 @@
     s.coverBg = layout.bg;
   });
 
+  // Localized series metadata. The canonical catalog still owns the book data,
+  // but the Spanish UI must not fall back to English for series labels/descriptions.
+  var spanishSeries = {
+    'michael-thorne': {
+      title: 'Serie Michael Thorne',
+      tag: 'Crimen psicológico',
+      desc: 'Thrillers psicológicos sobre justicia, culpa, identidad, responsabilidad, manipulación y autoengaño.',
+      count: '8 libros'
+    },
+    'elias-holm': {
+      title: 'Serie Elias Holm',
+      tag: 'Thriller criminal nórdico',
+      desc: 'Una serie de investigación sobre motivos humanos, identidades ocultas, pruebas y verdades que no siempre encajan con los registros oficiales.',
+      count: '8 libros'
+    },
+    'power-behind-curtain': {
+      title: 'El poder tras el telón',
+      tag: 'Poder · geopolítica · sistemas ocultos',
+      desc: 'Una investigación sobre cómo funciona el poder global en la práctica: capital, guerra, información, instituciones, recursos y narrativas.',
+      count: '7 libros'
+    },
+    'mediterraneo-vital': {
+      title: 'Mediterraneo Vital',
+      tag: 'No ficción · vida mediterránea',
+      desc: 'Aceitunas, polifenoles, agricultura regenerativa, longevidad y vida en la Costa Blanca, desde una perspectiva práctica y documentada.',
+      count: '9 libros'
+    },
+    'balanced-life': {
+      title: 'The Balanced Life Series',
+      tag: 'Salud · hábitos · equilibrio',
+      desc: 'Libros prácticos sobre tiempo, hábitos digitales, relaciones, decisiones de vida y cómo construir una vida cotidiana más equilibrada.',
+      count: '5 libros'
+    },
+    'let-me-explain': {
+      title: 'Let Me Explain It to You',
+      tag: 'Economía · tecnología · ideas complejas',
+      desc: 'Temas complejos explicados con lenguaje claro: dinero, economía, tecnología, inteligencia artificial, psicología, poder e instituciones.',
+      count: '10 libros'
+    },
+    'let-me-guide-you': {
+      title: 'Let Me Guide You',
+      tag: 'España · Costa Blanca · guías prácticas',
+      desc: 'Guías prácticas sobre ciudades, zonas, vivienda y vida cotidiana en España, con especial atención a la Costa Blanca.',
+      count: '25 libros'
+    },
+    'anatomy-of-empires': {
+      title: 'The Anatomy of Empires',
+      tag: 'Historia · imperios · poder',
+      desc: 'Libros sobre cómo surgen, funcionan y caen los imperios, y sobre las fuerzas políticas, económicas y militares que moldean la historia.',
+      count: '1 libro'
+    },
+    'hidden-systems-of-power': {
+      title: 'Hidden Systems of Power',
+      tag: 'Infraestructura · recursos · poder estructural',
+      desc: 'Una serie sobre las redes, materias primas, rutas, cables y cuellos de botella que sostienen y condicionan el poder moderno.',
+      count: '4 libros'
+    },
+    'victoria-andreas': {
+      title: 'Victoria & Andreas',
+      tag: 'Libros infantiles · mirar y aprender',
+      desc: 'Libros visuales sencillos para niños pequeños y adultos que quieren mirar, señalar, hablar y aprender juntos.',
+      count: '12 libros'
+    },
+    'empire-after-the-empire': {
+      title: 'The Empire After the Empire',
+      tag: 'Historia · Rusia · revolución',
+      desc: 'Una historia estructural de Rusia, la revolución, la construcción del Estado y los órdenes políticos que surgieron tras el imperio.',
+      count: '2 libros'
+    }
+  };
+  series.forEach(function (s) {
+    var es = spanishSeries[s.id];
+    if (!es) return;
+    s.title = s.title || {};
+    s.tag = s.tag || {};
+    s.desc = s.desc || {};
+    s.count = s.count || {};
+    s.title.es = es.title;
+    s.tag.es = es.tag;
+    s.desc.es = es.desc;
+    s.count.es = es.count;
+  });
+
+  // Mark the actual edition language of every catalog entry. UI translations of
+  // descriptions are not treated as translated book editions.
+  var englishIds = {
+    'the-facade-of-justice':1,'shadows-of-the-past':1,'the-ascendants':1,'the-hollow-witness':1,
+    'the-black-archive':1,'the-unseen-trial':1,'the-badge-and-the-blade':1,'the-last-exhibition':1,
+    'the-suspicion-machine':1,'arms-power':1,'the-olive-oil-cure':1,'premium-olive-oil-processing':1,
+    'growing-premium-olives':1,'olive-oil-cookbook':1,'my-journey-as-a-father':1,'time-mastery':1,
+    'declutter-digital-life':1,'relationship-blueprint':1,'how-money-works':1,'the-economy-explained':1,
+    'understanding-artificial-intelligence':1,'crypto-explained':1,'the-psychology-of-you':1,
+    'guide-costa-blanca':1,'rome':1,'the-chokepoints-of-power':1,'the-minerals-of-power':1,
+    'the-empire-of-the-tsars':1,'red-revolution':1,'the-cables-beneath-the-world':1
+  };
+  var norwegianIds = {
+    'mannen-som-dode-to-ganger':1,'huset-uten-navn':1,'rommet-med-knoklene':1,'den-siste-passasjeren':1,
+    'de-dode-signerer-ikke':1,'den-levende-graven':1,'navnene-vi-begravde':1,'den-siste-identifikasjonen':1,
+    'krig-kapital':1,'hvem-eier-virkeligheten':1,'vapenmakten':1,'mistankens-maskin':1,
+    'birokt-og-oliven':1,'fra-jord-til-bord':1,'polyfenolens-kraft':1,'kunsten-a-hoste-tidlig':1,
+    'lev-100-ar':1,'jeg-er-ikke-et-eksempel':1,'hvordan-penger-fungerer':1,'okonomien-forklart':1,
+    'teknologi-enkelt-forklart':1,'psykologien-i-deg':1,'let-me-explain-you':1,'spania-2030':1,
+    'maktens-flaskehalser':1,'hvordan-makt-fungerer':1
+  };
+  series.forEach(function (s) {
+    (s.books || []).forEach(function (b) {
+      if (/-en$/.test(b.id)) b.editionLang = 'en';
+      else if (/-no$/.test(b.id)) b.editionLang = 'no';
+      else if (/-es$/.test(b.id)) b.editionLang = 'es';
+      else if (b.id === 'la-maquina-de-la-sospecha') b.editionLang = 'es';
+      else if (englishIds[b.id]) b.editionLang = 'en';
+      else if (norwegianIds[b.id]) b.editionLang = 'no';
+    });
+  });
+
   var latest = {
     'hvordan-makt-fungerer': '2026-08-26T17:58:22Z',
     'the-cables-beneath-the-world': '2026-08-26T17:55:01Z',
