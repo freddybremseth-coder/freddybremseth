@@ -24,7 +24,7 @@ window.BOOKS_EXTRA_SERIES = [
       "en": "A structural history of the political orders that emerged from the collapse of the Russian Empire — revolution, civil war, institutions, coercion, state-building and the struggle over what came next.",
       "es": "Una historia estructural de los órdenes políticos que surgieron tras el colapso del Imperio ruso: revolución, guerra civil, instituciones, coerción, construcción del Estado y la lucha por lo que vino después."
     },
-    "cover": "assets/covers/empire-after-the-empire-series-2026.svg",
+    "cover": "assets/series/empire-after-the-empire-emblem.svg",
     "coverFit": "cover",
     "coverBg": "dark",
     "placeholderCount": 0,
