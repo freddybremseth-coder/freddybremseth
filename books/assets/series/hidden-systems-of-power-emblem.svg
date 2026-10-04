@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .08"/></feComponentTransfer></filter>
+  </defs><rect width="1200" height="600" fill="#10161d"/><rect width="1200" height="600" filter="url(#grain)" opacity=".35"/>
+<g stroke="#b8863a" stroke-width="5" fill="none" opacity=".9"><path d="M75 430L245 210 430 345 610 140 835 315 1080 160"/><path d="M120 520L310 400 525 500 760 380 1110 455"/></g>
+<g fill="#d6b46d"><circle cx="245" cy="210" r="20"/><circle cx="430" cy="345" r="20"/><circle cx="610" cy="140" r="20"/><circle cx="835" cy="315" r="20"/><circle cx="1080" cy="160" r="20"/><circle cx="310" cy="400" r="18"/><circle cx="525" cy="500" r="18"/><circle cx="760" cy="380" r="18"/><circle cx="1110" cy="455" r="18"/></g>
+<path d="M0 560c175-100 310-90 450-55s265 25 390-25 240-45 360-5v125H0z" fill="#192634"/>
+<g fill="#596d74" opacity=".8"><rect x="130" y="85" width="95" height="160"/><rect x="900" y="55" width="135" height="205"/><rect x="1045" y="115" width="95" height="145"/></g></svg>
