@@ -281,10 +281,11 @@ textarea{min-height:150px;resize:vertical}
 
 
 /* 2026-10-04 broad authorship homepage */
-.home-hero{
+.hero{
   position:relative;
   min-height:560px;
   padding:0;
+  text-align:left;
   overflow:hidden;
   background:#071a2b;
   color:#fff;
@@ -303,11 +304,11 @@ textarea{min-height:150px;resize:vertical}
 .home-hero-inner{position:relative;z-index:1;min-height:560px;display:flex;align-items:center}
 .home-hero-copy{max-width:650px;padding:82px 0 88px}
 .home-kicker{margin:0 0 14px;color:#d9a756;font-size:11px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase}
-.home-hero h1{margin:0;color:#fff;font-size:clamp(42px,5.1vw,72px);line-height:1.02;letter-spacing:-.035em;max-width:760px}
+.hero h1{margin:0;color:#fff;font-size:clamp(42px,5.1vw,72px);line-height:1.02;letter-spacing:-.035em;max-width:760px}
 .home-hero-intro{max-width:650px;margin:24px 0 30px;color:#e7e8e7;font-size:17px;line-height:1.65}
 .home-hero-actions{display:flex;gap:12px;flex-wrap:wrap}
-.home-hero .btn-primary,.home-newsletter .btn-primary{background:#e0a64f;border-color:#e0a64f;color:#091b2a}
-.home-hero .btn-primary:hover,.home-newsletter .btn-primary:hover{background:#efbb6c;border-color:#efbb6c;color:#091b2a}
+.hero .btn-primary,.home-newsletter .btn-primary{background:#e0a64f;border-color:#e0a64f;color:#091b2a}
+.hero .btn-primary:hover,.home-newsletter .btn-primary:hover{background:#efbb6c;border-color:#efbb6c;color:#091b2a}
 .home-btn-outline{border:1px solid rgba(255,255,255,.45);color:#fff;background:rgba(2,12,20,.18)}
 .home-btn-outline:hover{border-color:#e0a64f;color:#e0a64f;text-decoration:none}
 
@@ -345,14 +346,14 @@ textarea{min-height:150px;resize:vertical}
 .home-theme-card strong{font-family:var(--serif);font-size:14px;line-height:1.2}
 
 .home-latest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.home-latest-card{display:grid;grid-template-columns:82px 1fr;gap:16px;align-items:center;background:#0d3049;border:1px solid rgba(170,195,211,.16);padding:12px;border-radius:6px;color:#fff}
-.home-latest-card:hover{border-color:rgba(224,166,79,.5);text-decoration:none;color:#fff}
+.home-latest-grid > .book-cell{display:grid;grid-template-columns:82px 1fr;gap:16px;align-items:center;background:#0d3049;border:1px solid rgba(170,195,211,.16);padding:12px;border-radius:6px;color:#fff}
+.home-latest-grid > .book-cell:hover{border-color:rgba(224,166,79,.5);text-decoration:none;color:#fff}
 .home-latest-cover{width:82px;height:116px;background:#071c2b;overflow:hidden;border-radius:3px}
 .home-latest-cover img{width:100%;height:100%;object-fit:cover}
 .home-latest-label{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:#e0a64f;font-weight:700}
-.home-latest-card h3{font-size:19px;color:#fff;margin:5px 0}
-.home-latest-card p{font-size:12px;color:#bdc9d0;margin:0 0 7px;line-height:1.45}
-.home-latest-card strong{font-size:12px;color:#e0a64f}
+.home-latest-grid > .book-cell h3{font-size:19px;color:#fff;margin:5px 0}
+.home-latest-grid > .book-cell p{font-size:12px;color:#bdc9d0;margin:0 0 7px;line-height:1.45}
+.home-latest-grid > .book-cell strong{font-size:12px;color:#e0a64f}
 
 .home-about-section{padding:0;background:#061a2a;color:#fff}
 .home-about-grid{max-width:1200px;padding-left:0;display:grid;grid-template-columns:minmax(320px,.85fr) 1.05fr .8fr;gap:0;align-items:stretch}
@@ -381,11 +382,11 @@ textarea{min-height:150px;resize:vertical}
   .home-author-quote{grid-column:1/-1;border-left:0;border-top:1px solid rgba(224,166,79,.3);padding:34px 28px}
 }
 @media(max-width:760px){
-  .home-hero{min-height:auto}
+  .hero{min-height:auto}
   .home-hero-media{background-image:linear-gradient(180deg,rgba(5,22,37,.42),rgba(5,22,37,.86) 44%,rgba(5,22,37,1) 72%),url('/assets/freddy-bremseth.jpg'),url('/assets/series/let-me-guide-you-2026.webp');background-size:cover,auto 58%,cover;background-position:center,72% 9%,center top;background-repeat:no-repeat}
   .home-hero-inner{min-height:690px;align-items:flex-end}
   .home-hero-copy{padding:280px 0 54px}
-  .home-hero h1{font-size:clamp(38px,11vw,56px)}
+  .hero h1{font-size:clamp(38px,11vw,56px)}
   .home-worlds-grid,.home-newsletter-grid{grid-template-columns:1fr;gap:24px}
   .home-worlds-text{border-left:0;border-top:2px solid rgba(224,166,79,.75);padding:22px 0 0}
   .home-series-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -405,3 +406,40 @@ textarea{min-height:150px;resize:vertical}
   .home-newsletter-form{grid-template-columns:1fr}
   .home-newsletter-form .btn{width:100%}
 }
+
+
+/* Homepage compatibility overrides for the bounded gallery/latest cards. */
+.home-latest-grid > .book-cell{
+  display:grid;
+  grid-template-columns:82px 1fr;
+  gap:16px;
+  align-items:center;
+  background:#0d3049;
+  border:1px solid rgba(170,195,211,.16);
+  padding:12px;
+  border-radius:6px;
+  color:#fff;
+  text-align:left;
+}
+.home-latest-grid > .book-cell:hover{
+  border-color:rgba(224,166,79,.5);
+  text-decoration:none;
+  color:#fff;
+}
+.home-latest-grid > .book-cell .home-latest-cover{
+  width:82px;
+  height:116px;
+  aspect-ratio:auto;
+  padding:0;
+  box-shadow:none;
+  background:#071c2b;
+  border-radius:3px;
+}
+.home-latest-grid > .book-cell:hover .home-latest-cover{
+  transform:none;
+  box-shadow:none;
+}
+.home-more-titles{margin-top:34px;padding-top:28px;border-top:1px solid rgba(170,195,211,.16)}
+.home-more-titles h3{color:#fff;font-size:22px;margin-bottom:8px}
+.home-more-titles .gallery-item span{color:#cbd6dc}
+.home-more-titles .gallery-item img{background:#102d43}
