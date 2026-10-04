@@ -76,7 +76,9 @@
   }
   function bookMatchesLang(b, lang) {
     var edition = bookEditionLang(b);
-    return edition ? edition === lang : lang === 'no';
+    // Legacy/unclassified entries stay visible rather than disappearing. The
+    // production catalog marks known editions explicitly in books-catalog-fixes.js.
+    return edition ? edition === lang : true;
   }
   function booksWithCovers(lang) {
     var out = [];
