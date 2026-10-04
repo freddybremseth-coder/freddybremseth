@@ -69,19 +69,35 @@
   });
 
   var recoveredSeriesCovers = {
-    'hidden-systems-of-power': 'assets/covers/hidden-systems-of-power-series.webp',
-    'victoria-andreas': 'assets/covers/victoria-andreas-series.webp'
+    'michael-thorne': 'assets/covers/michael-thorne-series-2026.svg',
+    'elias-holm': 'assets/covers/elias-holm-series-2026.svg',
+    'power-behind-curtain': 'assets/covers/power-behind-curtain-series-2026.svg',
+    'mediterraneo-vital': 'assets/covers/mediterraneo-vital-series-2026.svg',
+    'balanced-life': 'assets/covers/balanced-life-series-2026.svg',
+    'let-me-explain': 'assets/covers/let-me-explain-series-2026.svg',
+    'let-me-guide-you': 'assets/covers/let-me-guide-you-series-2026.svg',
+    'anatomy-of-empires': 'assets/covers/anatomy-of-empires-series-2026.svg',
+    'hidden-systems-of-power': 'assets/covers/hidden-systems-of-power-series-2026.svg',
+    'victoria-andreas': 'assets/covers/victoria-andreas-series-2026.svg',
+    'empire-after-the-empire': 'assets/covers/empire-after-the-empire-series-2026.svg'
   };
   series.forEach(function (s) {
     if (recoveredSeriesCovers[s.id]) s.cover = recoveredSeriesCovers[s.id];
   });
 
-  // Portrait series artwork must be shown as artwork, not cropped into a
-  // landscape banner. Keep the full cover visible on library/series cards.
+  // Keep all series artwork consistent as cinematic landscape cards.
   var seriesCoverLayout = {
-    'hidden-systems-of-power': { fit: 'contain', bg: 'dark' },
-    'victoria-andreas': { fit: 'contain', bg: 'light' },
-    'empire-after-the-empire': { fit: 'contain', bg: 'dark' }
+    'michael-thorne': { fit: 'cover', bg: 'dark' },
+    'elias-holm': { fit: 'cover', bg: 'dark' },
+    'power-behind-curtain': { fit: 'cover', bg: 'dark' },
+    'mediterraneo-vital': { fit: 'cover', bg: 'light' },
+    'balanced-life': { fit: 'cover', bg: 'light' },
+    'let-me-explain': { fit: 'cover', bg: 'dark' },
+    'let-me-guide-you': { fit: 'cover', bg: 'light' },
+    'anatomy-of-empires': { fit: 'cover', bg: 'dark' },
+    'hidden-systems-of-power': { fit: 'cover', bg: 'dark' },
+    'victoria-andreas': { fit: 'cover', bg: 'light' },
+    'empire-after-the-empire': { fit: 'cover', bg: 'dark' }
   };
   series.forEach(function (s) {
     var layout = seriesCoverLayout[s.id];
