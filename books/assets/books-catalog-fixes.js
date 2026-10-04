@@ -69,17 +69,17 @@
   });
 
   var recoveredSeriesCovers = {
-    'michael-thorne': 'assets/series/2026-10-homepage/01-michael-thorne-series.webp',
-    'elias-holm': 'assets/series/2026-10-homepage/02-elias-holm-series.webp',
-    'power-behind-curtain': 'assets/series/2026-10-homepage/03-makten-bak-kulissene.webp',
-    'mediterraneo-vital': 'assets/series/2026-10-homepage/04-mediterraneo-vital.webp',
-    'balanced-life': 'assets/series/2026-10-homepage/05-balanced-life.webp',
-    'let-me-explain': 'assets/series/2026-10-homepage/06-let-me-explain-it-to-you.webp',
-    'let-me-guide-you': 'assets/series/2026-10-homepage/07-let-me-guide-you.webp',
-    'anatomy-of-empires': 'assets/series/2026-10-homepage/08-anatomy-of-empires.webp',
-    'hidden-systems-of-power': 'assets/series/2026-10-homepage/09-hidden-systems-of-power.webp',
-    'victoria-andreas': 'assets/series/2026-10-homepage/10-victoria-andreas.webp',
-    'empire-after-the-empire': 'assets/series/2026-10-homepage/11-empire-after-the-empire.webp'
+    'michael-thorne': 'assets/series/michael-thorne-editorial.webp',
+    'elias-holm': 'assets/series/elias-holm-editorial.webp',
+    'power-behind-curtain': 'assets/series/power-behind-curtain-editorial.webp',
+    'mediterraneo-vital': 'assets/series/mediterraneo-vital-editorial.webp',
+    'balanced-life': 'assets/series/balanced-life-2026.webp?v=20261004c',
+    'let-me-explain': 'assets/series/let-me-explain-2026.webp?v=20261004c',
+    'let-me-guide-you': 'assets/series/let-me-guide-you-2026.webp?v=20261004c',
+    'anatomy-of-empires': 'assets/series/anatomy-of-empires-2026.webp?v=20261004c',
+    'hidden-systems-of-power': 'assets/series/hidden-systems-of-power-2026.webp?v=20261004c',
+    'victoria-andreas': 'assets/series/victoria-andreas-editorial.webp',
+    'empire-after-the-empire': 'assets/series/empire-after-the-empire-editorial.webp'
   };
   series.forEach(function (s) {
     if (recoveredSeriesCovers[s.id]) s.cover = recoveredSeriesCovers[s.id];
