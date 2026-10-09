@@ -19,7 +19,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p assets
-          unzip -o assets/freddy-portretter-web.zip -d assets
+          curl -fsSL --retry 3 https://raw.githubusercontent.com/freddybremseth-coder/freddybremseth/main/assets/freddy-portretter-web.zip -o /tmp/freddy-portretter-web.zip
+          unzip -o /tmp/freddy-portretter-web.zip -d assets
           for file in freddy-ai-utvikler.webp freddy-eiendom-costa-blanca.webp freddy-personlig-radgiver.webp; do test -s "assets/$file"; done
       - name: Commit images to PR branch
         run: |
