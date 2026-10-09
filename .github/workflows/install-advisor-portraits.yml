@@ -1,0 +1,29 @@
+name: Install advisor portrait assets
+on:
+  push:
+    branches:
+      - feat/freddy-role-portraits-20261009
+    paths:
+      - .github/workflows/install-advisor-portraits.yml
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Unpack optimized portraits
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          unzip -o assets/freddy-portretter-web.zip -d assets
+          for file in freddy-ai-utvikler.webp freddy-eiendom-costa-blanca.webp freddy-personlig-radgiver.webp; do test -s "assets/$file"; done
+      - name: Commit images to PR branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/freddy-ai-utvikler.webp assets/freddy-eiendom-costa-blanca.webp assets/freddy-personlig-radgiver.webp
+          if ! git diff --cached --quiet; then git commit -m "Add optimized advisor image assets"; git push; fi
