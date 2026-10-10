@@ -4,6 +4,30 @@
   body.classList.add("fb-enhanced");
 
   const header = document.querySelector(".site-nav");
+  // Every page needs a visible language entry. Localised detail pages are not
+  // published yet, so these links lead to each translated homepage.
+  if (header && !header.querySelector(".lang-switch")) {
+    const localeNames = { no: "Norsk", en: "English", es: "Español", fr: "Français", de: "Deutsch", ru: "Русский" };
+    const currentLocale = (location.pathname.match(/^\\/(en|es|fr|de|ru)(?:\\/|$)/) || [])[1] || "no";
+    const language = document.createElement("select");
+    language.className = "lang-switch fb-header-language";
+    language.setAttribute("aria-label", "Velg språk / Choose language");
+    language.setAttribute("title", "Andre språk åpner den oversatte forsiden");
+    Object.entries(localeNames).forEach(([code, label]) => {
+      const option = document.createElement("option");
+      option.value = code;
+      option.textContent = label;
+      language.appendChild(option);
+    });
+    language.value = currentLocale;
+    language.addEventListener("change", () => {
+      try { localStorage.setItem("fb_lang", language.value); } catch (_) {}
+      location.href = language.value === "no" ? "/" : "/" + language.value + "/";
+    });
+    const nav = header.querySelector(".nav-links");
+    if (nav) header.insertBefore(language, nav);
+    else header.appendChild(language);
+  }
   // Keep the language selector visible even when mobile navigation is collapsed.
   if (header) {
     const selector = header.querySelector(".lang-switch");
