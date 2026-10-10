@@ -16,3 +16,5 @@
 .article-grid .tile>img{display:block;aspect-ratio:1.55;width:100%;height:auto;min-height:0;object-fit:cover;object-position:center 46%;background:#e7e2d8}
 .article-grid .tile[data-category="Forfatterskap"]>img{object-position:center 42%}
 .article-grid .tile-body{min-width:0}
+
+.reference-section{margin:42px 0;padding:32px;background:#eae6dc;border-radius:18px;border:1px solid #dcd5c7}.reference-section h2{margin:4px 0 20px}.reference-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.reference-grid>div{padding:19px;background:#fffdfa;border-radius:12px;border:1px solid #ded8cd}.reference-grid strong{display:block;font-size:15px;color:#29353b}.reference-grid p{font-size:13px;margin:7px 0 0;line-height:1.7}.reference-note{font-size:12px;color:#657077;margin:18px 0 0!important}.article-grid .tile img{object-fit:cover;object-position:center center;aspect-ratio:1.55}.article-grid .tile[data-category="Forfatterskap"] img{object-position:center 57%}@media(max-width:620px){.reference-grid{grid-template-columns:1fr}.reference-section{padding:21px}}
