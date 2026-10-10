@@ -11,3 +11,8 @@
 .article-menu-toggle{display:none;border:1px solid var(--line);background:var(--paper);border-radius:30px;font:700 13px Manrope,sans-serif;padding:9px 15px;cursor:pointer}
 @media(max-width:1150px){.article-menu-toggle{display:block;margin-left:auto}.top nav{display:none;position:absolute;top:100%;left:0;right:0;padding:18px clamp(20px,4vw,54px);background:#f5f3ee;border-bottom:1px solid var(--line);box-shadow:0 15px 20px #00000010;flex-wrap:wrap;align-items:stretch;gap:8px}.top nav.is-open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.top nav a{white-space:normal;padding:12px}.top .article-lang{max-width:100%;width:100%}}
 @media(max-width:500px){.top nav.is-open{grid-template-columns:1fr}}
+
+/* Editorial card thumbnails: consistent framing and prevent white bands on portrait assets. */
+.article-grid .tile>img{display:block;aspect-ratio:1.55;width:100%;height:auto;min-height:0;object-fit:cover;object-position:center 46%;background:#e7e2d8}
+.article-grid .tile[data-category="Forfatterskap"]>img{object-position:center 42%}
+.article-grid .tile-body{min-width:0}
