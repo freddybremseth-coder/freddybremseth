@@ -4,6 +4,15 @@
   body.classList.add("fb-enhanced");
 
   const header = document.querySelector(".site-nav");
+  // Keep the language selector visible even when mobile navigation is collapsed.
+  if (header) {
+    const selector = header.querySelector(".lang-switch");
+    const nav = header.querySelector(".nav-links");
+    if (selector && nav) {
+      selector.classList.add("fb-header-language");
+      header.insertBefore(selector, nav);
+    }
+  }
   if (header) {
     const setScrolled = () => header.classList.toggle("is-scrolled", window.scrollY > 18);
     setScrolled();
