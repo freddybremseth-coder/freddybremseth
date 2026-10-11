@@ -52,3 +52,38 @@
     padding: 26px 24px 32px;
   }
 }
+
+
+/* 2026-10-11: Preserve the complete editorial image on all screens.
+   The gallery images are composed 4:3, so 1.55:1 cover crops cut off subjects.
+   Portrait images letterbox rather than losing faces or product labels. */
+.article-grid .tile > img {
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:4 / 3;
+  object-fit:contain;
+  object-position:center center;
+  background:#ece8df;
+}
+.essay > .essay-hero,
+.essay .essay-hero {
+  width:100%;
+  height:auto;
+  max-height:none;
+  aspect-ratio:auto;
+  object-fit:contain;
+  object-position:center;
+  background:#ece8df;
+}
+.hub-feature > img {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  background:#203039;
+}
+@media (max-width:650px) {
+  .article-grid .tile > img { aspect-ratio:4 / 3; }
+  .hub-feature > img { height:auto; aspect-ratio:4 / 5; object-fit:contain; }
+}
