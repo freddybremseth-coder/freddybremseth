@@ -87,3 +87,12 @@
   .article-grid .tile > img { aspect-ratio:4 / 3; }
   .hub-feature > img { height:auto; aspect-ratio:4 / 5; object-fit:contain; }
 }
+
+
+/* Author article catalogue and Amazon links */
+.book-links{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:24px 0 4px}
+.book-links a{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:45px;border:1px solid #cfc9bf;border-radius:30px;padding:11px 18px;font:700 13px/1.4 Manrope,sans-serif;color:var(--ink);background:var(--paper);transition:background-color .2s,color .2s,border-color .2s}
+.book-links .book-link-primary{background:#203039;border-color:#203039;color:#fff}
+.book-links a:hover,.book-links a:focus-visible{background:#dfd8ca;color:var(--ink);border-color:#b6a68d}
+.prose section a:not(.related a){text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;color:#785a32}
+@media(max-width:640px){.book-links{display:grid;grid-template-columns:1fr}.book-links a{width:100%;text-align:center}}
