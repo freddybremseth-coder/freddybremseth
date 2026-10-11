@@ -29,3 +29,26 @@
 .reference-start-links strong{font:500 25px/1.12 Newsreader,Georgia,serif}
 .reference-start-links small{font:400 12px/1.6 Manrope,sans-serif;color:#667079}
 @media(max-width:780px){.reference-start-links{grid-template-columns:1fr}.reference-start{padding:22px}}
+
+
+/* Featured story on mobile: show the complete portrait-oriented editorial image.
+   The previous fixed 220px cover crop cut off the subject's head. */
+@media (max-width: 650px) {
+  .hub-feature {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+  .hub-feature > img {
+    order: -1;
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: contain;
+    object-position: center;
+    background: #e9e6dd;
+  }
+  .hub-feature > .feature-content {
+    padding: 26px 24px 32px;
+  }
+}
