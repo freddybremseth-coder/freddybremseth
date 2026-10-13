@@ -477,6 +477,13 @@
    for(const row of [...(Array.isArray(curatedVariants)?curatedVariants:[]),...remoteVariants]){
     if(row.variant_id!==row.primary_id&&ids.has(row.variant_id)&&ids.has(row.primary_id))variants.set(row.variant_id,row);
    }
+   // A corrupt or cyclic set of live variant relationships must never hide the gallery.
+   // Keep an artwork visible when its proposed primary is itself a variant; this
+   // also protects against a live API returning every artwork as a variant.
+   for(const [id,row] of variants){
+    if(variants.has(row.primary_id))variants.delete(id);
+   }
+   if(state.art.length>0&&variants.size>=state.art.length)variants.clear();
    state.variants=[...variants.values()];
    state.variantById=new Map(state.variants.map(row=>[row.variant_id,row]));
    state.variantsByPrimary=new Map();
