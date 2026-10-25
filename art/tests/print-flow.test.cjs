@@ -323,3 +323,12 @@ test('dynamic artwork pages offer Digital Edition and preserve secure download f
  assert.match(catalog,/\['digital','master'\]/);
  assert.match(catalog,/eq\('bucket_name','art-originals'\)/);
 });
+
+
+test('ArtView resolves the selected gallery artwork without relying on navigation',()=>{
+ const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
+ const view=fs.readFileSync(path.join(root,'assets/js/artview.js'),'utf8');
+ assert.match(app,/dialog\.dataset\.artworkId=art\.id/);
+ assert.match(view,/modal\.dataset\.artworkId/);
+ assert.match(view,/if\(\/\^\[a-z0-9-\]\+\$\/\.test\(selected\)\)return selected/);
+});
