@@ -33,6 +33,8 @@ const PUBLIC_SUPABASE_URL = 'https://ereapsfcsqtdmzosgnnn.supabase.co';
 const PUBLIC_SUPABASE_KEY = 'sb_publishable_KTywNu5kx3HfcOLInKOUjA_5Py79jZm';
 const cleanCountry = value => typeof value === 'string' && /^[A-Z]{2}$/.test(value) ? value : null;
 const cleanSku = value => typeof value === 'string' && /^GLOBAL-FAP-[0-9]+X[0-9]+$/i.test(value) ? value.toUpperCase() : null;
+// Catalogue lookups may inspect frames; quote/checkout remain restricted to FAP prints.
+const cleanCatalogSku = value => typeof value === 'string' && /^GLOBAL-(?:FAP|CFP|FRA-ALU)-[0-9]+X[0-9]+$/i.test(value) ? value.toUpperCase() : null;
 const cents = value => Math.round(Number(value || 0) * 100);
 const roundUp = (value, step = 500) => Math.ceil(Math.max(0, value) / step) * step;
 const PRODUCT_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -240,7 +242,7 @@ async function findPrintAsset(artworkId) {
 }
 
 async function productDetails(sku) {
-  const safe = cleanSku(sku);
+  const safe = cleanCatalogSku(sku);
   if (!safe) return null;
   const cached = productCache.get(safe);
   if (cached && Date.now() - cached.at < PRODUCT_CACHE_TTL_MS) return cached.value;
@@ -627,6 +629,7 @@ module.exports = {
   isCuratedFineArtProduct,
   cleanCountry,
   cleanSku,
+  cleanCatalogSku,
   prodigiEnvironment,
   prodigiConfigured,
   printCheckoutStatus,
