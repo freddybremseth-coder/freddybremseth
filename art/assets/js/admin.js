@@ -674,8 +674,9 @@ async function gather(files){
    work.id==='kintsugi-2026-'+group.key&&slug(work.title_en)===group.key);
   if(matches.length===1){
    exactExisting.set(group.key,matches[0]);
-   // The gallery already contains its correct public preview; recovery is private-only.
+   // Keep public previews unchanged and reuse private PNG masters already saved.
    delete group.files.portfolio;
+   if(masterStatusFor(matches[0].id)?.storage_object_present)delete group.files.master;
   }else throw Error('Cannot safely match Kintsugi artwork: '+group.label+'. No files were uploaded.');
  }
  if(grouped.size>0&&[...grouped.keys()].every(key=>exactExisting.has(key))&&
