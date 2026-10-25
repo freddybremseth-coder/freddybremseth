@@ -126,14 +126,23 @@ async function prodigiRequest(path, options = {}) {
 
 async function findArtworkForPrint(artworkId) {
   if (typeof artworkId !== 'string' || !/^[a-z0-9-]+$/.test(artworkId)) return null;
-  const client = supabaseAdmin() || supabasePublic();
-  const { data, error } = await client
-    .from('art_gallery_works')
-    .select('id,title_en,description_en,pixel_width,pixel_height,published,public_preview_path')
-    .eq('id', artworkId)
-    .eq('published', true)
-    .maybeSingle();
-  if (error || !data) {
+  // Published gallery records must remain readable even if the configured
+  // service-role credential is stale or belongs to a different project.
+  let data = null;
+  for (const client of [supabaseAdmin(), supabasePublic()].filter(Boolean)) {
+    try {
+      const result = await client
+        .from('art_gallery_works')
+        .select('id,title_en,description_en,pixel_width,pixel_height,published,public_preview_path')
+        .eq('id', artworkId)
+        .eq('published', true)
+        .maybeSingle();
+      if (!result.error && result.data) { data = result.data; break; }
+    } catch (error) {
+      console.warn('Published print artwork lookup failed', error?.code || 'network');
+    }
+  }
+  if (!data) {
     // Legacy catalogue artworks are published from the checked-in catalogue,
     // not art_gallery_works. Their print masters are tracked separately.
     const { findArtwork } = require('./catalog.cjs');
