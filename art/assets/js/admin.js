@@ -272,6 +272,69 @@ function printSizeDetails(print){
   '<small>Pixel-based estimate only; supplier catalogue, destination, crop and proof must be checked before sale.</small></details>';
 }
 function masterStatusFor(id){return state.masterAudit.find(row=>row.artwork_id===id)}
+function openPrintUpgrade(work){
+ if(!state.authorized)return status('Administrator approval required.',true);
+ if(state.queue.length)return status('Finish or clear the current upload queue before preparing another print.',true);
+ const old=$('print-upgrade-panel');if(old)old.remove();
+ const baseline=printMasterStatusFor(work.id);
+ const oldDims=baseline.asset?[Number(baseline.asset.pixel_width),Number(baseline.asset.pixel_height)]:[];
+ const panel=document.createElement('section');panel.className='print-upgrade-panel panel';panel.id='print-upgrade-panel';
+ const header=document.createElement('div');header.className='print-upgrade-heading';
+ const title=document.createElement('h3');title.textContent='Prepare improved PRINT · '+work.title_en;
+ const close=document.createElement('button');close.type='button';close.textContent='Close';close.addEventListener('click',()=>panel.remove());
+ header.append(title,close);panel.append(header);
+ const description=document.createElement('p');description.textContent='Preserve the composition, colours, signature, textures and details of the original artwork. AI reconstruction can change the artwork: inspect the result closely before using it for a print. This tool checks dimensions locally; it does not generate or upload an image automatically.';panel.append(description);
+ const targetLabel=document.createElement('label');targetLabel.textContent='Target format for the new print';
+ const target=document.createElement('select');
+ for(const [key,label] of [['16X20','About 40 × 50 cm'],['24X36','About 60 × 90 cm'],['30X40','About 75 × 100 cm']])target.add(new Option(label,key));
+ targetLabel.append(target);panel.append(targetLabel);
+ const requirement=document.createElement('p');requirement.className='subtle';panel.append(requirement);
+ const promptLabel=document.createElement('label');promptLabel.textContent='Prompt for ChatGPT image enhancement (copy this with the actual artwork attached)';
+ const prompt=document.createElement('textarea');prompt.rows=5;prompt.readOnly=true;promptLabel.append(prompt);panel.append(promptLabel);
+ const copy=document.createElement('button');copy.type='button';copy.textContent='Copy enhancement instructions';
+ copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(prompt.value);copy.textContent='Copied'}catch{prompt.focus();prompt.select();status('Copy was blocked; select and copy the highlighted text manually.',true)}});
+ panel.append(copy);
+ const uploadLabel=document.createElement('label');uploadLabel.textContent='Review a candidate PRINT file (JPG or PNG)';
+ const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/jpeg,image/png';uploadLabel.append(fileInput);panel.append(uploadLabel);
+ const result=document.createElement('p');result.className='subtle';result.textContent='No candidate chosen.';panel.append(result);
+ const preview=document.createElement('img');preview.alt='Candidate print preview for manual approval';preview.className='print-upgrade-preview';preview.hidden=true;panel.append(preview);
+ const approve=document.createElement('button');approve.type='button';approve.className='primary';approve.disabled=true;approve.textContent='Approve candidate for existing upload queue';panel.append(approve);
+ const updatePrompt=()=>{
+  const [w,h]=target.value.split('X').map(Number);
+  const minShort=Math.round(Math.min(w,h)*300),minLong=Math.round(Math.max(w,h)*300);
+  requirement.textContent='300 ppi minimum for this format: '+minShort+' × '+minLong+' px (orientation may be reversed). Current source: '+(oldDims.length?oldDims.join(' × ')+' px':'not found')+'.';
+  prompt.value='Use the attached original artwork by Freddy Bremseth as the sole visual reference. Enhance print resolution and edge/texture clarity, preserving the exact composition, brushwork, line placement, colours and aspect ratio. Do not invent new objects, replace symbols, alter the signature or redesign the artwork. Target at least '+minShort+' × '+minLong+' pixels for a print near '+Math.round(w*2.54)+' × '+Math.round(h*2.54)+' cm, ideally 300 ppi. Return a lossless PNG or high-quality JPG without mockup, frame, watermark or border. If a faithful improvement is impossible, say so rather than hallucinating detail.';
+ };
+ target.addEventListener('change',()=>{updatePrompt();fileInput.value='';approve.disabled=true;preview.hidden=true;result.textContent='Choose a candidate for this format.';});
+ updatePrompt();
+ let selected=null;
+ fileInput.addEventListener('change',async()=>{
+  approve.disabled=true;selected=null;preview.hidden=true;
+  const file=fileInput.files?.[0];if(!file)return;
+  if(!validImage(file)||!['image/png','image/jpeg'].includes(file.type)){result.textContent='Use a valid PNG/JPG file below the upload size limit.';return}
+  let dimensions;try{dimensions=await imageDimensions(file)}catch(err){result.textContent=err.message;return}
+  const [pw,ph]=target.value.split('X').map(Number);
+  const dpi=printPpiFor({pixel_width:dimensions.w,pixel_height:dimensions.h},pw,ph);
+  const oldDpi=baseline.sizes.find(size=>size.code===target.value)?.ppi||0;
+  result.textContent=dimensions.w+' × '+dimensions.h+' px · estimated '+dpi+' ppi (previous '+oldDpi+' ppi). '+(dpi>=300?'Resolution threshold met. Compare visual details before approval.':dpi>=200?'Below 300 ppi; proof/review needed before sale.':'Below 200 ppi: choose a higher-resolution candidate.');
+  selected=file;
+  const url=URL.createObjectURL(file);preview.onload=()=>URL.revokeObjectURL(url);preview.src=url;preview.hidden=false;
+  approve.disabled=dpi<300;
+ });
+ approve.addEventListener('click',async()=>{
+  if(!selected||state.queue.length)return status('Choose a valid image and finish the current upload queue.',true);
+  const ext=selected.type==='image/png'?'png':'jpg';
+  // Force PRINT role; never overwrite the MASTER or public preview.
+  const renamed=new File([selected],work.id+'_PRINT.'+ext,{type:selected.type,lastModified:selected.lastModified});
+  state.pendingExistingId=work.id;
+  $('upload-mode').value='existing';
+  approve.disabled=true;
+  try{await gather([renamed]);if(!state.queue.some(item=>item.existing_id===work.id&&item.files?.print))throw Error('PRINT candidate was not attached to the selected artwork.');panel.remove();$('review-panel').scrollIntoView({behavior:'smooth',block:'start'});status('Candidate staged as PRINT for '+work.title_en+'. Review it and use Upload and register selected artworks when ready. The original is preserved.');}
+  catch(err){state.pendingExistingId='';approve.disabled=false;status(err.message||String(err),true)}
+ });
+ $('print-worklist-items').before(panel);
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function renderPrintWorklist(){
  const summary=$('print-worklist-summary'),host=$('print-worklist-items'),selector=$('print-worklist-filter');
  if(!summary||!host||!selector)return;
@@ -303,7 +366,8 @@ function renderPrintWorklist(){
    renderCatalogue();
    $('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});
   });
-  item.append(info,button);host.append(item);
+  const upgrade=document.createElement('button');upgrade.type='button';upgrade.textContent='Prepare improved print';upgrade.addEventListener('click',()=>openPrintUpgrade(task.work));
+  item.append(info,button,upgrade);host.append(item);
  }
  if(filtered.length>top.length){const p=document.createElement('p');p.className='subtle';p.textContent='Showing '+top.length+' of '+filtered.length+' tasks. Use the catalogue search to locate other works.';host.append(p)}
 }
