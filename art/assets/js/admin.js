@@ -175,6 +175,7 @@ async function loadCatalogue(){
  $('print-master-upgrade').textContent=printStatuses.filter(item=>item.needs_upgrade).length;
  const printReady=printStatuses.filter(item=>['medium','large','statement'].includes(item.tier)).length;
  $('print-master-note').textContent=printReady+' artwork(s) currently support roughly 40×50 cm or larger at the quality floor. '+printStatuses.filter(item=>item.needs_upgrade).length+' should receive a larger private PRINT file before large-format selling.';
+ renderPrintWorklist();
  renderCatalogue();
 }
 function renderPrintOrders(rows){
@@ -271,6 +272,41 @@ function printSizeDetails(print){
   '<small>Pixel-based estimate only; supplier catalogue, destination, crop and proof must be checked before sale.</small></details>';
 }
 function masterStatusFor(id){return state.masterAudit.find(row=>row.artwork_id===id)}
+function renderPrintWorklist(){
+ const summary=$('print-worklist-summary'),host=$('print-worklist-items'),selector=$('print-worklist-filter');
+ if(!summary||!host||!selector)return;
+ const tasks=state.works.map(work=>{
+  const print=printMasterStatusFor(work.id);
+  const size=print.sizes.find(s=>s.code==='16X20');
+  const ppi=size?.ppi||0;
+  const reason=!print.asset?'missing':ppi<200?'low':ppi<300?'review':null;
+  return reason?{work,reason,ppi,source:print.asset}:null;
+ }).filter(Boolean);
+ const count=reason=>tasks.filter(task=>task.reason===reason).length;
+ summary.textContent=count('missing')+' without a private print file · '+count('low')+' below 200 ppi · '+count('review')+' to review (200–299 ppi) · '+(state.works.length-tasks.length)+' at 300+ ppi for 40 × 50 cm (estimated).';
+ const filtered=selector.value==='all'?tasks:tasks.filter(task=>task.reason===selector.value);
+ host.replaceChildren();
+ if(!filtered.length){const p=document.createElement('p');p.className='subtle';p.textContent='No outstanding work in this category.';host.append(p);return}
+ const top=filtered.slice(0,40);
+ const labels={missing:'Missing private print file',low:'Higher resolution needed',review:'Review / sample print'};
+ for(const task of top){
+  const item=document.createElement('div');item.className='print-task';
+  const info=document.createElement('span');
+  const heading=document.createElement('strong');heading.textContent=task.work.title_en||task.work.id;
+  const details=document.createElement('small');details.textContent=labels[task.reason]+' · 40 × 50 cm: '+(task.source?task.ppi+' ppi':'source absent')+' · '+task.work.id;
+  info.append(heading,details);
+  const button=document.createElement('button');button.type='button';button.textContent='Find artwork';
+  button.addEventListener('click',()=>{
+   $('catalog-search').value=task.work.id;
+   $('master-filter').value='all';
+   $('print-master-filter').value='all';
+   renderCatalogue();
+   $('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  item.append(info,button);host.append(item);
+ }
+ if(filtered.length>top.length){const p=document.createElement('p');p.className='subtle';p.textContent='Showing '+top.length+' of '+filtered.length+' tasks. Use the catalogue search to locate other works.';host.append(p)}
+}
 function renderCatalogue(){
  const term=$('catalog-search').value.trim().toLowerCase();
  const filter=$('master-filter').value;
@@ -940,6 +976,7 @@ $('clear-queue').addEventListener('click',()=>{if(state.busy)return;for(const it
 $('catalog-search').addEventListener('input',renderCatalogue);
 $('master-filter').addEventListener('change',renderCatalogue);
 $('print-master-filter').addEventListener('change',renderCatalogue);
+$('print-worklist-filter').addEventListener('change',renderPrintWorklist);
 $('show-missing').addEventListener('click',()=>{$('master-filter').value='needs-upload';$('print-master-filter').value='all';$('catalog-search').value='';renderCatalogue();$('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});});
 $('show-print-upgrades').addEventListener('click',()=>{$('master-filter').value='all';$('print-master-filter').value='needs-upgrade';$('catalog-search').value='';renderCatalogue();$('catalog-search').scrollIntoView({behavior:'smooth',block:'center'});});
 dropEvents();
