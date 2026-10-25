@@ -201,11 +201,11 @@ async function findPrintAsset(artworkId) {
     return master;
   }
 
-  // Sandbox sizing may safely use dimensions from a private master even when this
-  // deployment has no service-role secret. The RPC exposes metadata only: never
-  // the private bucket path or file URL. Live checkout still requires the service
-  // role so signedPrintUrl() can hand the actual asset to Prodigi after payment.
-  if (!client) {
+  // Sandbox sizing may safely use private master dimensions when the service
+  // role is absent OR its asset-table lookup fails (e.g. wrong project secret).
+  // This RPC exposes metadata only: never the private bucket path or file URL.
+  // Live checkout still needs a working service role to sign the actual file.
+  if (!ranked.length) {
     const publicClient = supabasePublic();
     const metadata = await publicClient.rpc('art_public_print_master_metadata', { p_artwork_id: artworkId });
     const row = !metadata.error && Array.isArray(metadata.data) ? metadata.data[0] : null;
