@@ -86,7 +86,9 @@ function supabaseAdmin() {
 
 function supabasePublic() {
   const { createClient } = require('@supabase/supabase-js');
-  return createClient(process.env.SUPABASE_URL || PUBLIC_SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY || PUBLIC_SUPABASE_KEY, {
+  // The public Art catalogue is hosted in this specific project. Generic
+  // Vercel SUPABASE_URL settings can point at another brand's database.
+  return createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false }
   });
 }
