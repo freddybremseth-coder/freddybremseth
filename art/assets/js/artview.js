@@ -102,7 +102,24 @@ $('[data-order]').addEventListener('click',()=>{
  if(!selectedId)return;dialog.close();if(modal.open)modal.close();
  // Reopen the existing order flow, which owns shipping, quotes and checkout.
  const trigger=document.querySelector('#print-button');
- if(trigger){modal.showModal();trigger.click();}
+ if(trigger && !trigger.hidden){
+  modal.showModal();trigger.click();
+  const wanted=size.value;
+  const choices=document.getElementById('print-size-options');
+  if(wanted&&choices){
+   const selectWhenReady=()=>{
+    const option=Array.from(choices.querySelectorAll('[data-print-sku]')).find(node=>node.dataset.printSku===wanted);
+    if(option){option.click();observer.disconnect();clearTimeout(timeout);}
+   };
+   const observer=new MutationObserver(selectWhenReady);
+   observer.observe(choices,{childList:true,subtree:true});
+   const timeout=setTimeout(()=>observer.disconnect(),10000);
+   selectWhenReady();
+  }
+ }else{
+  status.textContent='Print checkout is not available yet for this artwork.';
+  dialog.showModal();
+ }
 });
 $('[data-download]').addEventListener('click',()=>{
  status.textContent='Use your browser’s screenshot or print function to save this preview. Downloadable composites are planned.';
