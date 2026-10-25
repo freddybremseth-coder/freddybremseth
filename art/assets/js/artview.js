@@ -14,10 +14,11 @@ css.textContent=`
 .artview-head h2{font:normal clamp(24px,3vw,38px) Georgia,serif;margin:0}
 .artview-close{border:1px solid #c8c2b6;background:transparent;padding:9px 14px}
 .artview-layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(240px,1fr);gap:24px}
-.artview-stage{position:relative;aspect-ratio:1.45;overflow:hidden;background:linear-gradient(#dedbd4 0 71%,#c2b4a1 71%);isolation:isolate}
-.artview-stage[data-room=gallery]{background:linear-gradient(#f4f0e9 0 85%,#c8c1b4 85%)}
-.artview-stage[data-room=bedroom]{background:linear-gradient(#e9dfd3 0 74%,#bcad9f 74%)}
-.artview-furniture{position:absolute;left:15%;width:70%;height:17%;bottom:11%;background:#bbb3a9;border-radius:45% 45% 6px 6px;box-shadow:0 11px 0 #aaa297,0 16px 15px #0002}
+.artview-stage{position:relative;aspect-ratio:1.5;overflow:hidden;background:#e9e3d9 url('/assets/rooms/mediterranean-living.png') center/cover no-repeat;isolation:isolate}
+.artview-stage[data-room=gallery]{background-image:url('/assets/rooms/minimal-gallery.png')}
+.artview-stage[data-room=bedroom]{background-image:url('/assets/rooms/mediterranean-bedroom.png')}
+.artview-stage[data-room=own]{background-image:none}
+.artview-furniture{display:none}
 .artview-stage[data-room=gallery] .artview-furniture{display:none}
 .artview-stage[data-room=bedroom] .artview-furniture{width:78%;left:11%;height:24%;bottom:5%;border-radius:10px;background:#f5eee6}
 .artview-hanging{position:absolute;top:9%;left:50%;transform:translateX(-50%);max-height:56%;max-width:66%;display:flex;align-items:center;justify-content:center;filter:drop-shadow(5px 8px 5px #0003)}
@@ -120,7 +121,7 @@ $('[data-close]').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close()});
 $('[data-room]').addEventListener('change',event=>{
  const mode=event.target.value;$('[data-upload-label]').hidden=mode!=='own';
- if(mode==='own'){stage.dataset.room='gallery';if(!roomUrl)status.textContent='Choose a clear photo of your wall.'}
+ if(mode==='own'){stage.dataset.room='own';if(!roomUrl)status.textContent='Choose a clear photo of your wall.'}
  else{stage.dataset.room=mode;stage.style.backgroundImage='';stage.style.backgroundSize='';}
 });
 $('[data-upload]').addEventListener('change',event=>{
@@ -198,14 +199,10 @@ $('[data-download]').addEventListener('click',async()=>{
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas not supported');
   ctx.scale(ratio,ratio);const sw=rect.width,sh=rect.height;
   const room=$('[data-room]').value;
-  const colors=room==='bedroom'?['#e9dfd3','#bcad9f']:room==='gallery'?['#f4f0e9','#c8c1b4']:['#dedbd4','#c2b4a1'];
-  ctx.fillStyle=colors[0];ctx.fillRect(0,0,sw,sh*.75);ctx.fillStyle=colors[1];ctx.fillRect(0,sh*.75,sw,sh*.25);
+  const roomPhotos={living:'/assets/rooms/mediterranean-living.png',bedroom:'/assets/rooms/mediterranean-bedroom.png',gallery:'/assets/rooms/minimal-gallery.png'};
+  ctx.fillStyle='#ece7df';ctx.fillRect(0,0,sw,sh);
   if(room==='own'&&roomUrl)await drawCover(ctx,roomUrl,sw,sh);
-  if(room==='living'||room==='bedroom'){
-   ctx.fillStyle=room==='living'?'#bbb3a9':'#f5eee6';
-   const fw=sw*(room==='living'?.7:.78),fx=(sw-fw)/2,fy=sh*(room==='living'?.72:.71);
-   ctx.fillRect(fx,fy,fw,sh*.18);ctx.fillStyle='#aaa297';ctx.fillRect(fx,fy+sh*.18,fw,sh*.018);
-  }
+  else if(roomPhotos[room])await drawCover(ctx,roomPhotos[room],sw,sh);
   const ax=art.left-rect.left,ay=art.top-rect.top,aw=art.width,ah=art.height;
   ctx.shadowColor='#0005';ctx.shadowBlur=8;ctx.shadowOffsetX=5;ctx.shadowOffsetY=7;
   const frame=$('[data-frame]').value;
