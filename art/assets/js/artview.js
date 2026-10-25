@@ -112,7 +112,7 @@ async function loadSizes(){
 }
 button.addEventListener('click',()=>{
  selectedId=idFromPath();if(!selectedId){status.textContent='Open this artwork from the gallery first.';return}
- image.src=preview.currentSrc||preview.src;image.alt=preview.alt||'Selected artwork';
+ image.crossOrigin='anonymous';image.src=preview.currentSrc||preview.src;image.alt=preview.alt||'Selected artwork';
  $('select[data-room]').value='living';$('[data-upload-label]').hidden=true;stage.dataset.room='living';stage.style.backgroundImage='';$('select[data-frame]').value='none';hanging.dataset.frame='none';offsetX=0;offsetY=0;scale=1;$('[data-scale]').value='100';positionArt();stage.querySelector('.artview-furniture').style.display='';
  if(modal?.open)modal.close();
  dialog.showModal();void loadSizes();
