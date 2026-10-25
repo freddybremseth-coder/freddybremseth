@@ -329,6 +329,6 @@ test('ArtView resolves the selected gallery artwork without relying on navigatio
  const app=fs.readFileSync(path.join(root,'assets/js/app.js'),'utf8');
  const view=fs.readFileSync(path.join(root,'assets/js/artview.js'),'utf8');
  assert.match(app,/dialog\.dataset\.artworkId=art\.id/);
- assert.match(view,/modal\.dataset\.artworkId/);
+ assert.match(view,/modal\?\.dataset\.artworkId/);
  assert.match(view,/if\(\/\^\[a-z0-9-\]\+\$\/\.test\(selected\)\)return selected/);
 });
