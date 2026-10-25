@@ -332,3 +332,12 @@ test('ArtView resolves the selected gallery artwork without relying on navigatio
  assert.match(view,/modal\?\.dataset\.artworkId/);
  assert.match(view,/if\(\/\^\[a-z0-9-\]\+\$\/\.test\(selected\)\)return selected/);
 });
+
+
+test('ArtView controls do not target the artwork or room stage',()=>{
+ const source=fs.readFileSync(path.join(root,'assets/js/artview.js'),'utf8');
+ assert.match(source,/\$\('select\[data-frame\]'\)/);
+ assert.match(source,/\$\('select\[data-room\]'\)/);
+ assert.doesNotMatch(source,/\$\('\[data-frame\]'\)/);
+ assert.doesNotMatch(source,/\$\('\[data-room\]'\)/);
+});
