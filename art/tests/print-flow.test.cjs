@@ -97,7 +97,8 @@ test('dynamic artwork pages expose print ordering and correct Stripe return path
 test('print catalogue can resolve published artworks without a Vercel Supabase URL',()=>{
  const source=fs.readFileSync(path.join(root,'api/_lib/prodigi.cjs'),'utf8');
  assert.match(source,/PUBLIC_SUPABASE_URL = 'https:\/\/ereapsfcsqtdmzosgnnn\.supabase\.co'/);
- assert.match(source,/supabaseAdmin\(\) \|\| supabasePublic\(\)/);
+ assert.match(source,/for \(const client of \[supabaseAdmin\(\), supabasePublic\(\)\]/);
+ assert.match(source,/\.eq\('published', true\)/);
  assert.doesNotMatch(source,/&& Boolean\(process\.env\.SUPABASE_URL\)/);
 });
 
