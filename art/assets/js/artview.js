@@ -89,16 +89,22 @@ async function loadFrameCatalog(){
  syncFrames();
 }
 async function loadSizes(){
- size.replaceChildren(new Option('Checking Prodigi availability…',''));
+ size.replaceChildren(new Option('Checking Prodigi availability…',''));$('[data-order]').disabled=true;
  status.textContent='Checking sizes offered for this artwork…';products=[];
  try{
   const response=await fetch('/api/print-options?artwork_id='+encodeURIComponent(selectedId)+'&country=ES',{headers:{Accept:'application/json'}});
   const data=await response.json();if(!response.ok)throw Error(data.error||'Unable to load sizes');
   products=Array.isArray(data.products)?data.products:[];
   size.replaceChildren();
-  if(!products.length){size.add(new Option('No eligible physical print sizes',''));size.disabled=true;status.textContent='This artwork has no orderable Prodigi print size right now.';return}
+  if(!products.length){
+   const missing=data.configured===false;
+   size.add(new Option(missing?'Prodigi not connected in this preview':'No eligible physical print sizes',''));
+   size.disabled=true;
+   status.textContent=missing?'This test deployment does not have the Prodigi API credentials. Room and frame appearance previews remain available; print selection requires the separate test configuration.':'Prodigi returned no eligible physical print sizes for this artwork.';
+   return;
+  }
   for(const p of products)size.add(new Option(sizeLabel(p),p.sku));
-  size.disabled=false;size.selectedIndex=Math.min(1,products.length-1);fit();void loadFrameCatalog();
+  size.disabled=false;size.selectedIndex=Math.min(1,products.length-1);$('[data-order]').disabled=false;fit();void loadFrameCatalog();
   status.textContent='Sizes are read from the current Prodigi integration. Frames are visual suggestions only and cannot yet be ordered.';
  }catch(error){size.replaceChildren(new Option('Sizes temporarily unavailable',''));size.disabled=true;status.textContent=error.message;}
 }
