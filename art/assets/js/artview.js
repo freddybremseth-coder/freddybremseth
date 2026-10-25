@@ -133,7 +133,7 @@ async function loadSizes(){
   }
   for(const p of products)size.add(new Option(sizeLabel(p),p.sku));
   size.disabled=false;size.selectedIndex=Math.min(1,products.length-1);$('[data-order]').disabled=false;fit();keepOnWall();void loadFrameCatalog();
-  status.textContent='Sizes are read from the current Prodigi integration. Frames are visual suggestions only and cannot yet be ordered.';
+  status.textContent='Print sizes are shortlisted from the master image resolution and Prodigi format specifications. Final delivery availability must be confirmed before checkout. Frames are catalogue previews only, not orderable yet.';
  }catch(error){size.replaceChildren(new Option('Sizes temporarily unavailable',''));size.disabled=true;status.textContent=error.message;}
 }
 button.addEventListener('click',()=>{
