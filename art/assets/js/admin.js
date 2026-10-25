@@ -553,7 +553,7 @@ function assetRole(path){
  const p=String(path||'').toLowerCase().replace(/\\/g,'/');
  // Artist's COMPLETE Kintsugi ZIP uses descriptive folders, not exact role names.
  // The 2x JPG is the best print candidate; the smaller PNG remains the original.
- if(/\/freddy_bremseth_kintsugi_collection_[^/]+\//.test(p)){
+ if(/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\//.test(p)){
   if(/\/retina_2x_jpg\//.test(p))return 'print';
   if(/\/original_png\//.test(p))return 'master';
   if(/\/website_1x_webp\//.test(p))return 'portfolio';
@@ -598,6 +598,8 @@ function zipMembers(file){
    pos+=46+nameLen+extraLen+commentLen;
    if(name.endsWith('/')||name.includes('__MACOSX')||/\.(?:ds_store|txt|json)$/i.test(name))continue;
    if(!/\.(?:png|jpe?g|webp)$/i.test(name))continue;
+   // Kintsugi package cover/contact sheet is not an individual artwork.
+   if(/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\/preview\/freddy_bremseth_kintsugi_preview\.(?:jpg|jpeg|png)$/i.test(name))continue;
    if(flags&1)throw Error('Password-protected ZIP entries are not supported');
    if(method!==0&&method!==8)throw Error('Unsupported ZIP compression method: '+method);
    if(size>MAX_FILE||compressed>MAX_FILE)throw Error('Image in ZIP exceeds the 50 MB limit: '+name);
@@ -667,7 +669,7 @@ async function gather(files){
  // The Kintsugi COMPLETE archive has numbered titles rather than artwork-ID folders.
  // Match only the ten known Kintsugi records, never an arbitrary similar-titled work.
  for(const group of grouped.values()){
-  if(!group.members.some(member=>/freddy_bremseth_kintsugi_collection_[^/]+\//i.test(member.path)))continue;
+  if(!group.members.some(member=>/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\//i.test(member.path)))continue;
   const matches=state.works.filter(work=>
    work.id==='kintsugi-2026-'+group.key&&slug(work.title_en)===group.key);
   if(matches.length===1){
@@ -677,7 +679,7 @@ async function gather(files){
   }else throw Error('Cannot safely match Kintsugi artwork: '+group.label+'. No files were uploaded.');
  }
  if(grouped.size>0&&[...grouped.keys()].every(key=>exactExisting.has(key))&&
-    grouped.size===10&&[...grouped.values()].every(group=>group.members.some(member=>/freddy_bremseth_kintsugi_collection_[^/]+\//i.test(member.path)))){
+    grouped.size===10&&[...grouped.values()].every(group=>group.members.some(member=>/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\//i.test(member.path)))){
   $('upload-mode').value='existing';
   status('Matched all ten Kintsugi artworks. Private originals and print candidates will be attached without changing gallery previews.');
  }
