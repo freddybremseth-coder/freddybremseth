@@ -20,7 +20,7 @@ css.textContent=`
 .artview-stage[data-room=gallery] .artview-furniture{display:none}
 .artview-stage[data-room=bedroom] .artview-furniture{width:78%;left:11%;height:24%;bottom:5%;border-radius:10px;background:#f5eee6}
 .artview-hanging{position:absolute;top:9%;left:50%;transform:translateX(-50%);max-height:56%;max-width:66%;display:flex;align-items:center;justify-content:center;filter:drop-shadow(5px 8px 5px #0003)}
-.artview-hanging img{display:block;max-height:100%;max-width:100%;object-fit:contain}
+.artview-hanging{touch-action:none;cursor:grab}.artview-hanging:active{cursor:grabbing}.artview-hanging img{display:block;max-height:100%;max-width:100%;object-fit:contain}
 .artview-hanging[data-frame=black]{padding:7px;background:#1c1c1c}
 .artview-hanging[data-frame=white]{padding:9px;background:#fff}
 .artview-hanging[data-frame=oak]{padding:9px;background:#b58c58}
@@ -41,13 +41,14 @@ button.type='button';button.className='btn btn-outline artview-launch';button.te
 const buySection=modal.querySelector('.print-option');
 if(buySection)buySection.after(button);
 const dialog=document.createElement('dialog');dialog.className='artview-dialog';dialog.setAttribute('aria-labelledby','artview-title');
-dialog.innerHTML=`<div class="artview-shell"><div class="artview-head"><h2 id="artview-title">See it on your wall</h2><button type="button" class="artview-close" data-close aria-label="Close preview">Close ✕</button></div><div class="artview-layout"><div><div class="artview-stage" data-room="living"><div class="artview-furniture"></div><div class="artview-hanging" data-frame="none"><img alt="Artwork displayed in the selected room"></div></div><p class="artview-note">Illustrative interior preview. Exact physical scale requires a reference measurement. Artwork colours may vary by screen and print material.</p></div><div class="artview-controls"><label>Room style<select data-room><option value="living">Contemporary living room</option><option value="bedroom">Calm bedroom</option><option value="gallery">Minimalist gallery wall</option><option value="own">My own room photo</option></select></label><label data-upload-label hidden>Upload a room photo (processed only in your browser)<input data-upload type="file" accept="image/png,image/jpeg,image/webp"></label><label>Prodigi print size<select data-size><option value="">Loading available sizes…</option></select></label><label>Frame appearance<select data-frame><option value="none">Unframed · available print</option><option value="black">Black · illustrative only</option><option value="white">White · illustrative only</option><option value="oak">Oak · illustrative only</option></select></label><p class="artview-status" role="status"></p><div class="artview-actions"><button type="button" data-order>Choose this print</button><button type="button" class="secondary" data-download>Save preview</button></div></div></div></div>`;
+dialog.innerHTML=`<div class="artview-shell"><div class="artview-head"><h2 id="artview-title">See it on your wall</h2><button type="button" class="artview-close" data-close aria-label="Close preview">Close ✕</button></div><div class="artview-layout"><div><div class="artview-stage" data-room="living"><div class="artview-furniture"></div><div class="artview-hanging" data-frame="none"><img alt="Artwork displayed in the selected room"></div></div><p class="artview-note">Illustrative interior preview. Exact physical scale requires a reference measurement. Artwork colours may vary by screen and print material.</p></div><div class="artview-controls"><label>Room style<select data-room><option value="living">Contemporary living room</option><option value="bedroom">Calm bedroom</option><option value="gallery">Minimalist gallery wall</option><option value="own">My own room photo</option></select></label><label data-upload-label hidden>Upload a room photo (processed only in your browser)<input data-upload type="file" accept="image/png,image/jpeg,image/webp"></label><label>Prodigi print size<select data-size><option value="">Loading available sizes…</option></select></label><label>Preview scale <input data-scale type="range" min="65" max="150" value="100" step="5" aria-label="Preview scale, approximate"><small>Drag the artwork to position it on the wall.</small></label><label>Frame appearance<select data-frame><option value="none">Unframed · available print</option><option value="black">Black · illustrative only</option><option value="white">White · illustrative only</option><option value="oak">Oak · illustrative only</option></select></label><p class="artview-status" role="status"></p><div class="artview-actions"><button type="button" data-order>Choose this print</button><button type="button" class="secondary" data-download>Save preview</button></div></div></div></div>`;
 document.body.appendChild(dialog);
 const $=sel=>dialog.querySelector(sel);
 const stage=$('.artview-stage'),hanging=$('.artview-hanging'),image=hanging.querySelector('img'),status=$('.artview-status'),size=$('[data-size]');
-let roomUrl=null,selectedId='',products=[],renderSize=0;
+let roomUrl=null,selectedId='',products=[],offsetX=0,offsetY=0,scale=1;
 const idFromPath=()=>{const m=location.pathname.match(/^\/verk\/([a-z0-9-]+)\/?$/);return m?m[1]:'';};
 function sizeLabel(p){const d=p.dimensions||{},unit=(d.units||'in').toLowerCase();const w=Number(d.width),h=Number(d.height);if(!w||!h)return p.sku;const factor=unit==='in'?2.54:unit==='mm'?0.1:1;return Math.round(w*factor)+' × '+Math.round(h*factor)+' cm';}
+function positionArt(){hanging.style.transform='translate(calc(-50% + '+offsetX+'px), '+offsetY+'px) scale('+scale+')';}
 function fit(){
  const p=products.find(x=>x.sku===size.value);
  const d=p?.dimensions||{}, w=Number(d.width||1),h=Number(d.height||1);
@@ -77,7 +78,7 @@ async function loadSizes(){
 button.addEventListener('click',()=>{
  selectedId=idFromPath();if(!selectedId){status.textContent='Open this artwork from the gallery first.';return}
  image.src=preview.currentSrc||preview.src;image.alt=preview.alt||'Selected artwork';
- $('[data-room]').value='living';stage.dataset.room='living';stage.style.backgroundImage='';$('[data-frame]').value='none';hanging.dataset.frame='none';
+ $('[data-room]').value='living';$('[data-upload-label]').hidden=true;stage.dataset.room='living';stage.style.backgroundImage='';$('[data-frame]').value='none';hanging.dataset.frame='none';offsetX=0;offsetY=0;scale=1;$('[data-scale]').value='100';positionArt();stage.querySelector('.artview-furniture').style.display='';
  if(modal.open)modal.close();
  dialog.showModal();void loadSizes();
 });
@@ -98,6 +99,22 @@ $('[data-upload]').addEventListener('change',event=>{
 $('[data-room]').addEventListener('change',event=>{if(event.target.value!=='own')stage.querySelector('.artview-furniture').style.display=''});
 $('[data-frame]').addEventListener('change',event=>{hanging.dataset.frame=event.target.value;status.textContent=event.target.value==='none'?'Unframed print preview.':'Frame visualisation only — not an orderable Prodigi product.'});
 size.addEventListener('change',fit);
+$('[data-scale]').addEventListener('input',event=>{scale=Number(event.target.value)/100;positionArt()});
+let drag=null;
+hanging.addEventListener('pointerdown',event=>{
+ if(event.button!==0)return;
+ drag={id:event.pointerId,x:event.clientX,y:event.clientY,startX:offsetX,startY:offsetY};
+ hanging.setPointerCapture(event.pointerId);
+});
+hanging.addEventListener('pointermove',event=>{
+ if(!drag||drag.id!==event.pointerId)return;
+ const box=stage.getBoundingClientRect();
+ offsetX=Math.max(-box.width*.36,Math.min(box.width*.36,drag.startX+event.clientX-drag.x));
+ offsetY=Math.max(-box.height*.12,Math.min(box.height*.30,drag.startY+event.clientY-drag.y));
+ positionArt();
+});
+for(const name of ['pointerup','pointercancel','lostpointercapture'])hanging.addEventListener(name,()=>{drag=null});
+
 $('[data-order]').addEventListener('click',()=>{
  if(!selectedId)return;dialog.close();if(modal.open)modal.close();
  // Reopen the existing order flow, which owns shipping, quotes and checkout.
@@ -121,7 +138,46 @@ $('[data-order]').addEventListener('click',()=>{
   dialog.showModal();
  }
 });
-$('[data-download]').addEventListener('click',()=>{
- status.textContent='Use your browser’s screenshot or print function to save this preview. Downloadable composites are planned.';
+async function drawCover(ctx,src,w,h){
+ const bg=new Image();bg.src=src;
+ await new Promise((resolve,reject)=>{if(bg.complete&&bg.naturalWidth){resolve();return}bg.onload=resolve;bg.onerror=reject});
+ const ratio=Math.max(w/bg.naturalWidth,h/bg.naturalHeight),bw=bg.naturalWidth*ratio,bh=bg.naturalHeight*ratio;
+ ctx.drawImage(bg,(w-bw)/2,(h-bh)/2,bw,bh);
+}
+$('[data-download]').addEventListener('click',async()=>{
+ const action=$('[data-download]');action.disabled=true;status.textContent='Preparing your preview…';
+ try{
+  if(!image.complete||!image.naturalWidth)throw Error('Artwork image has not loaded yet');
+  const rect=stage.getBoundingClientRect(),art=hanging.getBoundingClientRect();
+  const ratio=2,w=Math.round(rect.width*ratio),h=Math.round(rect.height*ratio);
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas not supported');
+  ctx.scale(ratio,ratio);const sw=rect.width,sh=rect.height;
+  const room=$('[data-room]').value;
+  const colors=room==='bedroom'?['#e9dfd3','#bcad9f']:room==='gallery'?['#f4f0e9','#c8c1b4']:['#dedbd4','#c2b4a1'];
+  ctx.fillStyle=colors[0];ctx.fillRect(0,0,sw,sh*.75);ctx.fillStyle=colors[1];ctx.fillRect(0,sh*.75,sw,sh*.25);
+  if(room==='own'&&roomUrl)await drawCover(ctx,roomUrl,sw,sh);
+  if(room==='living'||room==='bedroom'){
+   ctx.fillStyle=room==='living'?'#bbb3a9':'#f5eee6';
+   const fw=sw*(room==='living'?.7:.78),fx=(sw-fw)/2,fy=sh*(room==='living'?.72:.71);
+   ctx.fillRect(fx,fy,fw,sh*.18);ctx.fillStyle='#aaa297';ctx.fillRect(fx,fy+sh*.18,fw,sh*.018);
+  }
+  const ax=art.left-rect.left,ay=art.top-rect.top,aw=art.width,ah=art.height;
+  ctx.shadowColor='#0005';ctx.shadowBlur=8;ctx.shadowOffsetX=5;ctx.shadowOffsetY=7;
+  const frame=$('[data-frame]').value;
+  const frameColors={black:'#1c1c1c',white:'#ffffff',oak:'#b58c58'};
+  if(frameColors[frame]){ctx.fillStyle=frameColors[frame];ctx.fillRect(ax,ay,aw,ah);}
+  ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
+  const pad=frame==='none'?0:9*scale,ix=ax+pad,iy=ay+pad,iw=aw-pad*2,ih=ah-pad*2;
+  const aspect=image.naturalWidth/image.naturalHeight;
+  let dw=iw,dh=dw/aspect;if(dh>ih){dh=ih;dw=dh*aspect}
+  ctx.drawImage(image,ix+(iw-dw)/2,iy+(ih-dh)/2,dw,dh);
+  ctx.fillStyle='#252b29';ctx.fillRect(0,sh-22,sw,22);
+  ctx.fillStyle='#fff';ctx.font='11px Arial';ctx.fillText('Freddy Bremseth Art · illustrative room preview · not to scale',12,sh-7);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Could not export the image');
+  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='freddy-bremseth-artview-'+selectedId+'.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  status.textContent='Preview downloaded. Frame selections are illustrative and not included in an order.';
+ }catch(error){status.textContent=error.message||'Unable to save this preview.'}
+ finally{action.disabled=false}
 });
 })();
