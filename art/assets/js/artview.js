@@ -64,7 +64,7 @@ function fit(){
  }
 }
 function syncFrames(){
- const select=$('[data-frame]'),chosen=products.find(p=>p.sku===size.value);
+ const select=$('select[data-frame]'),chosen=products.find(p=>p.sku===size.value);
  const suffix=chosen?.sku?.replace(/^GLOBAL-FAP-/,'')||'';
  const matching=frames.filter(f=>f.sku.endsWith('-'+suffix));
  select.replaceChildren(new Option('No frame · fine-art paper','none'));
@@ -113,13 +113,13 @@ async function loadSizes(){
 button.addEventListener('click',()=>{
  selectedId=idFromPath();if(!selectedId){status.textContent='Open this artwork from the gallery first.';return}
  image.src=preview.currentSrc||preview.src;image.alt=preview.alt||'Selected artwork';
- $('[data-room]').value='living';$('[data-upload-label]').hidden=true;stage.dataset.room='living';stage.style.backgroundImage='';$('[data-frame]').value='none';hanging.dataset.frame='none';offsetX=0;offsetY=0;scale=1;$('[data-scale]').value='100';positionArt();stage.querySelector('.artview-furniture').style.display='';
+ $('select[data-room]').value='living';$('[data-upload-label]').hidden=true;stage.dataset.room='living';stage.style.backgroundImage='';$('select[data-frame]').value='none';hanging.dataset.frame='none';offsetX=0;offsetY=0;scale=1;$('[data-scale]').value='100';positionArt();stage.querySelector('.artview-furniture').style.display='';
  if(modal?.open)modal.close();
  dialog.showModal();void loadSizes();
 });
 $('[data-close]').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close()});
-$('[data-room]').addEventListener('change',event=>{
+$('select[data-room]').addEventListener('change',event=>{
  const mode=event.target.value;$('[data-upload-label]').hidden=mode!=='own';
  if(mode==='own'){stage.dataset.room='own';if(!roomUrl)status.textContent='Choose a clear photo of your wall.'}
  else{stage.dataset.room=mode;stage.style.backgroundImage='';stage.style.backgroundSize='';}
@@ -131,8 +131,8 @@ $('[data-upload]').addEventListener('change',event=>{
  roomUrl=URL.createObjectURL(file);stage.style.backgroundImage='url("'+roomUrl+'")';stage.style.backgroundSize='cover';stage.style.backgroundPosition='center';
  stage.querySelector('.artview-furniture').style.display='none';status.textContent='Your image stays on this device. Move and scale are illustrative; measured wall calibration is planned.';
 });
-$('[data-room]').addEventListener('change',event=>{if(event.target.value!=='own')stage.querySelector('.artview-furniture').style.display=''});
-$('[data-frame]').addEventListener('change',event=>{hanging.dataset.frame=event.target.value;status.textContent=event.target.value==='none'?'Unframed print preview.':'Frame visualisation only — not an orderable Prodigi product.'});
+$('select[data-room]').addEventListener('change',event=>{if(event.target.value!=='own')stage.querySelector('.artview-furniture').style.display=''});
+$('select[data-frame]').addEventListener('change',event=>{hanging.dataset.frame=event.target.value;status.textContent=event.target.value==='none'?'Unframed print preview.':'Frame visualisation only — not an orderable Prodigi product.'});
 size.addEventListener('change',()=>{fit();syncFrames()});
 $('[data-scale]').addEventListener('input',event=>{scale=Number(event.target.value)/100;positionArt()});
 let drag=null;
@@ -198,14 +198,14 @@ $('[data-download]').addEventListener('click',async()=>{
   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas not supported');
   ctx.scale(ratio,ratio);const sw=rect.width,sh=rect.height;
-  const room=$('[data-room]').value;
+  const room=$('select[data-room]').value;
   const roomPhotos={living:'/assets/rooms/mediterranean-living.png',bedroom:'/assets/rooms/mediterranean-bedroom.png',gallery:'/assets/rooms/minimal-gallery.png'};
   ctx.fillStyle='#ece7df';ctx.fillRect(0,0,sw,sh);
   if(room==='own'&&roomUrl)await drawCover(ctx,roomUrl,sw,sh);
   else if(roomPhotos[room])await drawCover(ctx,roomPhotos[room],sw,sh);
   const ax=art.left-rect.left,ay=art.top-rect.top,aw=art.width,ah=art.height;
   ctx.shadowColor='#0005';ctx.shadowBlur=8;ctx.shadowOffsetX=5;ctx.shadowOffsetY=7;
-  const frame=$('[data-frame]').value;
+  const frame=$('select[data-frame]').value;
   const frameColors={black:'#1c1c1c',white:'#ffffff',oak:'#b58c58',gold:'#bda35e',silver:'#a7a9ae'};
   if(frameColors[frame]){ctx.fillStyle=frameColors[frame];ctx.fillRect(ax,ay,aw,ah);}
   ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
