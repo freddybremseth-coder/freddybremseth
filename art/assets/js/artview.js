@@ -1,8 +1,9 @@
 (()=>{
 'use strict';
 const modal=document.getElementById('art-dialog');
-const preview=document.getElementById('dialog-image');
-if(!modal||!preview)return;
+const standalone=document.querySelector('[data-artwork-print]');
+const preview=document.getElementById('dialog-image')||document.querySelector('.collection-landing-hero figure img');
+if((!modal&&!standalone)||!preview)return;
 const css=document.createElement('style');
 css.textContent=`
 .artview-launch{margin:14px 0;width:100%;justify-content:center}
@@ -38,7 +39,7 @@ css.textContent=`
 document.head.appendChild(css);
 const button=document.createElement('button');
 button.type='button';button.className='btn btn-outline artview-launch';button.textContent='See this artwork on your wall ↗';
-const buySection=modal.querySelector('.print-option');
+const buySection=modal?.querySelector('.print-option')||standalone?.querySelector('.artwork-print-heading');
 if(buySection)buySection.after(button);
 const dialog=document.createElement('dialog');dialog.className='artview-dialog';dialog.setAttribute('aria-labelledby','artview-title');
 dialog.innerHTML=`<div class="artview-shell"><div class="artview-head"><h2 id="artview-title">See it on your wall</h2><button type="button" class="artview-close" data-close aria-label="Close preview">Close ✕</button></div><div class="artview-layout"><div><div class="artview-stage" data-room="living"><div class="artview-furniture"></div><div class="artview-hanging" data-frame="none"><img alt="Artwork displayed in the selected room"></div></div><p class="artview-note">Illustrative interior preview. Exact physical scale requires a reference measurement. Artwork colours may vary by screen and print material.</p></div><div class="artview-controls"><label>Room style<select data-room><option value="living">Contemporary living room</option><option value="bedroom">Calm bedroom</option><option value="gallery">Minimalist gallery wall</option><option value="own">My own room photo</option></select></label><label data-upload-label hidden>Upload a room photo (processed only in your browser)<input data-upload type="file" accept="image/png,image/jpeg,image/webp"></label><label>Prodigi print size<select data-size><option value="">Loading available sizes…</option></select></label><label>Preview scale <input data-scale type="range" min="65" max="150" value="100" step="5" aria-label="Preview scale, approximate"><small>Drag the artwork to position it on the wall.</small></label><label>Frame appearance<select data-frame><option value="none">Unframed · available print</option><option value="black">Black · illustrative only</option><option value="white">White · illustrative only</option><option value="oak">Oak · illustrative only</option></select></label><p class="artview-status" role="status"></p><div class="artview-actions"><button type="button" data-order>Choose this print</button><button type="button" class="secondary" data-download>Save preview</button></div></div></div></div>`;
@@ -46,7 +47,7 @@ document.body.appendChild(dialog);
 const $=sel=>dialog.querySelector(sel);
 const stage=$('.artview-stage'),hanging=$('.artview-hanging'),image=hanging.querySelector('img'),status=$('.artview-status'),size=$('[data-size]');
 let roomUrl=null,selectedId='',products=[],frames=[],offsetX=0,offsetY=0,scale=1;
-const idFromPath=()=>{const selected=modal.dataset.artworkId||'';if(/^[a-z0-9-]+$/.test(selected))return selected;const m=location.pathname.match(/^\/(?:verk|artwork)\/([a-z0-9-]+)\/?$/);return m?m[1]:'';};
+const idFromPath=()=>{const selected=modal?.dataset.artworkId||standalone?.dataset.artworkId||document.body.dataset.artworkId||'';if(/^[a-z0-9-]+$/.test(selected))return selected;const m=location.pathname.match(/^\/(?:verk|artwork)\/([a-z0-9-]+)\/?$/);return m?m[1]:'';};
 function sizeLabel(p){const d=p.dimensions||{},unit=(d.units||'in').toLowerCase();const w=Number(d.width),h=Number(d.height);if(!w||!h)return p.sku;const factor=unit==='in'?2.54:unit==='mm'?0.1:1;return Math.round(w*factor)+' × '+Math.round(h*factor)+' cm';}
 function positionArt(){hanging.style.transform='translate(calc(-50% + '+offsetX+'px), '+offsetY+'px) scale('+scale+')';}
 function fit(){
@@ -112,7 +113,7 @@ button.addEventListener('click',()=>{
  selectedId=idFromPath();if(!selectedId){status.textContent='Open this artwork from the gallery first.';return}
  image.src=preview.currentSrc||preview.src;image.alt=preview.alt||'Selected artwork';
  $('[data-room]').value='living';$('[data-upload-label]').hidden=true;stage.dataset.room='living';stage.style.backgroundImage='';$('[data-frame]').value='none';hanging.dataset.frame='none';offsetX=0;offsetY=0;scale=1;$('[data-scale]').value='100';positionArt();stage.querySelector('.artview-furniture').style.display='';
- if(modal.open)modal.close();
+ if(modal?.open)modal.close();
  dialog.showModal();void loadSizes();
 });
 $('[data-close]').addEventListener('click',()=>dialog.close());
@@ -149,10 +150,20 @@ hanging.addEventListener('pointermove',event=>{
 for(const name of ['pointerup','pointercancel','lostpointercapture'])hanging.addEventListener(name,()=>{drag=null});
 
 $('[data-order]').addEventListener('click',()=>{
- if(!selectedId)return;dialog.close();if(modal.open)modal.close();
+ if(!selectedId)return;dialog.close();if(modal?.open)modal.close();
  // Reopen the existing order flow, which owns shipping, quotes and checkout.
  const trigger=document.querySelector('#print-button');
- if(trigger && !trigger.hidden){
+ if(standalone){
+  const wanted=size.value,host=document.getElementById('artwork-print-sizes');
+  const selectWhenReady=()=>{
+   const option=Array.from(host?.querySelectorAll('[data-sku]')||[]).find(node=>node.dataset.sku===wanted);
+   if(option){option.click();option.scrollIntoView({behavior:'smooth',block:'center'});observer.disconnect();clearTimeout(timeout);}
+  };
+  const observer=new MutationObserver(selectWhenReady);
+  if(host)observer.observe(host,{childList:true,subtree:true});
+  const timeout=setTimeout(()=>observer.disconnect(),10000);
+  selectWhenReady();
+ }else if(trigger && !trigger.hidden){
   modal.showModal();trigger.click();
   const wanted=size.value;
   const choices=document.getElementById('print-size-options');
