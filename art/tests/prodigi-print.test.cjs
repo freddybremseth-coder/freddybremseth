@@ -82,3 +82,12 @@ test('timed free-shipping campaign passes zero delivery to the customer while re
  assert.equal(price.discount_cents,900);
  for(const key of keys){if(before[key]===undefined)delete process.env[key];else process.env[key]=before[key]}
 });
+
+
+test('frame SKUs are allowed for catalogue discovery but never for print checkout',()=>{
+ assert.equal(prodigi.cleanCatalogSku('global-cfp-12x16'),'GLOBAL-CFP-12X16');
+ assert.equal(prodigi.cleanCatalogSku('GLOBAL-FRA-ALU-12X16'),'GLOBAL-FRA-ALU-12X16');
+ assert.equal(prodigi.cleanSku('GLOBAL-CFP-12X16'),null);
+ assert.equal(prodigi.cleanSku('GLOBAL-FRA-ALU-12X16'),null);
+ assert.equal(prodigi.cleanCatalogSku('GLOBAL-CFP-12X16/../../orders'),null);
+});
