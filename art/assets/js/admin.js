@@ -551,6 +551,13 @@ function artworkLabel(path){
 }
 function assetRole(path){
  const p=String(path||'').toLowerCase().replace(/\\/g,'/');
+ // Artist's COMPLETE Kintsugi ZIP uses descriptive folders, not exact role names.
+ // The 2x JPG is the best print candidate; the smaller PNG remains the original.
+ if(/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\//.test(p)){
+  if(/\/retina_2x_jpg\//.test(p))return 'print';
+  if(/\/original_png\//.test(p))return 'master';
+  if(/\/website_1x_webp\//.test(p))return 'portfolio';
+ }
  const bounded=(pattern)=>new RegExp('(^|[\\\\/_. -])(?:'+pattern+')(?=[\\\\/_. -]|$)','i').test(p);
  if(bounded('print|300\\\\s*-?\\\\s*dpi|gicl[eé]e|fine[-_ ]?art'))return 'print';
  if(bounded('digital|sale|download|licen[cs]e|retina|2x'))return 'digital';
@@ -591,6 +598,8 @@ function zipMembers(file){
    pos+=46+nameLen+extraLen+commentLen;
    if(name.endsWith('/')||name.includes('__MACOSX')||/\.(?:ds_store|txt|json)$/i.test(name))continue;
    if(!/\.(?:png|jpe?g|webp)$/i.test(name))continue;
+   // Kintsugi package cover/contact sheet is not an individual artwork.
+   if(/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\/preview\/freddy_bremseth_kintsugi_preview\.(?:jpg|jpeg|png)$/i.test(name))continue;
    if(flags&1)throw Error('Password-protected ZIP entries are not supported');
    if(method!==0&&method!==8)throw Error('Unsupported ZIP compression method: '+method);
    if(size>MAX_FILE||compressed>MAX_FILE)throw Error('Image in ZIP exceeds the 50 MB limit: '+name);
@@ -656,6 +665,23 @@ async function gather(files){
  if(!state.pendingExistingId&&$('upload-mode').value==='new'&&grouped.size>0&&exactExisting.size===grouped.size){
   $('upload-mode').value='existing';
   status('Exact artwork IDs detected in this package. Switched to existing-artwork mode automatically; public gallery details will stay unchanged.');
+ }
+ // The Kintsugi COMPLETE archive has numbered titles rather than artwork-ID folders.
+ // Match only the ten known Kintsugi records, never an arbitrary similar-titled work.
+ for(const group of grouped.values()){
+  if(!group.members.some(member=>/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\//i.test(member.path)))continue;
+  const matches=state.works.filter(work=>
+   work.id==='kintsugi-2026-'+group.key&&slug(work.title_en)===group.key);
+  if(matches.length===1){
+   exactExisting.set(group.key,matches[0]);
+   // The gallery already contains its correct public preview; recovery is private-only.
+   delete group.files.portfolio;
+  }else throw Error('Cannot safely match Kintsugi artwork: '+group.label+'. No files were uploaded.');
+ }
+ if(grouped.size>0&&[...grouped.keys()].every(key=>exactExisting.has(key))&&
+    grouped.size===10&&[...grouped.values()].every(group=>group.members.some(member=>/(?:^|\/)freddy_bremseth_kintsugi_collection_[^/]+\//i.test(member.path)))){
+  $('upload-mode').value='existing';
+  status('Matched all ten Kintsugi artworks. Private originals and print candidates will be attached without changing gallery previews.');
  }
  const existingMode=$('upload-mode').value==='existing';
  for(const group of grouped.values()){
