@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const cfg=window.ART_GALLERY_CONFIG;
-const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],assets:[],masterAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
+const state={session:null,user:null,authorized:false,styles:[],collections:[],works:[],masters:[],assets:[],masterAudit:[],assetAudit:[],pendingExistingId:'',variants:[],queue:[],busy:false};
 const SITE='https://art.freddybremseth.com';
 const MAX_FILE=50*1024*1024,MAX_ZIP=500*1024*1024,MAX_ITEMS=100;
 const PRINT_MASTER_SKUS=['4X6','5X7','6X8','6X9','8X10','8X12','10X10','11X14','12X16','12X18','16X16','16X20','16X24','18X24','20X20','20X24','20X28','20X30','24X24','24X30','24X36','30X30','30X40','30X45'];
@@ -141,17 +141,18 @@ async function verifyAdmin(){
  await loadCatalogue();status('Administrator access verified. Ready for files.');
 }
 async function loadCatalogue(){
- const [styles,curation,works,variants,masters,assets,masterAudit,printStatus,printOrders]=await Promise.all([
+ const [styles,curation,works,variants,masters,assets,masterAudit,assetAudit,printStatus,printOrders]=await Promise.all([
  fetch('/assets/styles.json').then(r=>r.json()),fetch('/assets/collections.json').then(r=>r.json()),
  api('/rest/v1/art_gallery_works?select=id,title_en,description_en,style_id,collection_id,public_preview_path,public_thumb_path,legacy_thumb_url,digital_available,published,review_status&order=title_en.asc&limit=1000'),
  api('/rest/v1/art_gallery_variants?select=variant_id,primary_id,sort_order&order=primary_id.asc,sort_order.asc&limit=1000'),
  api('/rest/v1/art_gallery_masters?select=artwork_id,verified_at,pixel_width,pixel_height,file_bytes&limit=1000'),
  api('/rest/v1/art_gallery_assets?select=artwork_id,asset_role,bucket_name,object_path,verified_at,original_filename,mime_type,pixel_width,pixel_height,file_bytes&order=artwork_id.asc,asset_role.asc&limit=2000'),
  api('/rest/v1/rpc/art_gallery_admin_master_status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),
+ api('/rest/v1/rpc/art_gallery_admin_private_asset_status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),
  fetch('/api/status',{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():({})).catch(()=>({})),
  api('/rest/v1/art_print_orders?select=stripe_session_id,artwork_id,prodigi_order_id,prodigi_environment,sku,quantity,destination_country,shipping_method,amount_total_cents,currency,state,prodigi_stage,issues,customer_email,last_error,created_at,updated_at&order=created_at.desc&limit=50').catch(()=>[])
  ]);
- state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;state.assets=assets;state.masterAudit=masterAudit;state.printOrders=Array.isArray(printOrders)?printOrders:[];renderPrintReadiness(printStatus||{});renderPrintOrders(state.printOrders);
+ state.styles=styles;state.collections=curation.collections;state.works=works;state.variants=variants;state.masters=masters;state.assets=assets;state.masterAudit=masterAudit;state.assetAudit=assetAudit;state.printOrders=Array.isArray(printOrders)?printOrders:[];renderPrintReadiness(printStatus||{});renderPrintOrders(state.printOrders);
  for(const [element,entries] of [['collection-default',state.collections],['style-default',state.styles]]){
  const select=$(element),current=select.value;
  select.replaceChildren(new Option(element==='collection-default'?'Choose a collection…':'Choose an artistic style…',''));
@@ -222,35 +223,52 @@ function renderPrintReadiness(info){
 }
 function privatePrintAssetFor(id){
  const priority={print:3,master:2,digital:1};
- const candidates=state.assets.filter(asset=>asset.artwork_id===id&&asset.bucket_name==='art-originals'&&priority[asset.asset_role]&&Number(asset.pixel_width)>0&&Number(asset.pixel_height)>0)
+ const exists=asset=>state.assetAudit.some(a=>a.artwork_id===id&&a.asset_role===asset.asset_role&&a.object_path===asset.object_path&&a.storage_object_present);
+ const candidates=state.assets.filter(asset=>asset.artwork_id===id&&asset.bucket_name==='art-originals'&&priority[asset.asset_role]&&
+  Number(asset.pixel_width)>0&&Number(asset.pixel_height)>0&&exists(asset))
   .sort((a,b)=>{
-   const verified=row=>row.verified_at?1:0,area=row=>Number(row.pixel_width||0)*Number(row.pixel_height||0);
-   return verified(b)-verified(a)||area(b)-area(a)||(priority[b.asset_role]||0)-(priority[a.asset_role]||0);
+   const area=row=>Number(row.pixel_width||0)*Number(row.pixel_height||0);
+   return area(b)-area(a)||(priority[b.asset_role]||0)-(priority[a.asset_role]||0);
   });
  if(candidates[0])return candidates[0];
  const audit=state.masterAudit.find(row=>row.artwork_id===id);
- if(audit?.storage_object_present&&Number(audit.pixel_width)>0&&Number(audit.pixel_height)>0)return {artwork_id:id,asset_role:'master',bucket_name:'art-originals',pixel_width:audit.pixel_width,pixel_height:audit.pixel_height,verified_at:audit.sale_verified?'verified':null};
+ if(audit?.storage_object_present&&Number(audit.pixel_width)>0&&Number(audit.pixel_height)>0)
+  return {artwork_id:id,asset_role:'master',bucket_name:'art-originals',
+   pixel_width:audit.pixel_width,pixel_height:audit.pixel_height,verified_at:audit.sale_verified?'verified':null};
  return null;
 }
 function printPpiFor(asset,paperWidth,paperHeight){
- const width=Number(asset?.pixel_width||0),height=Number(asset?.pixel_height||0);
- const requiredWidth=paperWidth*300,requiredHeight=paperHeight*300;
- if(!width||!height)return 0;
- const sameOrientation=(width>=height)===(requiredWidth>=requiredHeight);
- const scale=sameOrientation?Math.min(requiredWidth/width,requiredHeight/height):Math.min(requiredWidth/height,requiredHeight/width);
- return Math.round(300/Math.max(scale,.01));
+ const dimensions=[Number(asset?.pixel_width||0),Number(asset?.pixel_height||0)].sort((a,b)=>a-b);
+ const paper=[paperWidth,paperHeight].sort((a,b)=>a-b);
+ if(!dimensions[0]||!dimensions[1]||!paper[0]||!paper[1])return 0;
+ // The lower dimension-constrained PPI governs a crop/fit, not the average.
+ return Math.round(Math.min(dimensions[0]/paper[0],dimensions[1]/paper[1]));
 }
 function printMasterStatusFor(id){
  const asset=privatePrintAssetFor(id);
- if(!asset)return {tier:'none',label:'No private print source',needs_upgrade:true,asset:null,max:null};
- const sizes=PRINT_MASTER_SKUS.map(code=>{
+ const all=PRINT_MASTER_SKUS.map(code=>{
   const [width,height]=code.split('X').map(Number),ppi=printPpiFor(asset,width,height);
-  return {code,width,height,ppi,area:width*height,long:Math.max(width,height)};
- }).filter(item=>item.ppi>=200).sort((a,b)=>a.area-b.area);
- if(!sizes.length)return {tier:'none',label:'Source too small for print',needs_upgrade:true,asset,max:null};
+  return {code,width,height,ppi,area:width*height,long:Math.max(width,height),
+   cm:Math.round(width*2.54)+' × '+Math.round(height*2.54)+' cm'};
+ });
+ const sizes=all.filter(item=>item.ppi>=200).sort((a,b)=>a.area-b.area);
+ if(!asset)return {tier:'none',label:'Missing private print file',needs_upgrade:true,asset:null,max:null,sizes:all};
+ if(!sizes.length)return {tier:'none',label:'Source too small for these formats',needs_upgrade:true,asset,max:null,sizes:all};
  const max=sizes[sizes.length-1],cmWidth=Math.round(max.width*2.54),cmHeight=Math.round(max.height*2.54);
  const tier=max.long>=36?'statement':max.long>=28?'large':max.long>=20?'medium':'small';
- return {tier,label:'Up to '+cmWidth+' × '+cmHeight+' cm',needs_upgrade:max.long<20,asset,max};
+ return {tier,label:'Up to '+cmWidth+' × '+cmHeight+' cm (estimated)',needs_upgrade:max.long<20,asset,max,sizes:all};
+}
+function printSizeDetails(print){
+ if(!print.asset)return '<details class="print-size-details"><summary>See missing print requirements</summary><small class="print-size-warning">No private source file was found in Storage. Upload a print-ready master before evaluating sizes.</small></details>';
+ const strong=print.sizes.filter(s=>s.ppi>=300);
+ const conditional=print.sizes.filter(s=>s.ppi>=200&&s.ppi<300);
+ const insufficient=print.sizes.filter(s=>s.ppi<200);
+ const format=items=>items.length?items.map(s=>esc(s.cm)+' (~'+s.ppi+' ppi)').join(' · '):'None';
+ return '<details class="print-size-details"><summary>See print sizes and missing resolutions</summary>'+
+  '<small><strong>300+ ppi:</strong> '+format(strong)+'</small>'+
+  '<small><strong>200–299 ppi · review/sample needed:</strong> '+format(conditional)+'</small>'+
+  '<small><strong>Below 200 ppi / missing higher-resolution file:</strong> '+format(insufficient)+'</small>'+
+  '<small>Pixel-based estimate only; supplier catalogue, destination, crop and proof must be checked before sale.</small></details>';
 }
 function masterStatusFor(id){return state.masterAudit.find(row=>row.artwork_id===id)}
 function renderCatalogue(){
@@ -276,7 +294,7 @@ function renderCatalogue(){
   const roles=state.assets.filter(asset=>asset.artwork_id===work.id).map(asset=>asset.asset_role);
   const roleNote=roles.length?' · Files: '+roles.map(role=>ROLE_LABELS[role]||role).join(', '):'';
   const print=printMasterStatusFor(work.id),printSource=print.asset?String(print.asset.pixel_width)+' × '+String(print.asset.pixel_height)+' px · '+(ROLE_LABELS[print.asset.asset_role]||print.asset.asset_role):'No usable private JPG/PNG';
-  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+esc(roleNote)+'</small><small class="print-master-line" data-tier="'+esc(print.tier)+'"><strong>Print Master:</strong> '+esc(print.label)+' · '+esc(printSource)+(print.max?' · ~'+print.max.ppi+' ppi at max size':'')+'</small></span>';
+  el.innerHTML='<img alt="" loading="lazy" src="'+esc(src)+'"><span><strong>'+esc(work.title_en)+'</strong><small>'+esc(work.collection_id)+' · '+esc(work.style_id)+' · '+(work.published?'Published':'Draft')+esc(relation)+'</small><small class="'+(master?.storage_object_present?'':'master-warning')+'">'+esc(masterNote)+esc(size)+esc(roleNote)+'</small><small class="print-master-line" data-tier="'+esc(print.tier)+'"><strong>Print Master:</strong> '+esc(print.label)+' · '+esc(printSource)+(print.max?' · ~'+print.max.ppi+' ppi at max size':'')+'</small>'+printSizeDetails(print)+'</span>';
   const edit=document.createElement('button');edit.type='button';edit.textContent='Edit title & story';edit.addEventListener('click',()=>editWork(work));el.append(edit);
   const add=document.createElement('button');add.type='button';add.textContent='Add / replace source files';
   add.disabled=false;
