@@ -24,7 +24,7 @@ css.textContent=`
 .artview-hanging[data-frame=black]{padding:7px;background:#1c1c1c}
 .artview-hanging[data-frame=white]{padding:9px;background:#fff}
 .artview-hanging[data-frame=oak]{padding:9px;background:#b58c58}
-.artview-hanging[data-frame=none]{padding:0}
+.artview-hanging[data-frame=none]{padding:0}.artview-hanging[data-frame=gold]{padding:9px;background:#bda35e}.artview-hanging[data-frame=silver]{padding:9px;background:#a7a9ae}
 .artview-note{font-size:12px;color:#666;line-height:1.55;margin:8px 0}
 .artview-controls{display:flex;flex-direction:column;gap:15px}
 .artview-controls label{display:grid;gap:6px;font-size:12px;font-weight:700}
@@ -45,7 +45,7 @@ dialog.innerHTML=`<div class="artview-shell"><div class="artview-head"><h2 id="a
 document.body.appendChild(dialog);
 const $=sel=>dialog.querySelector(sel);
 const stage=$('.artview-stage'),hanging=$('.artview-hanging'),image=hanging.querySelector('img'),status=$('.artview-status'),size=$('[data-size]');
-let roomUrl=null,selectedId='',products=[],offsetX=0,offsetY=0,scale=1;
+let roomUrl=null,selectedId='',products=[],frames=[],offsetX=0,offsetY=0,scale=1;
 const idFromPath=()=>{const m=location.pathname.match(/^\/verk\/([a-z0-9-]+)\/?$/);return m?m[1]:'';};
 function sizeLabel(p){const d=p.dimensions||{},unit=(d.units||'in').toLowerCase();const w=Number(d.width),h=Number(d.height);if(!w||!h)return p.sku;const factor=unit==='in'?2.54:unit==='mm'?0.1:1;return Math.round(w*factor)+' × '+Math.round(h*factor)+' cm';}
 function positionArt(){hanging.style.transform='translate(calc(-50% + '+offsetX+'px), '+offsetY+'px) scale('+scale+')';}
@@ -61,6 +61,33 @@ function fit(){
   image.style.aspectRatio=image.naturalWidth+'/'+image.naturalHeight;
  }
 }
+function syncFrames(){
+ const select=$('[data-frame]'),chosen=products.find(p=>p.sku===size.value);
+ const suffix=chosen?.sku?.replace(/^GLOBAL-FAP-/,'')||'';
+ const matching=frames.filter(f=>f.sku.endsWith('-'+suffix));
+ select.replaceChildren(new Option('No frame · fine-art paper','none'));
+ const displayed=new Set();
+ for(const frame of matching){
+  for(const color of frame.colors){
+   const original=String(color),key=original.toLowerCase();
+   const visual=key.includes('black')?'black':key.includes('white')?'white':key.includes('gold')?'gold':key.includes('silver')?'silver':key.includes('natural')||key.includes('oak')||key.includes('brown')?'oak':null;
+   if(!visual)continue;
+   const id=frame.sku+':'+key;if(displayed.has(id))continue;displayed.add(id);
+   const opt=new Option(frame.label+' · '+original+' (preview only)',visual);
+   opt.dataset.sku=frame.sku;select.add(opt);
+  }
+ }
+ select.value='none';hanging.dataset.frame='none';
+}
+async function loadFrameCatalog(){
+ frames=[];
+ try{
+  const response=await fetch('/api/frame-options?artwork_id='+encodeURIComponent(selectedId)+'&country=ES');
+  const data=await response.json();
+  if(response.ok&&Array.isArray(data.frames))frames=data.frames;
+ }catch{}
+ syncFrames();
+}
 async function loadSizes(){
  size.replaceChildren(new Option('Checking Prodigi availability…',''));
  status.textContent='Checking sizes offered for this artwork…';products=[];
@@ -71,7 +98,7 @@ async function loadSizes(){
   size.replaceChildren();
   if(!products.length){size.add(new Option('No eligible physical print sizes',''));size.disabled=true;status.textContent='This artwork has no orderable Prodigi print size right now.';return}
   for(const p of products)size.add(new Option(sizeLabel(p),p.sku));
-  size.disabled=false;size.selectedIndex=Math.min(1,products.length-1);fit();
+  size.disabled=false;size.selectedIndex=Math.min(1,products.length-1);fit();void loadFrameCatalog();
   status.textContent='Sizes are read from the current Prodigi integration. Frames are visual suggestions only and cannot yet be ordered.';
  }catch(error){size.replaceChildren(new Option('Sizes temporarily unavailable',''));size.disabled=true;status.textContent=error.message;}
 }
@@ -98,7 +125,7 @@ $('[data-upload]').addEventListener('change',event=>{
 });
 $('[data-room]').addEventListener('change',event=>{if(event.target.value!=='own')stage.querySelector('.artview-furniture').style.display=''});
 $('[data-frame]').addEventListener('change',event=>{hanging.dataset.frame=event.target.value;status.textContent=event.target.value==='none'?'Unframed print preview.':'Frame visualisation only — not an orderable Prodigi product.'});
-size.addEventListener('change',fit);
+size.addEventListener('change',()=>{fit();syncFrames()});
 $('[data-scale]').addEventListener('input',event=>{scale=Number(event.target.value)/100;positionArt()});
 let drag=null;
 hanging.addEventListener('pointerdown',event=>{
@@ -165,7 +192,7 @@ $('[data-download]').addEventListener('click',async()=>{
   const ax=art.left-rect.left,ay=art.top-rect.top,aw=art.width,ah=art.height;
   ctx.shadowColor='#0005';ctx.shadowBlur=8;ctx.shadowOffsetX=5;ctx.shadowOffsetY=7;
   const frame=$('[data-frame]').value;
-  const frameColors={black:'#1c1c1c',white:'#ffffff',oak:'#b58c58'};
+  const frameColors={black:'#1c1c1c',white:'#ffffff',oak:'#b58c58',gold:'#bda35e',silver:'#a7a9ae'};
   if(frameColors[frame]){ctx.fillStyle=frameColors[frame];ctx.fillRect(ax,ay,aw,ah);}
   ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
   const pad=frame==='none'?0:9*scale,ix=ax+pad,iy=ay+pad,iw=aw-pad*2,ih=ah-pad*2;
