@@ -30,7 +30,7 @@ css.textContent=`
 .artview-note{font-size:12px;color:#666;line-height:1.55;margin:8px 0}
 .artview-controls{display:flex;flex-direction:column;gap:15px}
 .artview-controls label{display:grid;gap:6px;font-size:12px;font-weight:700}
-.artview-controls select,.artview-controls input[type=file]{padding:10px;border:1px solid #bdb6aa;background:#fff;max-width:100%}
+.artview-controls select,.artview-controls input[type=file],.artview-controls input[type=number]{padding:10px;border:1px solid #bdb6aa;background:#fff;max-width:100%}.artview-controls input[type=number]{width:120px}
 .artview-actions{display:flex;flex-wrap:wrap;gap:9px}
 .artview-actions button{padding:12px;border:1px solid #252b29;background:#252b29;color:#fff}
 .artview-actions button.secondary{background:transparent;color:#252b29}
@@ -43,13 +43,14 @@ button.type='button';button.className='btn btn-outline artview-launch';button.te
 const buySection=modal?.querySelector('.print-option')||standalone?.querySelector('.artwork-print-heading');
 if(buySection)buySection.after(button);
 const dialog=document.createElement('dialog');dialog.className='artview-dialog';dialog.setAttribute('aria-labelledby','artview-title');
-dialog.innerHTML=`<div class="artview-shell"><div class="artview-head"><h2 id="artview-title">See it on your wall</h2><button type="button" class="artview-close" data-close aria-label="Close preview">Close ✕</button></div><div class="artview-layout"><div><div class="artview-stage" data-room="living"><div class="artview-furniture"></div><div class="artview-hanging" data-frame="none"><img alt="Artwork displayed in the selected room"></div></div><p class="artview-note">Illustrative interior preview. Exact physical scale requires a reference measurement. Artwork colours may vary by screen and print material.</p></div><div class="artview-controls"><label>Room style<select data-room><option value="living">Contemporary living room</option><option value="bedroom">Calm bedroom</option><option value="gallery">Minimalist gallery wall</option><option value="own">My own room photo</option></select></label><label data-upload-label hidden>Upload a room photo (processed only in your browser)<input data-upload type="file" accept="image/png,image/jpeg,image/webp"></label><label>Prodigi print size<select data-size><option value="">Loading available sizes…</option></select></label><label>Preview scale <input data-scale type="range" min="65" max="150" value="100" step="5" aria-label="Preview scale, approximate"><small>Click and drag the artwork anywhere on the wall to move it. On a phone, drag with your finger.</small></label><label>Frame appearance<select data-frame><option value="none">Unframed · available print</option><option value="black">Black · illustrative only</option><option value="white">White · illustrative only</option><option value="oak">Oak · illustrative only</option></select></label><p class="artview-status" role="status"></p><div class="artview-actions"><button type="button" data-order>Choose this print</button><button type="button" class="secondary" data-download>Save preview</button></div></div></div></div>`;
+dialog.innerHTML=`<div class="artview-shell"><div class="artview-head"><h2 id="artview-title">See it on your wall</h2><button type="button" class="artview-close" data-close aria-label="Close preview">Close ✕</button></div><div class="artview-layout"><div><div class="artview-stage" data-room="living"><div class="artview-furniture"></div><div class="artview-hanging" data-frame="none"><img alt="Artwork displayed in the selected room"></div></div><p class="artview-note">Illustrative interior preview. Exact physical scale requires a reference measurement. Artwork colours may vary by screen and print material.</p></div><div class="artview-controls"><label>Room style<select data-room><option value="living">Contemporary living room</option><option value="bedroom">Calm bedroom</option><option value="gallery">Minimalist gallery wall</option><option value="own">My own room photo</option></select></label><label data-upload-label hidden>Upload a room photo (processed only in your browser)<input data-upload type="file" accept="image/png,image/jpeg,image/webp"></label><label data-calibration hidden>Visible wall width in your photo (cm)<input data-wall-width type="number" min="100" max="1200" step="10" value="300" inputmode="numeric"><small>Measure the horizontal wall width represented by the entire photo. Perspective makes this an estimate; the preview is not an architectural measurement.</small></label><label>Prodigi print size<select data-size><option value="">Loading available sizes…</option></select></label><label>Preview scale <input data-scale type="range" min="65" max="150" value="100" step="5" aria-label="Preview scale, approximate"><small>Click and drag the artwork anywhere on the wall to move it. On a phone, drag with your finger.</small></label><label>Frame appearance<select data-frame><option value="none">Unframed · available print</option><option value="black">Black · illustrative only</option><option value="white">White · illustrative only</option><option value="oak">Oak · illustrative only</option></select></label><p class="artview-status" role="status"></p><div class="artview-actions"><button type="button" data-order>Choose this print</button><button type="button" class="secondary" data-download>Save preview</button></div></div></div></div>`;
 document.body.appendChild(dialog);
 const $=sel=>dialog.querySelector(sel);
 const stage=$('.artview-stage'),hanging=$('.artview-hanging'),image=hanging.querySelector('img'),status=$('.artview-status'),size=$('[data-size]');
 let roomUrl=null,selectedId='',products=[],frames=[],offsetX=0,offsetY=0,scale=1;
 const idFromPath=()=>{const selected=modal?.dataset.artworkId||standalone?.dataset.artworkId||document.body.dataset.artworkId||'';if(/^[a-z0-9-]+$/.test(selected))return selected;const m=location.pathname.match(/^\/(?:verk|artwork)\/([a-z0-9-]+)\/?$/);return m?m[1]:'';};
-function sizeLabel(p){const d=p.dimensions||{},unit=(d.units||'in').toLowerCase();const w=Number(d.width),h=Number(d.height);if(!w||!h)return p.sku;const factor=unit==='in'?2.54:unit==='mm'?0.1:1;return Math.round(w*factor)+' × '+Math.round(h*factor)+' cm';}
+function dimensionsCm(p){const d=p?.dimensions||{},unit=(d.units||'in').toLowerCase();const factor=unit==='in'?2.54:unit==='mm'?0.1:1;return {w:Number(d.width)*factor,h:Number(d.height)*factor};}
+function sizeLabel(p){const {w,h}=dimensionsCm(p);if(!w||!h)return p.sku;return Math.round(w)+' × '+Math.round(h)+' cm';}
 function positionArt(){hanging.style.transform='translate(calc(-50% + '+offsetX+'px), '+offsetY+'px) scale('+scale+')';}
 function keepOnWall(){
  positionArt();
@@ -67,13 +68,24 @@ function keepOnWall(){
 }
 function fit(){
  const p=products.find(x=>x.sku===size.value);
- const d=p?.dimensions||{}, w=Number(d.width||1),h=Number(d.height||1);
- const major=Math.max(w,h);const proportion=Math.min(1,major/36);
- hanging.style.height=(Math.max(20,proportion*54))+'%';
- hanging.style.aspectRatio=w+'/'+h;
- hanging.style.width='auto';hanging.style.maxWidth='66%';
+ const {w,h}=dimensionsCm(p);
+ const calibrated=stage.dataset.room==='own'&&!!roomUrl;
+ const wallWidth=Number($('[data-wall-width]').value);
+ if(calibrated&&w>0&&h>0&&wallWidth>=100&&wallWidth<=1200){
+  // Photo width represents the entered visible wall width at artwork depth.
+  const width=Math.min(stage.clientWidth*.9,stage.clientWidth*w/wallWidth);
+  hanging.style.width=width+'px';
+  hanging.style.height=width*h/w+'px';
+  hanging.style.maxWidth='none';hanging.style.maxHeight='none';
+  hanging.style.aspectRatio=w+'/'+h;
+ }else{
+  const major=Math.max(w||1,h||1),proportion=Math.min(1,major/91.44);
+  hanging.style.height=(Math.max(20,proportion*54))+'%';
+  hanging.style.aspectRatio=(w||1)+'/'+(h||1);
+  hanging.style.width='auto';hanging.style.maxWidth='66%';hanging.style.maxHeight='56%';
+ }
  if(image.naturalWidth&&image.naturalHeight){
-  // The print can include borders when its aspect ratio differs from the artwork.
+  // Artwork composition may not precisely match the print's aspect ratio.
   image.style.aspectRatio=image.naturalWidth+'/'+image.naturalHeight;
  }
 }
@@ -127,27 +139,29 @@ async function loadSizes(){
 button.addEventListener('click',()=>{
  selectedId=idFromPath();if(!selectedId){status.textContent='Open this artwork from the gallery first.';return}
  image.crossOrigin='anonymous';image.src=preview.currentSrc||preview.src;image.alt=preview.alt||'Selected artwork';
- $('select[data-room]').value='living';$('[data-upload-label]').hidden=true;stage.dataset.room='living';stage.style.backgroundImage='';$('select[data-frame]').value='none';hanging.dataset.frame='none';offsetX=0;offsetY=0;scale=1;$('[data-scale]').value='100';positionArt();stage.querySelector('.artview-furniture').style.display='';
+ $('select[data-room]').value='living';$('[data-upload-label]').hidden=true;$('[data-calibration]').hidden=true;stage.dataset.room='living';stage.style.backgroundImage='';$('select[data-frame]').value='none';hanging.dataset.frame='none';offsetX=0;offsetY=0;scale=1;$('[data-scale]').value='100';positionArt();stage.querySelector('.artview-furniture').style.display='';
  if(modal?.open)modal.close();
  dialog.showModal();void loadSizes();
 });
 $('[data-close]').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close()});
 $('select[data-room]').addEventListener('change',event=>{
- const mode=event.target.value;$('[data-upload-label]').hidden=mode!=='own';
+ const mode=event.target.value;$('[data-upload-label]').hidden=mode!=='own';$('[data-calibration]').hidden=mode!=='own';
  if(mode==='own'){stage.dataset.room='own';if(!roomUrl)status.textContent='Choose a clear photo of your wall.'}
  else{stage.dataset.room=mode;stage.style.backgroundImage='';stage.style.backgroundSize='';}
+ fit();keepOnWall();
 });
 $('[data-upload]').addEventListener('change',event=>{
  const file=event.target.files?.[0];if(!file)return;
  if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>12*1024*1024){status.textContent='Use a JPEG, PNG or WebP image smaller than 12 MB.';return}
  if(roomUrl)URL.revokeObjectURL(roomUrl);
  roomUrl=URL.createObjectURL(file);stage.style.backgroundImage='url("'+roomUrl+'")';stage.style.backgroundSize='cover';stage.style.backgroundPosition='center';
- stage.querySelector('.artview-furniture').style.display='none';status.textContent='Your image stays on this device. Move and scale are illustrative; measured wall calibration is planned.';
+ stage.querySelector('.artview-furniture').style.display='none';fit();keepOnWall();status.textContent='Your photo stays on this device. Enter the visible wall width to estimate print size; perspective can affect accuracy.';
 });
 $('select[data-room]').addEventListener('change',event=>{if(event.target.value!=='own')stage.querySelector('.artview-furniture').style.display=''});
 $('select[data-frame]').addEventListener('change',event=>{hanging.dataset.frame=event.target.value;status.textContent=event.target.value==='none'?'Unframed print preview.':'Frame visualisation only — not an orderable Prodigi product.'});
 size.addEventListener('change',()=>{fit();keepOnWall();syncFrames()});
+$('[data-wall-width]').addEventListener('input',()=>{fit();keepOnWall()});
 $('[data-scale]').addEventListener('input',event=>{scale=Number(event.target.value)/100;keepOnWall()});
 let drag=null;
 hanging.addEventListener('pointerdown',event=>{
@@ -170,7 +184,7 @@ function endDrag(event){
  if(stage.hasPointerCapture(event.pointerId))stage.releasePointerCapture(event.pointerId);
 }
 for(const name of ['pointerup','pointercancel','lostpointercapture'])stage.addEventListener(name,endDrag);
-window.addEventListener('resize',()=>{if(dialog.open)keepOnWall()});
+window.addEventListener('resize',()=>{if(dialog.open){fit();keepOnWall()}});
 
 $('[data-order]').addEventListener('click',()=>{
  if(!selectedId)return;dialog.close();if(modal?.open)modal.close();
