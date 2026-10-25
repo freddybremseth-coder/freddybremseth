@@ -133,7 +133,19 @@ async function findArtworkForPrint(artworkId) {
     .eq('id', artworkId)
     .eq('published', true)
     .maybeSingle();
-  if (error || !data) return null;
+  if (error || !data) {
+    // Legacy catalogue artworks are published from the checked-in catalogue,
+    // not art_gallery_works. Their print masters are tracked separately.
+    const { findArtwork } = require('./catalog.cjs');
+    const staticArtwork = findArtwork(artworkId);
+    if (!staticArtwork) return null;
+    return {
+      id: staticArtwork.id, title: staticArtwork.title,
+      description: staticArtwork.story || '',
+      pixel_width: staticArtwork.width, pixel_height: staticArtwork.height,
+      review_status: 'published', public_preview_path: ''
+    };
+  }
   return { id: data.id, title: data.title_en || data.id, description: data.description_en || '', pixel_width: data.pixel_width, pixel_height: data.pixel_height, review_status: data.review_status, public_preview_path: data.public_preview_path || '' };
 }
 
@@ -161,6 +173,22 @@ async function findPrintAsset(artworkId) {
       return verified(b) - verified(a) || pixels(b) - pixels(a) || role(b) - role(a);
     }) : [];
   if (ranked[0]) return ranked[0];
+
+  // The original curated gallery has verified print dimensions in its
+  // private master manifest, independent of the newer gallery asset table.
+  const { findMaster } = require('./catalog.cjs');
+  const legacyMaster = findMaster(artworkId);
+  if (legacyMaster && Number(legacyMaster.width) > 0 && Number(legacyMaster.height) > 0) {
+    const master = {
+      artwork_id: artworkId, asset_role: 'print',
+      bucket_name: process.env.ART_STORAGE_BUCKET || 'art-originals',
+      object_path: client ? legacyMaster.storage_path : '',
+      mime_type: 'image/jpeg',
+      pixel_width: Number(legacyMaster.width), pixel_height: Number(legacyMaster.height),
+      verified_at: null, metadata_only: !client
+    };
+    return master;
+  }
 
   // Sandbox sizing may safely use dimensions from a private master even when this
   // deployment has no service-role secret. The RPC exposes metadata only: never
