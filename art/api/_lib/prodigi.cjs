@@ -129,7 +129,7 @@ async function findArtworkForPrint(artworkId) {
   const client = supabaseAdmin() || supabasePublic();
   const { data, error } = await client
     .from('art_gallery_works')
-    .select('id,title_en,description_en,pixel_width,pixel_height,published,review_status,public_preview_path')
+    .select('id,title_en,description_en,pixel_width,pixel_height,published,public_preview_path')
     .eq('id', artworkId)
     .eq('published', true)
     .maybeSingle();
