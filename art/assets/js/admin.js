@@ -366,22 +366,48 @@ function openPrintUpgrade(work){
  $('print-worklist-items').before(panel);
  panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function renderPrintWorklist(){
- const summary=$('print-worklist-summary'),host=$('print-worklist-items'),selector=$('print-worklist-filter');
- if(!summary||!host||!selector)return;
- const tasks=state.works.map(work=>{
+function printRecoveryTasks(){
+ return state.works.map(work=>{
   const print=printMasterStatusFor(work.id);
   const size=print.sizes.find(s=>s.code==='16X20');
   const ppi=size?.ppi||0;
   const reason=!print.asset?'missing':ppi<200?'low':ppi<300?'review':null;
   return reason?{work,reason,ppi,source:print.asset}:null;
  }).filter(Boolean);
+}
+function exportPrintRecoveryInventory(){
+ const tasks=printRecoveryTasks();
+ if(!tasks.length)return status('No outstanding print tasks to export.');
+ const escapeCsv=value=>{
+  const str=String(value??'');
+  // Prevent formulas from executing when the report is opened in a spreadsheet.
+  const safe=/^[=+@\-\t\r]/.test(str)?"'"+str:str;
+  return '"'+safe.replace(/"/g,'""')+'"';
+ };
+ const rows=[['Artwork ID','English title','Recovery status','Estimated PPI at 40x50cm','Private source pixels','Gallery URL','Preview URL']];
+ for(const task of tasks){
+  const source=task.source;
+  rows.push([task.work.id,task.work.title_en||'',task.reason,task.ppi||0,
+   source?source.pixel_width+'x'+source.pixel_height:'',
+   location.origin+'/verk/'+encodeURIComponent(task.work.id)+'/',
+   task.work.public_preview_path?publicImage(task.work.public_preview_path):'']);
+ }
+ const blob=new Blob(['\uFEFF'+rows.map(row=>row.map(escapeCsv).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='Freddy_Art_PRINT_recovery_'+new Date().toISOString().slice(0,10)+'.csv';
+ document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ status('Exported '+tasks.length+' outstanding print tasks. This report does not certify print readiness.');
+}
+function renderPrintWorklist(){
+ const summary=$('print-worklist-summary'),host=$('print-worklist-items'),selector=$('print-worklist-filter');
+ if(!summary||!host||!selector)return;
+ const tasks=printRecoveryTasks();
  const count=reason=>tasks.filter(task=>task.reason===reason).length;
  summary.textContent=count('missing')+' without a private print file · '+count('low')+' below 200 ppi · '+count('review')+' to review (200–299 ppi) · '+(state.works.length-tasks.length)+' at 300+ ppi for 40 × 50 cm (estimated).';
  const filtered=selector.value==='all'?tasks:tasks.filter(task=>task.reason===selector.value);
  host.replaceChildren();
  if(!filtered.length){const p=document.createElement('p');p.className='subtle';p.textContent='No outstanding work in this category.';host.append(p);return}
- const top=filtered.slice(0,40);
+ const top=filtered;
  const labels={missing:'Missing private print file',low:'Higher resolution needed',review:'Review / sample print'};
  for(const task of top){
   const item=document.createElement('div');item.className='print-task';
@@ -400,7 +426,6 @@ function renderPrintWorklist(){
   const upgrade=document.createElement('button');upgrade.type='button';upgrade.textContent='Prepare improved print';upgrade.addEventListener('click',()=>openPrintUpgrade(task.work));
   item.append(info,button,upgrade);host.append(item);
  }
- if(filtered.length>top.length){const p=document.createElement('p');p.className='subtle';p.textContent='Showing '+top.length+' of '+filtered.length+' tasks. Use the catalogue search to locate other works.';host.append(p)}
 }
 function renderCatalogue(){
  const term=$('catalog-search').value.trim().toLowerCase();
