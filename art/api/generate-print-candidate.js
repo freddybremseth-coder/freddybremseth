@@ -22,10 +22,22 @@ module.exports=async(req,res)=>{
   if(workError||!work)return res.status(404).json({error:'Artwork not found'});
   const {data:assets,error:assetError}=await admin.from('art_gallery_assets').select('asset_role,bucket_name,object_path,mime_type,pixel_width,pixel_height').eq('artwork_id',id).eq('bucket_name','art-originals').in('asset_role',['print','master','digital']);
   if(assetError||!assets?.length)return res.status(404).json({error:'No private reference image available'});
-  const chosen=[...assets].filter(a=>a.object_path&&['image/png','image/jpeg'].includes(a.mime_type)).sort((a,b)=>{
-   const area=x=>Number(x.pixel_width||0)*Number(x.pixel_height||0);
-   return area(b)-area(a);
-  });
+  // Older gallery imports did not always populate mime_type, although the
+  // private Storage object has a valid JPG/PNG filename and content type.
+  const resolvedMime=asset=>{
+   const mime=String(asset.mime_type||'').toLowerCase();
+   if(mime==='image/jpeg'||mime==='image/png')return mime;
+   if(mime)return null;
+   const path=String(asset.object_path||'').toLowerCase();
+   if(/\.jpe?g$/.test(path))return 'image/jpeg';
+   if(/\.png$/.test(path))return 'image/png';
+   return null;
+  };
+  const chosen=assets.map(a=>({...a,resolved_mime:resolvedMime(a)}))
+   .filter(a=>a.object_path&&a.resolved_mime).sort((a,b)=>{
+    const area=x=>Number(x.pixel_width||0)*Number(x.pixel_height||0);
+    return area(b)-area(a);
+   });
   let original;
   for(const asset of chosen){
    const {data,error}=await admin.storage.from('art-originals').download(asset.object_path);
@@ -37,7 +49,7 @@ module.exports=async(req,res)=>{
   const model=ALLOWED_MODELS.has(process.env.ART_AI_PRINT_MODEL)?process.env.ART_AI_PRINT_MODEL:'gpt-image-2.5-sunburst';
   const payload=new FormData();
   payload.append('model',model);
-  payload.append('image',original.file,id+(original.asset.mime_type==='image/png'?'.png':'.jpg'));
+  payload.append('image',original.file,id+(original.asset.resolved_mime==='image/png'?'.png':'.jpg'));
   payload.append('prompt','Faithfully restore and refine the attached original fine-art image for the artist Freddy Bremseth as a VISUAL REVIEW CONCEPT ONLY. Keep all compositional elements, brushwork, signature, texture, objects, geometry, hues, lighting and cropping exactly as supplied. Do not invent details, rearrange objects, alter symbolic marks, add a frame, text, watermark or background. Aim for crisp artwork detail without changing creative content. The intended final paper dimensions are approximately '+Math.round(width*2.54)+' by '+Math.round(height*2.54)+' centimetres. This image is NOT automatically approved as print-ready.');
   payload.append('size','auto');payload.append('quality','high');payload.append('output_format','jpeg');payload.append('n','1');
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),110000);
