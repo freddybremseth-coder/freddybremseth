@@ -317,8 +317,17 @@ function openPrintUpgrade(work){
   generate.disabled=true;generate.textContent='Generating AI concept…';download.hidden=true;
   try{
    if(Date.now()>state.session.expires_at*1000-60000)await refresh();
-   const response=await fetch('/api/generate-print-candidate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.session.access_token},body:JSON.stringify({artwork_id:work.id,target:target.value})});
-   const value=await response.json();if(!response.ok)throw Error(value.error||'Image generation failed');
+   const request=()=>fetch('/api/generate-print-candidate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.session.access_token},body:JSON.stringify({artwork_id:work.id,target:target.value})});
+   let response=await request();
+   // The server can reject a revoked or stale JWT even before the stored expiry time.
+   // A rejected request has not reached paid image generation: refresh once and retry.
+   if(response.status===401){
+    try{await refresh()}catch{throw Error('Your administrator login expired. Please sign in again, then retry. No AI image was generated.')}
+    response=await request();
+   }
+   const value=await response.json();
+   if(response.status===401)throw Error('Your administrator login was rejected. Please sign out and sign in again before retrying.');
+   if(!response.ok)throw Error(value.error||'Image generation failed');
    const binary=atob(value.image_base64),bytes=new Uint8Array(binary.length);
    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
    const candidate=new File([bytes],work.id+'_AI_CONCEPT.jpg',{type:'image/jpeg'});
