@@ -283,7 +283,7 @@ function openPrintUpgrade(work){
  const title=document.createElement('h3');title.textContent='Prepare improved PRINT · '+work.title_en;
  const close=document.createElement('button');close.type='button';close.textContent='Close';close.addEventListener('click',()=>panel.remove());
  header.append(title,close);panel.append(header);
- const description=document.createElement('p');description.textContent='Preserve the composition, colours, signature, textures and details of the original artwork. AI reconstruction can change the artwork: inspect the result closely before using it for a print. This tool checks dimensions locally; it does not generate or upload an image automatically.';panel.append(description);
+ const description=document.createElement('p');description.textContent='Preserve the composition, colours, signature, textures and details of the original artwork. AI generation creates a REVIEW CONCEPT that may change the art and may not have enough resolution for printing. The manual file approval threshold remains 300 ppi. No image is saved without your separate confirmation.';panel.append(description);
  const targetLabel=document.createElement('label');targetLabel.textContent='Target format for the new print';
  const target=document.createElement('select');
  for(const [key,label] of [['16X20','About 40 × 50 cm'],['24X36','About 60 × 90 cm'],['30X40','About 75 × 100 cm']])target.add(new Option(label,key));
@@ -294,6 +294,10 @@ function openPrintUpgrade(work){
  const copy=document.createElement('button');copy.type='button';copy.textContent='Copy enhancement instructions';
  copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(prompt.value);copy.textContent='Copied'}catch{prompt.focus();prompt.select();status('Copy was blocked; select and copy the highlighted text manually.',true)}});
  panel.append(copy);
+ const generate=document.createElement('button');generate.type='button';generate.textContent='Generate AI review concept (uses API credits)';
+ const aiNote=document.createElement('p');aiNote.className='subtle';aiNote.textContent='Optional paid generation. Requires ART_AI_PRINT_ENABLED and OPENAI_API_KEY on the server. A generated preview is not automatically a print-ready master.';
+ const download=document.createElement('a');download.textContent='Download generated concept';download.download=work.id+'_AI_review.jpg';download.hidden=true;
+ panel.append(generate,aiNote,download);
  const uploadLabel=document.createElement('label');uploadLabel.textContent='Review a candidate PRINT file (JPG or PNG)';
  const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/jpeg,image/png';uploadLabel.append(fileInput);panel.append(uploadLabel);
  const result=document.createElement('p');result.className='subtle';result.textContent='No candidate chosen.';panel.append(result);
@@ -305,12 +309,29 @@ function openPrintUpgrade(work){
   requirement.textContent='300 ppi minimum for this format: '+minShort+' × '+minLong+' px (orientation may be reversed). Current source: '+(oldDims.length?oldDims.join(' × ')+' px':'not found')+'.';
   prompt.value='Use the attached original artwork by Freddy Bremseth as the sole visual reference. Enhance print resolution and edge/texture clarity, preserving the exact composition, brushwork, line placement, colours and aspect ratio. Do not invent new objects, replace symbols, alter the signature or redesign the artwork. Target at least '+minShort+' × '+minLong+' pixels for a print near '+Math.round(w*2.54)+' × '+Math.round(h*2.54)+' cm, ideally 300 ppi. Return a lossless PNG or high-quality JPG without mockup, frame, watermark or border. If a faithful improvement is impossible, say so rather than hallucinating detail.';
  };
- target.addEventListener('change',()=>{updatePrompt();fileInput.value='';approve.disabled=true;preview.hidden=true;result.textContent='Choose a candidate for this format.';});
+ target.addEventListener('change',()=>{updatePrompt();fileInput.value='';approve.disabled=true;preview.hidden=true;download.hidden=true;result.textContent='Choose a candidate for this format.';});
  updatePrompt();
- let selected=null;
- fileInput.addEventListener('change',async()=>{
+ let selected=null,aiUrl=null;
+ generate.addEventListener('click',async()=>{
+  if(!state.session?.access_token){aiNote.textContent='Administrator session not available.';return}
+  generate.disabled=true;generate.textContent='Generating AI concept…';download.hidden=true;
+  try{
+   if(Date.now()>state.session.expires_at*1000-60000)await refresh();
+   const response=await fetch('/api/generate-print-candidate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+state.session.access_token},body:JSON.stringify({artwork_id:work.id,target:target.value})});
+   const value=await response.json();if(!response.ok)throw Error(value.error||'Image generation failed');
+   const binary=atob(value.image_base64),bytes=new Uint8Array(binary.length);
+   for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+   const candidate=new File([bytes],work.id+'_AI_CONCEPT.jpg',{type:'image/jpeg'});
+   if(aiUrl)URL.revokeObjectURL(aiUrl);
+   aiUrl=URL.createObjectURL(candidate);download.href=aiUrl;download.hidden=false;
+   aiNote.textContent='AI concept returned. Compare every detail with the original. This is not automatically a print-quality improvement.';
+   await reviewCandidate(candidate);
+  }catch(error){aiNote.textContent=error.message||String(error)}
+  finally{generate.disabled=false;generate.textContent='Generate AI review concept (uses API credits)'}
+ });
+ const reviewCandidate=async(file)=>{
   approve.disabled=true;selected=null;preview.hidden=true;
-  const file=fileInput.files?.[0];if(!file)return;
+  if(!file)return;
   if(!validImage(file)||!['image/png','image/jpeg'].includes(file.type)){result.textContent='Use a valid PNG/JPG file below the upload size limit.';return}
   let dimensions;try{dimensions=await imageDimensions(file)}catch(err){result.textContent=err.message;return}
   const [pw,ph]=target.value.split('X').map(Number);
@@ -320,7 +341,8 @@ function openPrintUpgrade(work){
   selected=file;
   const url=URL.createObjectURL(file);preview.onload=()=>URL.revokeObjectURL(url);preview.src=url;preview.hidden=false;
   approve.disabled=dpi<300;
- });
+ };
+ fileInput.addEventListener('change',async()=>{await reviewCandidate(fileInput.files?.[0])});
  approve.addEventListener('click',async()=>{
   if(!selected||state.queue.length)return status('Choose a valid image and finish the current upload queue.',true);
   const ext=selected.type==='image/png'?'png':'jpg';
