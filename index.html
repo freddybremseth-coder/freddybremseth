@@ -222,11 +222,13 @@
     /* TOURS */
     .tours { background: var(--bg2); }
     .tours-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
-    .tour-card { border: 1px solid var(--gold-border); border-radius: var(--r); padding: 28px 24px; background: var(--bg3); text-align: center; transition: all 0.3s; }
+    .tour-card { border: 1px solid var(--gold-border); border-radius: var(--r); padding: 0 0 24px; background: var(--bg3); text-align: left; transition: all 0.3s; display:block; overflow:hidden; }
     .tour-card:hover { border-color: var(--gold); transform: translateY(-4px); }
     .tour-icon { font-size: 32px; margin-bottom: 16px; }
-    .tour-title { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 8px; }
-    .tour-desc { font-size: 13px; color: var(--muted2); line-height: 1.7; }
+    .tour-title { font-family: 'Playfair Display', serif; font-size: 18px; margin: 16px 22px 8px; }
+    .tour-card-photo { width:100%; height:165px; object-fit:cover; background:#28251f; }
+    .tour-card-more { display:block; color:var(--gold); font-size:12px; margin:16px 22px 0; font-weight:600; letter-spacing:.03em; }
+    .tour-desc { font-size: 13px; color: var(--muted2); line-height: 1.7; margin:0 22px; }
     .tours-cta { margin-top: 48px; text-align: center; }
 
     /* BOOKS */
@@ -372,8 +374,8 @@ const T = {
     reSoleadaSub: 'Norske eiendomsrådgivere i Spania',
     reZenecoSub: 'Bærekraftige boligprosjekter',
     toursLabel: 'Costa Blanca Tours',
-    toursTitle: 'Opplevelser utover det vanlige',
-    toursSub: 'Unike turer og eventyr langs den spanske middelhavskysten',
+    toursTitle: 'Opplev Costa Blanca gjennom menneskene og smakene',
+    toursSub: 'Fra vår egen olivenlund i Biar til Monastrell-vin i Jumilla og olivenoljekultur i Relleu. Små, personlige turer på forespørsel.',
     toursCta: 'Se alle turer',
     booksLabel: 'Mine bøker',
     pdfCta: 'Kjøp bøkene som PDF — 5 € per bok, 50 € for alle',
@@ -434,8 +436,8 @@ const T = {
     reSoleadaSub: 'Norwegian property advisors in Spain',
     reZenecoSub: 'Sustainable housing projects',
     toursLabel: 'Costa Blanca Tours',
-    toursTitle: 'Experiences beyond the ordinary',
-    toursSub: 'Unique tours and adventures along the Spanish Mediterranean coast',
+    toursTitle: 'Discover Costa Blanca through its people and flavours',
+    toursSub: 'From our own olive grove in Biar to Monastrell wines in Jumilla and olive oil heritage in Relleu. Personal experiences by request.',
     toursCta: 'View all tours',
     booksLabel: 'My books',
     pdfCta: 'Buy the books as PDF — €5 per book, €50 for all',
@@ -496,8 +498,8 @@ const T = {
     reSoleadaSub: 'Asesores inmobiliarios noruegos en España',
     reZenecoSub: 'Proyectos de vivienda sostenible',
     toursLabel: 'Costa Blanca Tours',
-    toursTitle: 'Experiencias más allá de lo ordinario',
-    toursSub: 'Tours y aventuras únicas a lo largo de la costa mediterránea española',
+    toursTitle: 'Descubre Costa Blanca a través de sus sabores',
+    toursSub: 'Del olivar propio en Biar al vino Monastrell en Jumilla y la tradición del aceite de oliva en Relleu. Visitas privadas bajo petición.',
     toursCta: 'Ver todos los tours',
     booksLabel: 'Mis libros',
     booksTitle: 'Conocimiento e Inspiración',
@@ -572,12 +574,12 @@ const brands = [
     descEs: 'Galería de arte digital simbólico con colecciones seleccionadas y ediciones digitales disponibles.',
   },
   {
-    icon: '🌊', name: 'Costa Blanca Tours', url: 'costablancatours.pro', href: 'https://costablancatours.com',
+    icon: '🌊', name: 'Costa Blanca Tours', url: 'costablancatours.pro', href: 'https://www.costablancatours.pro/',
     img: UP + 'brand-costablancatours.jpg',
     logo: UP + 'logo-costablancatours.jpg',
-    descNo: 'Vinturer, romantiske dager, ekspedisjoner og unike opplevelser langs Costa Blanca.',
-    descEn: 'Wine tours, romantic days, expeditions and unique experiences along Costa Blanca.',
-    descEs: 'Rutas del vino, días románticos, expediciones y experiencias únicas a lo largo de Costa Blanca.',
+    descNo: 'Private mat- og kulturopplevelser: besøk Doña Anna i Biar, Monastrell-vin hos Juan Gil og olivensmaking i Relleu.',
+    descEn: 'Private food and culture experiences: the Doña Anna olive estate in Biar, Monastrell wine at Juan Gil and olive oil heritage in Relleu.',
+    descEs: 'Experiencias privadas de gastronomía y cultura: finca Doña Anna en Biar, vino Monastrell de Juan Gil y aceite de oliva en Relleu.',
   },
   {
     icon: '🏡', name: 'Soleada.no', url: 'soleada.no', href: 'https://soleada.no',
@@ -591,31 +593,34 @@ const brands = [
 
 const tours = [
   {
-    icon: '🍷',
-    no: { title: 'Vinturer', desc: 'Besøk lokale vingårder og opplev de beste vinene fra Valencia-regionen.' },
-    en: { title: 'Wine Tours', desc: 'Visit local wineries and discover the finest wines of the Valencia region.' },
-    es: { title: 'Rutas del Vino', desc: 'Visita bodegas locales y descubre los mejores vinos de la región valenciana.' },
+    icon: '🫒', href: 'https://www.costablancatours.pro/#tour/dona-anna',
+    image: 'https://raw.githubusercontent.com/freddybremseth-coder/olivia/main/public/donaanna/garden-2026/biar-olivenlund-blaa-himmel.webp',
+    no: { title: 'Doña Anna · Smak olivenoljen på gården', desc: 'Besøk olivenlunden vår i Biar, se gamle trær og lær å smake extra virgin olivenolje. Kombiner med en god lunsj og Biar eller Villena.' },
+    en: { title: 'Doña Anna · Private olive estate', desc: 'Discover our olive grove in Biar, its ancient trees and the art of tasting extra virgin olive oil, with a regional lunch in Biar or Villena.' },
+    es: { title: 'Doña Anna · Experiencia en el olivar', desc: 'Conoce nuestro olivar en Biar, sus olivos centenarios y la cata del aceite virgen extra, con almuerzo regional en Biar o Villena.' },
   },
   {
-    icon: '💑',
-    no: { title: 'Romantiske dager', desc: 'Skreddersydde romantiske opplevelser for par langs Middelhavets kyst.' },
-    en: { title: 'Romantic Days', desc: 'Tailored romantic experiences for couples along the Mediterranean coast.' },
-    es: { title: 'Días Románticos', desc: 'Experiencias románticas a medida para parejas a lo largo de la costa mediterránea.' },
+    icon: '🍷', href: 'https://www.costablancatours.pro/#tour/juan-gil-wine',
+    image: 'uploads/brand-costablancatours.jpg',
+    no: { title: 'Juan Gil · Monastrell i Jumilla', desc: 'En privat vintur med planlagt besøk og smaking hos Juan Gil, kombinert med lokal gastronomi. Besøket avhenger av produsentens tilgjengelighet.' },
+    en: { title: 'Juan Gil · Monastrell in Jumilla', desc: 'A personal wine journey with a requested winery visit and tasting at Juan Gil, paired with local gastronomy. Winery availability must be confirmed.' },
+    es: { title: 'Juan Gil · Monastrell en Jumilla', desc: 'Una escapada privada con solicitud de visita y cata en Juan Gil, acompañada de gastronomía local. Sujeta a disponibilidad de la bodega.' },
   },
   {
-    icon: '🧭',
-    no: { title: 'Ekspedisjoner', desc: "Eventyrlige turer til Spanias skjulte perler, fjell og naturreservater." },
-    en: { title: 'Expeditions', desc: "Adventure trips to Spain's hidden gems, mountains and nature reserves." },
-    es: { title: 'Expediciones', desc: 'Aventuras a las joyas ocultas de España, montañas y reservas naturales.' },
+    icon: '🌿', href: 'https://www.costablancatours.pro/#tour/relleu-olive-oil',
+    image: 'uploads/brand-costablancatours.jpg',
+    no: { title: 'Relleu · Olivenolje og landskap', desc: 'Oppdag Señoríos de Relleu, olivenlund og smaking, med mulighet for et rolig måltid i området. Besøket avtales på forhånd.' },
+    en: { title: 'Relleu · Olive oil heritage', desc: 'Discover Señoríos de Relleu, the olive groves and an oil tasting, with the option of a local lunch. Visits are arranged in advance.' },
+    es: { title: 'Relleu · Patrimonio del aceite', desc: 'Descubre Señoríos de Relleu, sus olivares y una cata de aceites, con opción de almuerzo local. Visitas con reserva previa.' },
   },
   {
-    icon: '🫒',
-    no: { title: 'Oliventur', desc: 'Besøk Donaanna-gården og lær om tradisjonell og økologisk olivenproduksjon.' },
-    en: { title: 'Olive Experience', desc: 'Visit Donaanna farm and learn about traditional and organic olive production.' },
-    es: { title: 'Experiencia Olivar', desc: 'Visita la finca Donaanna y aprende sobre la producción ecológica de aceite de oliva.' },
+    icon: '✨', href: 'https://www.costablancatours.pro/',
+    image: 'uploads/brand-costablancatours.jpg',
+    no: { title: 'Din private Costa Blanca-tur', desc: 'Vil du kombinere vin, oliven, landsbyer eller en spesiell anledning? Vi setter sammen en opplevelse for inntil fire gjester.' },
+    en: { title: 'Your private Costa Blanca day', desc: 'Combine wine, olive oil, historic villages or a special occasion in a bespoke experience for up to four guests.' },
+    es: { title: 'Tu día privado en Costa Blanca', desc: 'Combina vino, aceite, pueblos con encanto o una ocasión especial en una experiencia para hasta cuatro personas.' },
   },
 ];
-
 const allBooks = [
   { emoji:'🫒', title:'The Olive Oil Cure', series:'Mediterraneo Vital', lang:'EN', amazon:'https://www.amazon.com/s?k=Olive+Oil+Cure+Freddy+Bremseth' },
   { emoji:'🌿', title:'Premium Olive Oil: The Complete Expert\'s Guide', series:'Mediterraneo Vital', lang:'EN', amazon:'https://www.amazon.com/s?k=Premium+Olive+Oil+Expert+Freddy+Bremseth' },
@@ -715,7 +720,7 @@ function App() {
     : bookTab === 2 ? allBooks.filter(b => b.series === 'The Balanced Life')
     : allBooks.filter(b => b.series === 'Personal Development');
 
-  const ticker = ['freddybremseth.com','zenecohomes.com','donaanna.com','chatgenius.pro','remaster.freddybremseth.com','costablancatours.ptp','soleada.no','pinosoecolife.com','Amazon Bestseller','Costa Blanca','Biar · Alicante'];
+  const ticker = ['freddybremseth.com','zenecohomes.com','donaanna.com','chatgenius.pro','remaster.freddybremseth.com','costablancatours.pro','soleada.no','pinosoecolife.com','Amazon Bestseller','Costa Blanca','Biar · Alicante'];
 
   const musicImgs = [
     UP + 'Gemini_Generated_Image_9rr3k69rr3k69rr3 (1).png',
@@ -974,15 +979,16 @@ function App() {
           <p style={{color:'var(--muted2)', fontSize:16}}>{t.toursSub}</p>
           <div className="tours-grid">
             {tours.map(tour => (
-              <div key=<ElegantIcon symbol={tour.icon}/> className="tour-card">
-                <div className="tour-icon"><ElegantIcon symbol={tour.icon}/></div>
+              <a key={tour.href} href={tour.href} target="_blank" rel="noopener noreferrer" className="tour-card" aria-label={tour[lang]?.title || tour.en.title}>
+                <img className="tour-card-photo" src={tour.image} alt={tour[lang]?.title || tour.en.title} loading="lazy"/>
                 <div className="tour-title">{tour[lang]?.title || tour.en.title}</div>
                 <div className="tour-desc">{tour[lang]?.desc || tour.en.desc}</div>
-              </div>
+                <span className="tour-card-more">{lang === 'no' ? 'Se opplevelsen og forespør dato' : lang === 'es' ? 'Ver experiencia y consultar fecha' : 'Explore & request a date'} →</span>
+              </a>
             ))}
           </div>
           <div className="tours-cta">
-            <a href="https://costablancatours.pro" target="_blank" rel="noopener" className="hero-cta">
+            <a href="https://www.costablancatours.pro/" target="_blank" rel="noopener" className="hero-cta">
               {t.toursCta} →
             </a>
           </div>
