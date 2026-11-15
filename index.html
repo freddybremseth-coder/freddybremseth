@@ -84,7 +84,10 @@
     nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, rgba(12,11,10,0.95) 0%, transparent 100%); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(201,169,110,0.08); transition: background 0.3s; }
     .nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; letter-spacing: 1px; }
     .nav-logo span { color: var(--gold); }
-    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .nav-links .nav-viewing-link { color: var(--gold); border: 1px solid var(--gold-border); padding: 8px 12px; white-space: nowrap; }
+    .nav-viewing-link:hover { background: var(--gold-dim); }
+    .mobile-viewing-link { display: none; color: var(--gold); font-size: 12px; font-weight: 600; letter-spacing: .03em; white-space: nowrap; }
     .nav-links a { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted2); transition: color 0.2s; font-weight: 500; cursor: pointer; }
     .nav-links a:hover { color: var(--gold); }
     .lang-toggle { display: flex; gap: 4px; background: var(--bg3); border-radius: 20px; padding: 3px; border: 1px solid var(--gold-border); }
@@ -296,6 +299,7 @@
     @media (max-width: 900px) {
       nav { padding: 16px 20px; }
       .nav-links { display: none; }
+      .mobile-viewing-link { display: inline-flex; margin-left: auto; margin-right: 12px; }
       .hero-grid, .about-grid, .re-grid, .contact-grid, .music-inner { grid-template-columns: 1fr; gap: 40px; }
       .hero-photo { max-width: 320px; margin: 0 auto; }
       .hero-photo-wrap { text-align: center; }
@@ -373,6 +377,9 @@ const T = {
     reViewBtn: 'Se boligen →',
     reSoleadaSub: 'Norske eiendomsrådgivere i Spania',
     reZenecoSub: 'Bærekraftige boligprosjekter',
+    viewingNav: 'Bestill visning',
+    viewingCta: 'Be om boligvisning',
+    viewingNote: 'Fortell hvilke boliger du ønsker å se, så avtaler vi tidspunkt og visningsopplegg.',
     toursLabel: 'Costa Blanca Tours',
     toursTitle: 'Opplev Costa Blanca gjennom menneskene og smakene',
     toursSub: 'Fra vår egen olivenlund i Biar til Monastrell-vin i Jumilla og olivenoljekultur i Relleu. Små, personlige turer på forespørsel.',
@@ -435,6 +442,9 @@ const T = {
     reViewBtn: 'View property →',
     reSoleadaSub: 'Norwegian property advisors in Spain',
     reZenecoSub: 'Sustainable housing projects',
+    viewingNav: 'Book a viewing',
+    viewingCta: 'Request a property viewing',
+    viewingNote: 'Tell us which properties interest you and we will arrange a suitable viewing.',
     toursLabel: 'Costa Blanca Tours',
     toursTitle: 'Discover Costa Blanca through its people and flavours',
     toursSub: 'From our own olive grove in Biar to Monastrell wines in Jumilla and olive oil heritage in Relleu. Personal experiences by request.',
@@ -497,6 +507,9 @@ const T = {
     reViewBtn: 'Ver propiedad →',
     reSoleadaSub: 'Asesores inmobiliarios noruegos en España',
     reZenecoSub: 'Proyectos de vivienda sostenible',
+    viewingNav: 'Pedir visita',
+    viewingCta: 'Solicitar visita inmobiliaria',
+    viewingNote: 'Indícanos qué viviendas te interesan y coordinaremos una visita.',
     toursLabel: 'Costa Blanca Tours',
     toursTitle: 'Descubre Costa Blanca a través de sus sabores',
     toursSub: 'Del olivar propio en Biar al vino Monastrell en Jumilla y la tradición del aceite de oliva en Relleu. Visitas privadas bajo petición.',
@@ -736,8 +749,10 @@ function App() {
           {t.nav.map((n, i) => (
             <a key={n} onClick={() => scrollTo(t.navIds[i])}>{n}</a>
           ))}
-          <a href="/artikler/">Artikler</a>
+          <a href="/artikler/">{lang === "no" ? "Artikler" : lang === "es" ? "Artículos" : "Articles"}</a>
+          <a className="nav-viewing-link" href="https://www.zenecohomes.com/booking" target="_blank" rel="noopener noreferrer">{t.viewingNav}</a>
         </div>
+        <a className="mobile-viewing-link" href="https://www.zenecohomes.com/booking" target="_blank" rel="noopener noreferrer">{t.viewingNav} →</a>
         <div className="lang-toggle">
           {['no','en','es'].map(l => (
             <button key={l} className={`lang-btn ${lang === l ? 'active' : ''}`} onClick={() => setLang(l)}>
@@ -948,6 +963,8 @@ function App() {
               <h2 className="section-title">{t.reTitle}</h2>
               <p>{t.reP1}</p>
               <p>{t.reP2}</p>
+              <a href="https://www.zenecohomes.com/booking" target="_blank" rel="noopener noreferrer" className="hero-cta" style={{marginTop:12}}>{t.viewingCta} →</a>
+              <p style={{fontSize:13, marginTop:10}}>{t.viewingNote}</p>
               <div className="re-links">
                 <a href="https://soleada.no" target="_blank" rel="noopener" className="re-link-card">
                   <div className="re-link-icon"><img src={UP + 'logo-soleada.png'} alt="Soleada"/></div>
