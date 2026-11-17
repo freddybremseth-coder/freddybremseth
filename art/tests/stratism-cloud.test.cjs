@@ -13,8 +13,12 @@ function setup({userId='11111111-1111-4111-8111-111111111111',admin=true}={}){
  const supabase={auth:{getUser:async()=>({data:{user:{id:userId}}})},
   from:table=>{lookups++;assert.equal(table,'art_gallery_admin_users');return{select:()=>({eq:()=>({maybeSingle:async()=>({data:admin?{user_id:userId}:null})})})}},
   storage:{from:bucket=>{assert.equal(bucket,'stratism-private');return storage}}};
- const ctx={module:{exports:{}},console:{error:()=>{}},Buffer,process:{env:{SUPABASE_URL:'https://example.invalid',SUPABASE_SERVICE_ROLE_KEY:'test'}},
-  require:name=>name==='@supabase/supabase-js'?{createClient:()=>supabase}:{randomUUID:()=> '12345678-1234-4234-8234-123456789012'}};
+ const ctx={module:{exports:{}},console:{error:()=>{}},Buffer,process:{env:{STRATISM_SUPABASE_URL:'https://example.invalid',STRATISM_SUPABASE_PUBLISHABLE_KEY:'test-publishable-only'}},
+  require:name=>name==='@supabase/supabase-js'?{createClient:(url,key,options)=>{
+    assert.equal(key,'test-publishable-only');assert.ok(url.endsWith('example.invalid'));
+    assert.match(options.global.headers.Authorization,/^Bearer /);
+    return supabase;
+   }}:{randomUUID:()=> '12345678-1234-4234-8234-123456789012'}};
  vm.runInNewContext(code,ctx);
  async function call({method='GET',body,token='good'}={}){
   const res={statusCode:200,body:null,setHeader:()=>{},status(code){this.statusCode=code;return this},json(body){this.body=body;return this}};
@@ -66,4 +70,10 @@ test('browser cloud operations use shared admin session and validated archive',(
  assert.match(clientCode,/restorePrivateProject\(JSON\.parse\(await file\.text\(\)\)\)/);
  assert.match(clientCode,/commercial_release:false,print_release:false/);
  assert.doesNotMatch(clientCode,/publishArtwork\(|create-checkout/);
+});
+
+test('archive uses user RLS instead of service-role credentials',()=>{
+ assert.match(code,/STRATISM_SUPABASE_PUBLISHABLE_KEY/);
+ assert.match(code,/global:\{headers:\{Authorization:'Bearer '\+token\}\}/);
+ assert.doesNotMatch(code,/SUPABASE_SERVICE_ROLE_KEY/);
 });
