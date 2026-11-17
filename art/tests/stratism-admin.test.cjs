@@ -382,3 +382,17 @@ test('renewing photo rights on imported work preserves artwork and review state 
  assert.match(js,/\$\('stratism-reference-rights'\)\.checked=false/);
  assert.match(js,/state\.brief\.provenance\.reference_rights_confirmed=false/);
 });
+
+test('preflight gives actionable Norwegian errors and validates the exact photo and variant',()=>{
+ assert.match(js,/function validationMessage\(code\)/);
+ assert.match(js,/PHOTO_RIGHTS_REQUIRED:'Bekreft bruksretten til referansefotografiet/);
+ assert.match(js,/INVALID_REFERENCE_DIMENSIONS:'Referansebildet har ugyldige dimensjoner/);
+ assert.match(js,/if\(response\.status===400\)return validationMessage\(data\?\.code\)/);
+ assert.match(js,/response\.status===400\?validationMessage\(data\.code\)/);
+ const start=js.indexOf("$('stratism-preflight').addEventListener");
+ const end=js.indexOf("$('stratism-generate-private').addEventListener",start);
+ const part=js.slice(start,end);
+ assert.match(part,/data\.source_kind!==\(state\.brief\.provenance\?\.source_kind\|\|'concept'\)/);
+ assert.match(part,/data\.reference_used!==!!referenceJpeg/);
+ assert.match(part,/data\.variation!==payload\.variation/);
+});
