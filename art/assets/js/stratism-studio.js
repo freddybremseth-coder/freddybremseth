@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 const form=$('stratism-brief-form');if(!form)return;
 const output=$('stratism-brief-output');
-const state={brief:null,reference:null,previewUrl:null,variants:[],selectedVariant:-1};
+const state={brief:null,reference:null,previewUrl:null,variants:[],selectedVariant:-1,busy:false};
 const CM_PER_INCH=2.54;
 function printCheck(width,height){
  const short=Math.min(width,height),long=Math.max(width,height);
@@ -27,23 +27,32 @@ function refreshVariantUI(){
   button.setAttribute('aria-pressed',String(state.selectedVariant===index));
   button.setAttribute('aria-label','Velg forslag '+(index+1));
   const image=document.createElement('img');
-  image.src=variant.url;image.alt='Stratism-forslag '+(index+1);
+  image.src=(variant.revision&&variant.showRevision)?variant.revision.url:variant.url;image.alt='Stratism-forslag '+(index+1);
   const caption=document.createElement('span');
-  caption.textContent='Forslag '+(index+1)+(state.selectedVariant===index?' · Valgt':'');
+  caption.textContent='Forslag '+(index+1)+(variant.revision?' · Revidert':'')+(state.selectedVariant===index?' · Valgt':'');
   button.append(image,caption);
   button.addEventListener('click',()=>{state.selectedVariant=index;refreshVariantUI()});
   gallery.appendChild(button);
  });
  $('stratism-result').hidden=count===0;
- $('stratism-save-preview').disabled=state.selectedVariant<0;
+ const selected=state.variants[state.selectedVariant];
+ const revisionSelect=$('stratism-revision-select');
+ revisionSelect.replaceChildren();
+ for(const [value,label] of [['0','Originalforslag'],...(selected?.revision?[['1','Forbedret versjon']]:[])]){
+  const option=document.createElement('option');option.value=value;option.textContent=label;revisionSelect.appendChild(option);
+ }
+ revisionSelect.value=selected?.showRevision?'1':'0';
+ revisionSelect.disabled=!selected||!selected.revision||state.busy;
+ $('stratism-refine-selected').disabled=!selected||!!selected.revision||state.busy;
+ $('stratism-save-preview').disabled=!selected||state.busy;
  $('stratism-selected-description').textContent=state.selectedVariant<0?'Velg en prøve for å laste ned.':
   'Forslag '+(state.selectedVariant+1)+' er valgt til lokal nedlasting. Ikke salg- eller printgodkjent.';
  const generate=$('stratism-generate-private');
  generate.textContent=count?'Generer nytt forslag ('+(count+1)+' av '+MAX_VARIANTS+')':'Generer forslag 1 (AI)';
- generate.disabled=!state.brief||count>=MAX_VARIANTS;
+ generate.disabled=!state.brief||count>=MAX_VARIANTS||state.busy;
 }
 function clearVariants(){
- for(const variant of state.variants)URL.revokeObjectURL(variant.url);
+ for(const variant of state.variants){URL.revokeObjectURL(variant.url);if(variant.revision)URL.revokeObjectURL(variant.revision.url);}
  state.variants=[];state.selectedVariant=-1;refreshVariantUI();
 }
 const referenceInput=$('stratism-reference-file');
@@ -111,8 +120,8 @@ $('stratism-download-brief').addEventListener('click',()=>{
  setTimeout(()=>URL.revokeObjectURL(url),500);
 });
 $('stratism-generate-private').addEventListener('click',async()=>{
- if(!state.brief||state.variants.length>=MAX_VARIANTS)return;
- const button=$('stratism-generate-private');button.disabled=true;
+ if(!state.brief||state.variants.length>=MAX_VARIANTS||state.busy)return;
+ state.busy=true;refreshVariantUI();
  const variation=state.variants.length+1;
  $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
  try{
@@ -158,9 +167,52 @@ $('stratism-generate-private').addEventListener('click',async()=>{
 });
 $('stratism-save-preview').addEventListener('click',()=>{
  const variant=state.variants[state.selectedVariant];if(!variant)return;
- const a=document.createElement('a');a.href=variant.url;
- a.download='stratism-private-review-'+variant.variation+'.jpg';
+ const a=document.createElement('a');a.href=variant.showRevision&&variant.revision?variant.revision.url:variant.url;
+ a.download='stratism-private-review-'+variant.variation+(variant.showRevision?'-refined':'')+'.jpg';
  document.body.appendChild(a);a.click();a.remove();
+});
+$('stratism-revision-select').addEventListener('change',()=>{
+ const variant=state.variants[state.selectedVariant];if(!variant)return;
+ variant.showRevision=$('stratism-revision-select').value==='1'&&!!variant.revision;
+ refreshVariantUI();
+});
+$('stratism-refine-selected').addEventListener('click',async()=>{
+ const index=state.selectedVariant,variant=state.variants[index];
+ if(!variant||variant.revision||!state.brief||state.busy)return;
+ state.busy=true;refreshVariantUI();
+ $('stratism-brief-status').textContent='Forbedrer valgt kunstverk. Originalen beholdes…';
+ try{
+  let session;try{session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}
+  if(!session?.access_token)throw Error('Logg inn på nytt som administrator.');
+  const source=new Image();source.src=variant.url;await source.decode();
+  const scale=Math.min(1,1400/Math.max(source.naturalWidth,source.naturalHeight));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(source.naturalWidth*scale));
+  canvas.height=Math.max(1,Math.round(source.naturalHeight*scale));
+  canvas.getContext('2d',{alpha:false}).drawImage(source,0,0,canvas.width,canvas.height);
+  const imageData=canvas.toDataURL('image/jpeg',0.77).split(',')[1];
+  if(imageData.length>1_800_000)throw Error('Prøvebildet er for stort for revisjon.');
+  const mode=$('stratism-refinement-kind').value;
+  const response=await fetch('/api/stratism-generate',{
+   method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+   body:JSON.stringify({description:state.brief.description,chord:state.brief.style.palette,
+    emphasis:state.brief.style.emphasis,strength:state.brief.style.colour_strength,
+    variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData})
+  });
+  const data=await response.json();
+  if(!response.ok)throw Error(String(data.error||'Revisjon feilet').slice(0,180));
+  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode)
+   throw Error('Uventet svar fra revisjonsmotoren.');
+  const encoded=data.image_base64;
+  if(typeof encoded!=='string'||encoded.length>9_000_000)throw Error('Ugyldig revisjonsbilde.');
+  const binary=atob(encoded),bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const url=URL.createObjectURL(new Blob([bytes],{type:'image/jpeg'}));
+  variant.revision={url,mode,createdAt:new Date().toISOString()};
+  variant.showRevision=true;state.selectedVariant=index;
+  $('stratism-brief-status').textContent='Forbedret versjon klar. Originalen er fortsatt tilgjengelig. Ingen publisering.';
+ }catch(error){$('stratism-brief-status').textContent=error.message}
+ finally{state.busy=false;refreshVariantUI()}
 });
 $('stratism-reset-variants').addEventListener('click',()=>{
  clearVariants();
