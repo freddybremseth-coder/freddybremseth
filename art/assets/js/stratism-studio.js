@@ -402,17 +402,18 @@ $('stratism-master-file').addEventListener('change',async()=>{
 });
 $('stratism-print-target').addEventListener('change',updateMasterCheck);
 function webDerivativeSize(width,height,maxEdge=1600){
- if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1)
-  throw Error('Ugyldige bildedimensjoner.');
+ if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||
+  ![800,1600].includes(maxEdge))
+  throw Error('Ugyldige bildedimensjoner eller eksportstørrelse.');
  const scale=Math.min(1,maxEdge/Math.max(width,height));
  return {width:Math.max(1,Math.round(width*scale)),height:Math.max(1,Math.round(height*scale))};
 }
-async function createLocalWebDerivative(file){
+async function createLocalWebDerivative(file,maxEdge=1600){
  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type))
   throw Error('Velg en JPG-, PNG- eller WebP-master.');
  const bitmap=await createImageBitmap(file);
  try{
-  const size=webDerivativeSize(bitmap.width,bitmap.height);
+  const size=webDerivativeSize(bitmap.width,bitmap.height,maxEdge);
   const canvas=document.createElement('canvas');
   canvas.width=size.width;canvas.height=size.height;
   const ctx=canvas.getContext('2d',{alpha:false});
@@ -427,26 +428,33 @@ async function createLocalWebDerivative(file){
   return {blob,width:size.width,height:size.height};
  }finally{bitmap.close();}
 }
+$('stratism-web-export-size').addEventListener('change',()=>{
+ const kind=$('stratism-web-export-size').value==='800'?'forhåndsvisning':'webfil';
+ $('stratism-web-export-status').textContent='Valgt '+kind+'. Ingen fil laget ennå.';
+});
 $('stratism-export-web').addEventListener('click',async()=>{
  if(webExportBusy||!masterCandidateFile||!masterCandidate||masterCandidate.metadataOnly)return;
  const file=masterCandidateFile,inspectionId=masterInspectionId;
+ const maxEdge=Number($('stratism-web-export-size').value);
+ if(![800,1600].includes(maxEdge))return;
  webExportBusy=true;refreshWebExportButton();
  $('stratism-web-export-status').textContent='Lager lokal webprøve – ingen opplasting…';
  try{
-  const derivative=await createLocalWebDerivative(file);
+  const derivative=await createLocalWebDerivative(file,maxEdge);
   if(inspectionId!==masterInspectionId){
    $('stratism-web-export-status').textContent='Kildefilen ble endret. Webeksport er avbrutt.';
    return;
   }
-  const filename=file.name.replace(/\\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,65)||'stratism';
+  const filename=file.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,65)||'stratism';
   const url=URL.createObjectURL(derivative.blob);
   try{
    const a=document.createElement('a');
-   a.href=url;a.download=filename+'-web-preview-not-sale-approved.jpg';
+   a.href=url;a.download=filename+(maxEdge===800?'-preview-800px':'-web-1600px')+'-not-sale-approved.jpg';
    document.body.appendChild(a);a.click();a.remove();
   }finally{setTimeout(()=>URL.revokeObjectURL(url),1000)}
-  $('stratism-web-export-status').textContent='Webprøve laget: '+derivative.width+' × '+derivative.height+
-   ' px · '+(derivative.blob.size/1024).toFixed(0)+' kB. Originalen er uendret. Ikke salgs- eller printgodkjent.';
+  $('stratism-web-export-status').textContent=(maxEdge===800?'Forhåndsvisning':'Webfil')+' laget: '+
+   derivative.width+' × '+derivative.height+' px · '+(derivative.blob.size/1024).toFixed(0)+
+   ' kB. Originalen er uendret. Fargeprofil kan være endret. Ikke salgs- eller printgodkjent.';
  }catch(error){
   $('stratism-web-export-status').textContent='Webeksport mislyktes: '+error.message;
  }finally{webExportBusy=false;refreshWebExportButton();}
