@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 const form=$('stratism-brief-form');if(!form)return;
 const output=$('stratism-brief-output');
-const state={brief:null,reference:null,previewUrl:null,generated:null};
+const state={brief:null,reference:null,previewUrl:null,variants:[],selectedVariant:-1};
 const CM_PER_INCH=2.54;
 function printCheck(width,height){
  const short=Math.min(width,height),long=Math.max(width,height);
@@ -14,10 +14,42 @@ function printCheck(width,height){
   aspectPass:Math.abs(short/long-size.shortCm/size.longCm)<=0.015}))
  .map(v=>({...v,passes:v.pixelPass&&v.aspectPass}));
 }
+const MAX_VARIANTS=3;
+function refreshVariantUI(){
+ const gallery=$('stratism-variant-gallery');
+ gallery.replaceChildren();
+ const count=state.variants.length;
+ $('stratism-variant-count').textContent=count+' av '+MAX_VARIANTS;
+ state.variants.forEach((variant,index)=>{
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='stratism-variant-choice'+(state.selectedVariant===index?' chosen':'');
+  button.setAttribute('aria-pressed',String(state.selectedVariant===index));
+  button.setAttribute('aria-label','Velg forslag '+(index+1));
+  const image=document.createElement('img');
+  image.src=variant.url;image.alt='Stratism-forslag '+(index+1);
+  const caption=document.createElement('span');
+  caption.textContent='Forslag '+(index+1)+(state.selectedVariant===index?' · Valgt':'');
+  button.append(image,caption);
+  button.addEventListener('click',()=>{state.selectedVariant=index;refreshVariantUI()});
+  gallery.appendChild(button);
+ });
+ $('stratism-result').hidden=count===0;
+ $('stratism-save-preview').disabled=state.selectedVariant<0;
+ $('stratism-selected-description').textContent=state.selectedVariant<0?'Velg en prøve for å laste ned.':
+  'Forslag '+(state.selectedVariant+1)+' er valgt til lokal nedlasting. Ikke salg- eller printgodkjent.';
+ const generate=$('stratism-generate-private');
+ generate.textContent=count?'Generer nytt forslag ('+(count+1)+' av '+MAX_VARIANTS+')':'Generer forslag 1 (AI)';
+ generate.disabled=!state.brief||count>=MAX_VARIANTS;
+}
+function clearVariants(){
+ for(const variant of state.variants)URL.revokeObjectURL(variant.url);
+ state.variants=[];state.selectedVariant=-1;refreshVariantUI();
+}
 const referenceInput=$('stratism-reference-file');
 referenceInput.addEventListener('change',async()=>{
  const file=referenceInput.files?.[0];
- state.reference=null;
+ clearVariants();state.reference=null;
  if(state.previewUrl){URL.revokeObjectURL(state.previewUrl);state.previewUrl=null;}
  const preview=$('stratism-reference-preview');
  preview.hidden=true;preview.removeAttribute('src');
@@ -65,10 +97,10 @@ function buildBrief(){
 }
 form.addEventListener('submit',ev=>{
  ev.preventDefault();
- try{state.brief=buildBrief();output.textContent=state.brief.render_instruction;
+ try{clearVariants();state.brief=buildBrief();output.textContent=state.brief.render_instruction;
  $('stratism-brief-status').textContent='Brief opprettet lokalt. Ingen bildejobb er sendt og ingenting er publisert.';
- $('stratism-download-brief').disabled=false;$('stratism-generate-private').disabled=false;}
- catch(error){$('stratism-brief-status').textContent=error.message;output.textContent='';state.brief=null;$('stratism-download-brief').disabled=true;$('stratism-generate-private').disabled=true;}
+ $('stratism-download-brief').disabled=false;refreshVariantUI();}
+ catch(error){$('stratism-brief-status').textContent=error.message;output.textContent='';state.brief=null;$('stratism-download-brief').disabled=true;refreshVariantUI();}
 });
 $('stratism-download-brief').addEventListener('click',()=>{
  if(!state.brief)return;
@@ -79,8 +111,9 @@ $('stratism-download-brief').addEventListener('click',()=>{
  setTimeout(()=>URL.revokeObjectURL(url),500);
 });
 $('stratism-generate-private').addEventListener('click',async()=>{
- if(!state.brief)return;
+ if(!state.brief||state.variants.length>=MAX_VARIANTS)return;
  const button=$('stratism-generate-private');button.disabled=true;
+ const variation=state.variants.length+1;
  $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
  try{
   let session;try{session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}
@@ -104,23 +137,34 @@ $('stratism-generate-private').addEventListener('click',async()=>{
    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
    body:JSON.stringify({description:state.brief.description,
      chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
-     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg})
+     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation})
   });
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false)
    throw Error('Uventet genereringsstatus. Bildet er ikke vist.');
-  state.generated='data:'+data.mime_type+';base64,'+data.image_base64;
-  $('stratism-generated-preview').src=state.generated;
-  $('stratism-result').hidden=false;
+  // Hold de tre forslagene privat i denne nettlesersesjonen.
+  const encoded=data.image_base64;
+  if(typeof encoded!=='string'||encoded.length>9_000_000)throw Error('Ugyldig bilde fra generator.');
+  const binary=atob(encoded),bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const url=URL.createObjectURL(new Blob([bytes],{type:'image/jpeg'}));
+  state.variants.push({url,variation,createdAt:new Date().toISOString()});
+  state.selectedVariant=state.variants.length-1;
+  refreshVariantUI();
   $('stratism-brief-status').textContent='Privat konsept opprettet'+(data.reference_used?' fra referansefoto':' fra beskrivelse')+'. Ikke lagret på server, ikke godkjent for salg eller print.';
  }catch(error){$('stratism-brief-status').textContent=error.message}
- finally{button.disabled=false}
+ finally{refreshVariantUI()}
 });
 $('stratism-save-preview').addEventListener('click',()=>{
- if(!state.generated)return;
- const a=document.createElement('a');a.href=state.generated;a.download='stratism-private-review.jpg';
+ const variant=state.variants[state.selectedVariant];if(!variant)return;
+ const a=document.createElement('a');a.href=variant.url;
+ a.download='stratism-private-review-'+variant.variation+'.jpg';
  document.body.appendChild(a);a.click();a.remove();
+});
+$('stratism-reset-variants').addEventListener('click',()=>{
+ clearVariants();
+ $('stratism-brief-status').textContent='Lokale bildeforslag er tømt. Ingen endringer i galleriet.';
 });
 
 })();
