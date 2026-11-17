@@ -3,6 +3,17 @@ const $=id=>document.getElementById(id);
 const form=$('stratism-brief-form');if(!form)return;
 const output=$('stratism-brief-output');
 const state={brief:null,reference:null,previewUrl:null,variants:[],selectedVariant:-1,busy:false};
+async function stratismRequest(payload){
+ const getToken=window.ART_ADMIN_GET_ACCESS_TOKEN;
+ if(typeof getToken!=='function')throw Error('Administratorinnloggingen er ikke tilgjengelig.');
+ const send=async forceRefresh=>fetch('/api/stratism-generate',{
+   method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+await getToken({forceRefresh})},
+   body:JSON.stringify(payload)
+ });
+ let response=await send(false);
+ if(response.status===401)response=await send(true);
+ return response;
+}
 const CM_PER_INCH=2.54;
 function printCheck(width,height){
  const short=Math.min(width,height),long=Math.max(width,height);
@@ -131,8 +142,7 @@ $('stratism-generate-private').addEventListener('click',async()=>{
  const variation=state.variants.length+1;
  $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
  try{
-  let session;try{session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}
-  if(!session?.access_token)throw Error('Logg inn som administrator igjen.');
+
     let referenceJpeg=null;
   // The reference stays in-browser unless the administrator explicitly asks to generate.
   // Resize a temporary derivative: never use this JPEG as a sale or print master.
@@ -148,12 +158,9 @@ $('stratism-generate-private').addEventListener('click',async()=>{
    if(encoded.length>1_800_000)throw Error('Referansefotoet er for stort for sikker forhåndsvisning. Velg et mindre bilde.');
    referenceJpeg=encoded;
   }
-  const response=await fetch('/api/stratism-generate',{
-   method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
-   body:JSON.stringify({description:state.brief.description,
+  const response=await stratismRequest({description:state.brief.description,
      chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
-     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation})
-  });
+     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false)
@@ -189,8 +196,7 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
  state.busy=true;refreshVariantUI();
  $('stratism-brief-status').textContent='Forbedrer valgt kunstverk. Originalen beholdes…';
  try{
-  let session;try{session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}
-  if(!session?.access_token)throw Error('Logg inn på nytt som administrator.');
+
   const source=new Image();source.src=variant.url;await source.decode();
   const scale=Math.min(1,1400/Math.max(source.naturalWidth,source.naturalHeight));
   const canvas=document.createElement('canvas');
@@ -200,12 +206,9 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const imageData=canvas.toDataURL('image/jpeg',0.77).split(',')[1];
   if(imageData.length>1_800_000)throw Error('Prøvebildet er for stort for revisjon.');
   const mode=$('stratism-refinement-kind').value;
-  const response=await fetch('/api/stratism-generate',{
-   method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
-   body:JSON.stringify({description:state.brief.description,chord:state.brief.style.palette,
+  const response=await stratismRequest({description:state.brief.description,chord:state.brief.style.palette,
     emphasis:state.brief.style.emphasis,strength:state.brief.style.colour_strength,
-    variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData})
-  });
+    variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Revisjon feilet').slice(0,180));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode)
