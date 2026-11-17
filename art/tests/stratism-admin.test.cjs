@@ -228,3 +228,21 @@ test('preflight and real generation share the exact same prepared private reques
  assert.match(js,/data\.no_provider_call!==true/);
  assert.match(js,/\$\('stratism-preflight'\)\.disabled=!state\.brief\|\|state\.busy/);
 });
+
+test('reference photos must be valid and transparent areas are flattened before AI or preflight',()=>{
+ new vm.Script(js);
+ const start=js.indexOf('async function prepareReferenceJpeg()');
+ const end=js.indexOf('function requestFromCurrentBrief(',start);
+ const prep=js.slice(start,end);
+ assert.match(prep,/referenceInput\.files\?\.\[0\]&&!state\.reference/);
+ assert.match(prep,/Referansefotoet er ikke validert/);
+ assert.match(prep,/ctx\.fillStyle='#f4f0e8'/);
+ assert.match(prep,/ctx\.fillRect\(0,0,canvas\.width,canvas\.height\)/);
+ assert.match(prep,/ctx\.drawImage\(img,0,0,canvas\.width,canvas\.height\)/);
+});
+test('preflight verdict is cleared whenever source, brief or project changes',()=>{
+ assert.match(js,/function invalidatePreflight\(\)/);
+ assert.match(js,/form\.addEventListener\('change',\(\)=>\{\n if\(state\.busy\)return;\n invalidatePreflight\(\)/);
+ assert.match(js,/referenceInput\.addEventListener\('change',async\(\)=>\{\n if\(state\.busy\)return;\n invalidatePreflight\(\)/);
+ assert.match(js,/function restorePrivateProject\(archive\)\{\n invalidatePreflight\(\)/);
+});
