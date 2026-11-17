@@ -14,7 +14,26 @@ async function stratismRequest(payload){
  if(response.status===401)response=await send(true);
  return response;
 }
+function validationMessage(code){
+ const messages={
+  INVALID_SOURCE_OR_COMPOSITION:'Velg en gyldig kilde og komposisjon, og lag en ny brief.',
+  CLIENT_CONSENT_REQUIRED:'Bekreft kundens samtykke til bruk av referansebildet.',
+  INVALID_PRESET:'Velg en gyldig Stratism-modell og lag en ny brief.',
+  DESCRIPTION_REQUIRED:'Beskriv motivet med minst 12 tegn.',
+  INVALID_VARIATION:'Velg et gyldig bildeforslag (1–3).',
+  INVALID_REFINEMENT:'Denne revisjonsmetoden eller kombinasjonen av bilder er ikke gyldig.',
+  UNEXPECTED_QUALITY_REVIEW:'Kvalitetslisten kan bare brukes ved kvalitetsstyrt revisjon.',
+  INVALID_REFERENCE:'Referansebildet kunne ikke leses som gyldig JPEG. Velg bildet på nytt.',
+  INVALID_REFERENCE_DIMENSIONS:'Referansebildet har ugyldige dimensjoner. Velg et annet bilde.',
+  MISSING_REVISION_IMAGE:'Originalbildet til revisjonen mangler. Velg et bilde først.',
+  PHOTO_REQUIRED:'Et virkelig motiv krever at du velger et referansefoto.',
+  PHOTO_RIGHTS_REQUIRED:'Bekreft bruksretten til referansefotografiet.',
+  INVALID_QUALITY_REVIEW:'Marker minst ett gyldig kriterium som skal forbedres.'
+ };
+ return messages[code]||'Kunstforespørselen ble avvist. Kontroller motivet, bildene og innstillingene.';
+}
 function providerErrorMessage(response,data){
+ if(response.status===400)return validationMessage(data?.code);
  if(response.status===401)return 'Innloggingen er utløpt. Logg inn igjen og kontroller AI-motoren.';
  if(response.status===403)return 'Kontoen er ikke godkjent som galleriadministrator.';
  if(response.status===503)return 'AI-generering er deaktivert eller ikke konfigurert. Kontroller AI-motoren.';
@@ -474,10 +493,12 @@ $('stratism-preflight').addEventListener('click',async()=>{
   const payload=requestFromCurrentBrief(Math.min(MAX_VARIANTS,state.variants.length+1),referenceJpeg);
   const response=await preflightRequest(payload);
   const data=await response.json();
-  if(!response.ok)throw Error(String(data.error||'Kunstforespørselen ble avvist').slice(0,180));
+  if(!response.ok)throw Error(response.status===400?validationMessage(data.code):String(data.error||'Kunstforespørselen ble avvist').slice(0,180));
   if(data.valid!==true||data.no_provider_call!==true||data.preview_only!==true||
      data.output_format!=='jpeg'||data.size!=='1280x1600'||
-     data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
+     data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states')||
+     data.source_kind!==(state.brief.provenance?.source_kind||'concept')||
+     data.reference_used!==!!referenceJpeg||data.variation!==payload.variation)
    throw Error('Testen returnerte uventede opplysninger.');
   $('stratism-preflight-status').textContent='Bestått: '+data.preset+' · '+data.size+' · '+
     (data.reference_used?'referansefoto kontrollert':'generering fra beskrivelse')+
