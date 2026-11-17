@@ -198,3 +198,19 @@ test('ordinary generation never references QA-revision-only variables',()=>{
  assert.match(revision,/qa_failed:qaFailed/);
  assert.match(revision,/revision_mode:mode/);
 });
+
+test('paid generation and revision require explicit user approval and show helpful provider errors',()=>{
+ new vm.Script(js);
+ assert.match(js,/function approveImageCharge\(action\)/);
+ assert.match(js,/window\.confirm\(/);
+ const generate=js.slice(js.indexOf("$('stratism-generate-private').addEventListener"),js.indexOf("$('stratism-save-preview').addEventListener"));
+ const revise=js.slice(js.indexOf("$('stratism-refine-selected').addEventListener"),js.indexOf('// A portable, private archive'));
+ assert.match(generate,/if\(!approveImageCharge\('Generering'\)\)return/);
+ assert.match(revise,/if\(!approveImageCharge\('Revisjon'\)\)return/);
+ assert.match(generate,/providerErrorMessage\(response,data\)/);
+ assert.match(revise,/providerErrorMessage\(response,data\)/);
+ assert.match(js,/PROVIDER_RATE_LIMIT/);
+ assert.match(js,/PROVIDER_ACCESS/);
+ assert.match(js,/PROVIDER_AUTH/);
+ assert.match(js,/Ingen automatisk ny forespørsel sendes/);
+});
