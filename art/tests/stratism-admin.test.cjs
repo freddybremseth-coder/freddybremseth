@@ -67,7 +67,8 @@ test('variant compare preserves three private candidate previews and never auto 
  assert.match(js,/state\.variants\.push/);
  assert.match(js,/state\.selectedVariant/);
  assert.match(js,/clearVariants\(\)/);
- assert.match(js,/reference_jpeg_base64:referenceJpeg,variation/);
+ assert.match(js,/reference_jpeg_base64:referenceJpeg/);
+ assert.match(js,/requestFromCurrentBrief\(variation,referenceJpeg\)/);
  assert.match(api,/VARIATION_DIRECTIVES/);
  assert.match(api,/Number\.isInteger\(variation\)/);
  assert.match(api,/variation<1\|\|variation>3/);
