@@ -1,5 +1,6 @@
 'use strict';
 const {createClient}=require('@supabase/supabase-js');
+const {randomUUID}=require('node:crypto');
 const BUCKET='stratism-private',MAX_BYTES=48*1024*1024;
 function reply(res,code,data){return res.status(code).json(data)}
 async function handler(req,res){
@@ -34,7 +35,7 @@ async function handler(req,res){
    const slug=title.normalize('NFKD').toLowerCase().replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,48)||'untitled';
    const bytes=body.bytes;
    if(title.length>100||!Number.isInteger(bytes)||bytes<100||bytes>MAX_BYTES)return reply(res,400,{error:'Invalid project size or title'});
-   const projectId=crypto.randomUUID();
+   const projectId=randomUUID();
    const path=prefix+Date.now()+'-'+slug+'-'+projectId+'.json';
    const {data,error:signError}=await storage.createSignedUploadUrl(path,{upsert:false});
    if(signError||!data?.signedUrl)return reply(res,502,{error:'Could not prepare private upload'});
