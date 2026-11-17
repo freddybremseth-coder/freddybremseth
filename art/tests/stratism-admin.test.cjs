@@ -155,3 +155,21 @@ test('personal-story form and two composition modes preserve art models and priv
  assert.match(js,/commercial_release:false/);
  assert.match(js,/print_release:false/);
 });
+
+test('Stratism human quality reviews are per original or revision and stored privately',()=>{
+ new vm.Script(js);
+ for(const id of ['stratism-quality-panel','stratism-quality-context','stratism-quality-notes','stratism-quality-status'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ for(const criterion of ['subject','colour','brush','transitions','linen','texture'])
+  assert.match(html,new RegExp('data-stratism-quality="'+criterion+'"'));
+ assert.match(js,/function qualityFor\(variant\)/);
+ assert.match(js,/variant\.showRevision&&variant\.revision\?'revision':'original'/);
+ assert.match(js,/reviews:v\.reviews\|\|null/);
+ assert.match(js,/const reviews=validateQuality\(entry\.reviews\)/);
+ assert.match(js,/if\(value==null\)return null/);
+ assert.match(js,/!QUALITY_VALUES\.includes\(status\)/);
+ assert.match(js,/review\.updated_at=new Date\(\)\.toISOString\(\)/);
+ assert.match(html,/Dette er din manuelle vurdering/);
+ assert.match(js,/IKKE salg- eller printgodkjenning/);
+ assert.match(js,/commercial_release:false,print_release:false/);
+});
