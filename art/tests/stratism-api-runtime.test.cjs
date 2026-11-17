@@ -122,7 +122,7 @@ test('unknown preset cannot reach paid generation',async()=>{
 });
 test('Stratum No. 4 reference-photo edit carries flat opaque paint rule',async()=>{
  const h=harness({enabled:true,userId:'user-1',member:true});
- const r=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1',reference_jpeg_base64:jpeg}});
+ const r=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1',reference_jpeg_base64:jpeg,reference_rights:true}});
  assert.equal(r.code,200);
  assert.equal(r.payload.reference_used,true);
  assert.match(h.stats().lastOptions.body.get('prompt'),/DRAG MARKS WITH A FLAT BLADE/);
