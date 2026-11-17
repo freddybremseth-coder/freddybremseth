@@ -173,3 +173,16 @@ test('Stratism human quality reviews are per original or revision and stored pri
  assert.match(js,/IKKE salg- eller printgodkjenning/);
  assert.match(js,/commercial_release:false,print_release:false/);
 });
+
+test('quality-guided revision stays optional, saveable and original-preserving',()=>{
+ assert.match(html,/value="qa-guided"/);
+ assert.match(html,/id="stratism-refine-hint"/);
+ assert.match(js,/function failedQualityKeys\(variant\)/);
+ assert.match(js,/function refreshRefinementHint\(\)/);
+ assert.match(js,/qa_failed:qaFailed/);
+ assert.match(js,/qa_failed:v\.revision\.qa_failed\|\|\[\]/);
+ assert.match(js,/entry\.revision\.mode==='qa-guided'&&qaFailed\.length===0/);
+ assert.match(js,/!variant\|\|variant\.revision\|\|!state\.brief\|\|state\.busy/);
+ assert.match(js,/variant\.revision=\{url,mode,createdAt:new Date\(\)\.toISOString\(\),qa_failed:qaFailed\|\|\[\]\}/);
+ assert.match(js,/commercial_release:false,print_release:false/);
+});
