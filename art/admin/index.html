@@ -89,6 +89,10 @@
      <label>Det som overlever<select id="stratism-emphasis"><option value="selected roots and trunk contours">Røtter og stamme</option><option value="the eyes and a few facial contours">Øyne og ansikt</option><option value="the principal architectural lines">Arkitektur</option><option value="the main subject's distinctive features">Motivets særtrekk</option></select></label>
      <label>Fargestyrke<select id="stratism-strength"><option value="subtle">Subtil</option><option value="very subtle">Svært dempet</option><option value="moderate but subordinate to subject">Moderat, underordnet motivet</option></select></label>
     </div>
+    <div class="stratism-provider-status" aria-label="AI-forbindelse">
+     <button id="stratism-check-provider" type="button">Kontroller AI-motoren (gratis statussjekk)</button>
+     <p id="stratism-provider-readiness" role="status" aria-live="polite">AI-motorens tilkobling er ikke kontrollert. Ingen betalt generering starter automatisk.</p>
+    </div>
     <div class="stratism-actions"><button class="primary" type="submit">Lag Stratism-brief</button><button id="stratism-download-brief" type="button" disabled>Last ned JSON</button><button id="stratism-generate-private" type="button" disabled>Generer forslag 1 (AI)</button></div>
    </form>
    <div class="stratism-project-actions" aria-label="Privat prosjektarkiv">
