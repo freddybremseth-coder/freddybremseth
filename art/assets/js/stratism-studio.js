@@ -484,6 +484,20 @@ async function preflightRequest(payload){
  if(response.status===401)response=await send(true);
  return response;
 }
+async function verifyFreePreflight(payload){
+ const response=await preflightRequest(payload);
+ const data=await response.json();
+ if(!response.ok)throw Error(response.status===400?validationMessage(data.code):
+  String(data.error||'Kunstforespørselen ble avvist').slice(0,180));
+ if(data.valid!==true||data.no_provider_call!==true||data.preview_only!==true||
+    data.output_format!=='jpeg'||data.size!=='1280x1600'||
+    data.preset!==payload.preset||data.composition_mode!==payload.composition_mode||
+    data.source_kind!==payload.source_kind||data.reference_used!==!!payload.reference_jpeg_base64||
+    data.variation!==payload.variation||data.revision!==(payload.revision_mode||null)||
+    data.sale_approval!==false||data.print_approval!==false)
+  throw Error('Gratis-testen svarte ikke på den samme forespørselen. Ingen bildegenerering er startet.');
+ return data;
+}
 $('stratism-preflight').addEventListener('click',async()=>{
  if(state.busy||!state.brief)return;
  state.busy=true;refreshVariantUI();
@@ -491,15 +505,7 @@ $('stratism-preflight').addEventListener('click',async()=>{
  try{
   const referenceJpeg=await prepareReferenceJpeg();
   const payload=requestFromCurrentBrief(Math.min(MAX_VARIANTS,state.variants.length+1),referenceJpeg);
-  const response=await preflightRequest(payload);
-  const data=await response.json();
-  if(!response.ok)throw Error(response.status===400?validationMessage(data.code):String(data.error||'Kunstforespørselen ble avvist').slice(0,180));
-  if(data.valid!==true||data.no_provider_call!==true||data.preview_only!==true||
-     data.output_format!=='jpeg'||data.size!=='1280x1600'||
-     data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states')||
-     data.source_kind!==(state.brief.provenance?.source_kind||'concept')||
-     data.reference_used!==!!referenceJpeg||data.variation!==payload.variation)
-   throw Error('Testen returnerte uventede opplysninger.');
+  const data=await verifyFreePreflight(payload);
   $('stratism-preflight-status').textContent='Bestått: '+data.preset+' · '+data.size+' · '+
     (data.reference_used?'referansefoto kontrollert':'generering fra beskrivelse')+
     '. Ingen bilder generert eller lagret. Ingen kostnad.';
@@ -512,14 +518,20 @@ $('stratism-generate-private').addEventListener('click',async()=>{
  if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='Kontroller AI-motoren først. Generering starter aldri uten bekreftet tilkobling.';return;}
  if(referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
  if(state.brief.provenance?.source_kind!=='concept'&&!referenceInput.files?.[0]){$('stratism-brief-status').textContent='Velg referansefoto for et virkelig motiv.';return;}
- if(!approveImageCharge('Generering'))return;
  state.busy=true;refreshVariantUI();
  const variation=state.variants.length+1;
- $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
+ $('stratism-brief-status').textContent='Kontrollerer kunstforespørselen gratis før eventuell betaling…';
  try{
-
   const referenceJpeg=await prepareReferenceJpeg();
-  const response=await stratismRequest(requestFromCurrentBrief(variation,referenceJpeg));
+  const payload=requestFromCurrentBrief(variation,referenceJpeg);
+  await verifyFreePreflight(payload);
+  $('stratism-preflight-status').textContent='Gratis kontroll bestått for forslag '+variation+'. Ingen AI-kreditter brukt på kontrollen.';
+  if(!approveImageCharge('Generering')){
+   $('stratism-brief-status').textContent='Generering avbrutt. Gratis-testen er bestått; ingen bilde-API-kall startet.';
+   return;
+  }
+  $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
+  const response=await stratismRequest(payload);
   const data=await response.json();
   if(!response.ok)throw Error(providerErrorMessage(response,data));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
