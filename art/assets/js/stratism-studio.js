@@ -85,11 +85,26 @@ $('stratism-generate-private').addEventListener('click',async()=>{
  try{
   let session;try{session=JSON.parse(sessionStorage.getItem('art-admin-session')||'null')}catch{}
   if(!session?.access_token)throw Error('Logg inn som administrator igjen.');
+    let referenceJpeg=null;
+  // The reference stays in-browser unless the administrator explicitly asks to generate.
+  // Resize a temporary derivative: never use this JPEG as a sale or print master.
+  if(referenceInput.files?.[0]&&state.reference){
+   const img=$('stratism-reference-preview');
+   if(!img.complete||!img.naturalWidth)throw Error('Referansefotoet er ikke ferdig innlest.');
+   const maxEdge=1400,scale=Math.min(1,maxEdge/Math.max(img.naturalWidth,img.naturalHeight));
+   const canvas=document.createElement('canvas');
+   canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+   canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+   canvas.getContext('2d',{alpha:false}).drawImage(img,0,0,canvas.width,canvas.height);
+   const encoded=canvas.toDataURL('image/jpeg',0.76).split(',')[1];
+   if(encoded.length>1_800_000)throw Error('Referansefotoet er for stort for sikker forhåndsvisning. Velg et mindre bilde.');
+   referenceJpeg=encoded;
+  }
   const response=await fetch('/api/stratism-generate',{
    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
    body:JSON.stringify({description:state.brief.description,
      chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
-     strength:state.brief.style.colour_strength})
+     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg})
   });
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
@@ -98,7 +113,7 @@ $('stratism-generate-private').addEventListener('click',async()=>{
   state.generated='data:'+data.mime_type+';base64,'+data.image_base64;
   $('stratism-generated-preview').src=state.generated;
   $('stratism-result').hidden=false;
-  $('stratism-brief-status').textContent='Privat konsept opprettet. Ikke lagret på server, ikke godkjent for salg eller print.';
+  $('stratism-brief-status').textContent='Privat konsept opprettet'+(data.reference_used?' fra referansefoto':' fra beskrivelse')+'. Ikke lagret på server, ikke godkjent for salg eller print.';
  }catch(error){$('stratism-brief-status').textContent=error.message}
  finally{button.disabled=false}
 });
