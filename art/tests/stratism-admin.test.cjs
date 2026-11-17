@@ -104,3 +104,22 @@ test('Stratism shares refreshed gallery authorization and avoids stale sessionSt
  assert.match(js,/if\(response\.status===401\)response=await send\(true\)/);
  assert.doesNotMatch(js,/sessionStorage\.getItem\('art-admin-session'\)/);
 });
+
+test('private project backup and restore include each preview and revision with approval gates closed',()=>{
+ new vm.Script(js);
+ assert.match(html,/id="stratism-export-project"/);
+ assert.match(html,/id="stratism-import-project"/);
+ assert.match(js,/ARCHIVE_SCHEMA='stratism-project-v1'/);
+ assert.match(js,/MAX_ARCHIVE_BYTES=48\*1024\*1024/);
+ assert.match(js,/async function urlToBase64/);
+ assert.match(js,/function base64ToJpegUrl/);
+ assert.match(js,/image_base64:await urlToBase64\(v\.url\)/);
+ assert.match(js,/image_base64:await urlToBase64\(v\.revision\.url\)/);
+ assert.match(js,/archive\.approvals\?\.commercial_release!==false/);
+ assert.match(js,/archive\.approvals\?\.print_release!==false/);
+ assert.match(js,/commercial_release:false,print_release:false,human_approval_required:true/);
+ assert.match(js,/temporaryUrls=\[\]/);
+ assert.match(js,/for\(const url of temporaryUrls\)URL\.revokeObjectURL\(url\)/);
+ assert.match(js,/referenceInput\.value=''/);
+ assert.doesNotMatch(js,/\.storage\.from\(|\/api\/publish|stripe\/checkout/);
+});
