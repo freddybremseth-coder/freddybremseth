@@ -41,7 +41,8 @@ test('AI generation is server authorized and cannot publish or sell',()=>{
  assert.match(api,/not_print_approved:true/);
  assert.match(api,/stored:false,published:false/);
  assert.match(js,/\/api\/stratism-generate/);
- assert.match(js,/Authorization':'Bearer/);
+ assert.match(js,/ART_ADMIN_GET_ACCESS_TOKEN/);
+ assert.match(js,/response\.status===401/);
  assert.doesNotMatch(js,/api\.openai\.com|supabase\.co|art_gallery_works/);
  assert.doesNotMatch(api,/\.storage\.from\(|\.insert\(|\.upsert\(/);
 });
@@ -92,4 +93,14 @@ test('manual revision preserves original and stays private',()=>{
  assert.match(api,/not_sale_approved:true/);
  assert.match(api,/not_print_approved:true/);
  assert.doesNotMatch(api,/\.storage\.from\(|\.insert\(|\.upsert\(/);
+});
+
+test('Stratism shares refreshed gallery authorization and avoids stale sessionStorage',()=>{
+ const gallery=fs.readFileSync(path.join(root,'assets/js/admin.js'),'utf8');
+ assert.match(gallery,/window\.ART_ADMIN_GET_ACCESS_TOKEN/);
+ assert.match(gallery,/state\.authorized/);
+ assert.match(gallery,/await refresh\(\)/);
+ assert.match(js,/getToken\(\{forceRefresh\}\)/);
+ assert.match(js,/if\(response\.status===401\)response=await send\(true\)/);
+ assert.doesNotMatch(js,/sessionStorage\.getItem\('art-admin-session'\)/);
 });
