@@ -342,7 +342,7 @@ function screenMasterDimensions(width,height,target){
  const ratioMatches=Math.abs(short/long-plan.shortCm/plan.longCm)<=0.015;
  return {pixelPass,ratioMatches,approved:false,requiredShort,requiredLong};
 }
-let masterCandidate=null;
+let masterCandidate=null,masterInspectionId=0;
 function updateMasterCheck(){
  const el=$('stratism-master-check');
  if(!masterCandidate){
@@ -359,7 +359,7 @@ function updateMasterCheck(){
 }
 async function inspectPrivateMasterFile(file){
  if(!file||file.size<100||file.size>200*1024*1024)throw Error('Velg en masterfil på 100 byte–200 MB.');
- const isTiff=/\\.(tif|tiff)$/i.test(file.name)||file.type==='image/tiff';
+ const isTiff=/\.(tif|tiff)$/i.test(file.name)||file.type==='image/tiff';
  if(isTiff){
   const metadata=await file.slice(0,256*1024).arrayBuffer();
   return {...parseTiffDimensions(metadata),name:file.name.slice(0,120)};
@@ -372,13 +372,17 @@ async function inspectPrivateMasterFile(file){
 }
 $('stratism-master-file').addEventListener('change',async()=>{
  const input=$('stratism-master-file'),file=input.files?.[0];
+ const inspectionId=++masterInspectionId;
  masterCandidate=null;
  if(!file){updateMasterCheck();return;}
  $('stratism-master-check').textContent='Kontrollerer filen lokalt – ingen opplasting…';
  try{
-  masterCandidate=await inspectPrivateMasterFile(file);
+  const inspected=await inspectPrivateMasterFile(file);
+  if(inspectionId!==masterInspectionId)return;
+  masterCandidate=inspected;
   updateMasterCheck();
  }catch(error){
+  if(inspectionId!==masterInspectionId)return;
   $('stratism-master-check').textContent='Kontroll mislyktes: '+error.message+
    ' Ingen fil er godkjent eller lastet opp.';
  }
