@@ -176,7 +176,15 @@ module.exports=async(req,res)=>{
       });
     }
   }finally{clearTimeout(timer)}
-  if(!response.ok){console.error('Stratism image provider status',response.status);return res.status(502).json({error:'Image provider declined the request',code:'PROVIDER_'+response.status})}
+  if(!response.ok){
+   const providerCode=response.status===429?'PROVIDER_RATE_LIMIT':
+    response.status===401?'PROVIDER_AUTH':
+    response.status===403?'PROVIDER_ACCESS':
+    response.status===400?'PROVIDER_INVALID_REQUEST':
+    response.status===503||response.status===502?'PROVIDER_UNAVAILABLE':'PROVIDER_ERROR';
+   console.error('Stratism image provider status',response.status,providerCode);
+   return res.status(502).json({error:'Image provider declined the request',code:providerCode});
+  }
   const result=await response.json(),b64=result?.data?.[0]?.b64_json;
   if(typeof b64!=='string'||b64.length<100||b64.length>9_000_000)return res.status(502).json({error:'Generated preview missing or too large'});
   const bytes=Buffer.from(b64,'base64');
