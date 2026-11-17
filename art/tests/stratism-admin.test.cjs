@@ -48,7 +48,6 @@ test('AI generation is server authorized and cannot publish or sell',()=>{
 
 test('photo edit path validates JPEG and does not persist reference image',()=>{
  const apiText=fs.readFileSync(path.join(root,'api/stratism-generate.js'),'utf8');
- const endpoint=require('../api/stratism-generate.js');
  assert.match(apiText,/MAX_REFERENCE_BYTES=1_350_000/);
  assert.match(apiText,/reference_jpeg_base64/);
  assert.match(apiText,/\/v1\/images\/edits/);
