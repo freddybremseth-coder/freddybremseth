@@ -593,3 +593,36 @@ test('preview and web exports have distinct safe dimensions, names and no provid
  assert.match(html,/Fargerom og innebygd profil bevares ikke nødvendigvis/);
  assert.doesNotMatch(code,/fetch\(|stratismRequest\(|approved:true/);
 });
+
+test('master handoff report is technical only and never grants digital sale or print permission',()=>{
+ new vm.Script(js);
+ assert.match(html,/id="stratism-export-master-report"/);
+ assert.match(html,/id="stratism-master-report-status"/);
+ const start=js.indexOf('function makeMasterInspectionReport(candidate,target,checkedAt)');
+ const end=js.indexOf('function webDerivativeSize(',start);
+ assert.ok(start>0&&end>start);
+ const pure=js.slice(start,js.indexOf("$('stratism-export-master-report').addEventListener",start));
+ const prep=js.slice(js.indexOf('const STRATISM_PRINT_TARGETS='),js.indexOf('function updatePrintPlan('));
+ const screen=js.slice(js.indexOf('function screenMasterDimensions('),js.indexOf('let masterCandidate='));
+ const make=vm.runInNewContext('const CM_PER_INCH=2.54;'+prep+screen+pure+';makeMasterInspectionReport');
+ const candidate={name:'Olive painting.tiff',width:9449,height:11812,bytes:56000000,
+  mime:'image/tiff',lastModified:1000,metadataOnly:true};
+ const good=make(candidate,'80x100','2026-11-18T00:00:00.000Z');
+ assert.equal(good.schema,'stratism-master-candidate-report-v1');
+ assert.equal(good.technical_checks.pixel_count_sufficient,true);
+ assert.equal(good.technical_checks.aspect_ratio_compatible,true);
+ assert.equal(good.source.image_content_verified,false);
+ assert.equal(good.source.inspection_method,'tiff-first-ifd-metadata');
+ assert.equal(good.approvals.print,false);
+ assert.equal(good.approvals.digital_sale,false);
+ assert.equal(good.outstanding_checks.colour_profile_verified,false);
+ assert.equal(good.outstanding_checks.source_rights_verified,false);
+ const poor=make({...candidate,width:1280,height:1600,metadataOnly:false},'80x100','2026-11-18T00:00:00.000Z');
+ assert.equal(poor.technical_checks.pixel_count_sufficient,false);
+ assert.equal(poor.approvals.commercial_release,false);
+ assert.throws(()=>make(null,'80x100','date'),/Ingen gyldig filkontroll/);
+ const handler=js.slice(js.indexOf("$('stratism-export-master-report').addEventListener",start),end);
+ assert.match(handler,/technical-check-not-approved\.json/);
+ assert.match(handler,/JSON\.stringify\(report,null,2\)/);
+ assert.doesNotMatch(handler,/fetch\(|stratismRequest\(|approved:true/);
+});
