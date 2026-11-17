@@ -459,3 +459,28 @@ test('Stratism concepts disclose real 300 PPI dimensions and cannot masquerade a
  assert.match(js,/stratism-private-concept-not-print-ready-/);
  assert.doesNotMatch(section,/fetch\(|stratismRequest\(/);
 });
+
+test('300 PPI print planner calculates target pixel requirements without creating print approvals',()=>{
+ new vm.Script(js);
+ assert.match(html,/id="stratism-print-target"/);
+ assert.match(html,/id="stratism-print-plan-result"/);
+ const begin=js.indexOf('const STRATISM_PRINT_TARGETS=');
+ const end=js.indexOf('function updateConceptFileStatus(selected)',begin);
+ assert.ok(begin>0&&end>begin);
+ const code=js.slice(begin,end).replace(/\$\('stratism-print-target'\)\.addEventListener\('change',[^\n]*\n/,'');
+ const planner=vm.runInNewContext('const CM_PER_INCH=2.54;'+code+
+  ';calculateConceptPrintPlan');
+ const large=planner('80x100');
+ assert.deepEqual([large.requiredWidth,large.requiredHeight],[9449,11812]);
+ assert.equal(large.ratioMatches,true);
+ assert.ok(large.scale>7.3&&large.scale<7.4);
+ assert.equal(large.approved,false);
+ const medium=planner('40x50');
+ assert.deepEqual([medium.requiredWidth,medium.requiredHeight],[4725,5906]);
+ assert.equal(medium.ratioMatches,true);
+ assert.equal(planner('30x40').ratioMatches,false);
+ assert.throws(()=>planner('unknown'),/Ukjent printstørrelse/);
+ assert.match(js,/updatePrintPlan\(selected\)/);
+ assert.match(js,/ikke en faktisk oppskalering eller printgodkjenning/);
+ assert.doesNotMatch(code,/fetch\(|stratismRequest\(/);
+});
