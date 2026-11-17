@@ -6,12 +6,15 @@ function reply(res,code,data){return res.status(code).json(data)}
 async function handler(req,res){
  res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');
  if(!['GET','POST'].includes(req.method)){res.setHeader('Allow','GET, POST');return reply(res,405,{error:'Method not allowed'})}
- if(!process.env.SUPABASE_URL||!process.env.SUPABASE_SERVICE_ROLE_KEY)return reply(res,503,{error:'Private archive unavailable'});
+ if(!process.env.STRATISM_SUPABASE_URL||!process.env.STRATISM_SUPABASE_PUBLISHABLE_KEY)
+  return reply(res,503,{error:'Private archive unavailable'});
  const auth=String(req.headers.authorization||'');
  const token=/^Bearer ([A-Za-z0-9._-]+)$/.exec(auth)?.[1];
  if(!token)return reply(res,401,{error:'Administrator sign-in required'});
- const client=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{
-  auth:{persistSession:false,autoRefreshToken:false}
+ // RLS enforces owner-scoped project access; never use a service_role key here.
+ const client=createClient(process.env.STRATISM_SUPABASE_URL,process.env.STRATISM_SUPABASE_PUBLISHABLE_KEY,{
+  auth:{persistSession:false,autoRefreshToken:false},
+  global:{headers:{Authorization:'Bearer '+token}}
  });
  try{
   const {data:{user}={},error}=await client.auth.getUser(token);
