@@ -307,6 +307,83 @@ function updateConceptFileStatus(selected){
   shortCm+' × '+longCm+' cm ved 300 piksler per tomme (PPI). '+
   'Arkiverte bilder kan ha andre dimensjoner. Ingen fil er godkjent for print eller digitalt salg.';
 }
+// Standalone local screening; never uploads the candidate or marks it sale/print approved.
+function parseTiffDimensions(buffer){
+ const view=new DataView(buffer);
+ if(view.byteLength<16)throw Error('TIFF-filen har for lite lesbar metadata.');
+ const order=view.getUint16(0,false),le=order===0x4949;
+ if(!le&&order!==0x4d4d)throw Error('Ukjent TIFF-byteorden.');
+ if(view.getUint16(2,le)!==42)throw Error('Ugyldig TIFF-signatur.');
+ const ifd=view.getUint32(4,le);
+ if(ifd<8||ifd+2>view.byteLength)throw Error('TIFF-metadata ligger utenfor kontrollområdet.');
+ const count=view.getUint16(ifd,le);
+ if(count>4096||ifd+2+count*12>view.byteLength)throw Error('TIFF-metadata er ikke lesbar.');
+ let width=0,height=0;
+ for(let i=0;i<count;i++){
+  const p=ifd+2+i*12,tag=view.getUint16(p,le),type=view.getUint16(p+2,le);
+  const elements=view.getUint32(p+4,le);
+  if((tag!==256&&tag!==257)||elements!==1||(type!==3&&type!==4))continue;
+  const value=type===3?view.getUint16(p+8,le):view.getUint32(p+8,le);
+  if(tag===256)width=value;
+  else height=value;
+ }
+ if(width<32||height<32||width>50000||height>50000||width*height>800_000_000)
+  throw Error('TIFF-filen mangler gyldig bredde eller høyde.');
+ return {width,height,metadataOnly:true};
+}
+function screenMasterDimensions(width,height,target){
+ if(!Number.isInteger(width)||!Number.isInteger(height)||width<32||height<32||
+  width>50000||height>50000||width*height>800_000_000)throw Error('Ugyldige bildedimensjoner.');
+ const plan=calculateConceptPrintPlan(target);
+ const short=Math.min(width,height),long=Math.max(width,height);
+ const requiredShort=Math.min(plan.requiredWidth,plan.requiredHeight);
+ const requiredLong=Math.max(plan.requiredWidth,plan.requiredHeight);
+ const pixelPass=short>=requiredShort&&long>=requiredLong;
+ const ratioMatches=Math.abs(short/long-plan.shortCm/plan.longCm)<=0.015;
+ return {pixelPass,ratioMatches,approved:false,requiredShort,requiredLong};
+}
+let masterCandidate=null;
+function updateMasterCheck(){
+ const el=$('stratism-master-check');
+ if(!masterCandidate){
+  el.textContent='Ingen masterfil kontrollert. Filen blir ikke lastet opp, lagret eller godkjent.';
+  return;
+ }
+ const {width,height,metadataOnly,name}=masterCandidate;
+ const result=screenMasterDimensions(width,height,$('stratism-print-target').value);
+ el.textContent=name+' · '+width.toLocaleString('no-NO')+' × '+height.toLocaleString('no-NO')+
+  ' px. '+(result.pixelPass?'Pikselkravet er oppfylt.':'Pikselkravet er IKKE oppfylt.')+
+  (result.ratioMatches?' Sideforholdet stemmer.':' Sideforholdet krever beskjæring eller omkomponering.')+
+  (metadataOnly?' TIFF-dimensjonene er kun lest fra metadata; bildeinnholdet er ikke dekodet.':'')+
+  ' Filen er bare vurdert lokalt for piksler og format, ikke kunstnerisk kvalitet, fargerom, kilde eller printgodkjenning.';
+}
+async function inspectPrivateMasterFile(file){
+ if(!file||file.size<100||file.size>200*1024*1024)throw Error('Velg en masterfil på 100 byte–200 MB.');
+ const isTiff=/\\.(tif|tiff)$/i.test(file.name)||file.type==='image/tiff';
+ if(isTiff){
+  const metadata=await file.slice(0,256*1024).arrayBuffer();
+  return {...parseTiffDimensions(metadata),name:file.name.slice(0,120)};
+ }
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type))
+  throw Error('Kun JPG, PNG, WebP og TIFF støttes.');
+ const bmp=await createImageBitmap(file);
+ try{return {width:bmp.width,height:bmp.height,name:file.name.slice(0,120),metadataOnly:false};}
+ finally{bmp.close();}
+}
+$('stratism-master-file').addEventListener('change',async()=>{
+ const input=$('stratism-master-file'),file=input.files?.[0];
+ masterCandidate=null;
+ if(!file){updateMasterCheck();return;}
+ $('stratism-master-check').textContent='Kontrollerer filen lokalt – ingen opplasting…';
+ try{
+  masterCandidate=await inspectPrivateMasterFile(file);
+  updateMasterCheck();
+ }catch(error){
+  $('stratism-master-check').textContent='Kontroll mislyktes: '+error.message+
+   ' Ingen fil er godkjent eller lastet opp.';
+ }
+});
+$('stratism-print-target').addEventListener('change',updateMasterCheck);
 function refreshVariantUI(){
  const gallery=$('stratism-variant-gallery');
  gallery.replaceChildren();
