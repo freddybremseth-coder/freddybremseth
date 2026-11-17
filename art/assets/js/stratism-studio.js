@@ -318,18 +318,23 @@ function parseTiffDimensions(buffer){
  if(ifd<8||ifd+2>view.byteLength)throw Error('TIFF-metadata ligger utenfor kontrollområdet.');
  const count=view.getUint16(ifd,le);
  if(count>4096||ifd+2+count*12>view.byteLength)throw Error('TIFF-metadata er ikke lesbar.');
- let width=0,height=0;
+ let width=0,height=0,orientation=1;
  for(let i=0;i<count;i++){
   const p=ifd+2+i*12,tag=view.getUint16(p,le),type=view.getUint16(p+2,le);
   const elements=view.getUint32(p+4,le);
-  if((tag!==256&&tag!==257)||elements!==1||(type!==3&&type!==4))continue;
+  if((tag!==256&&tag!==257&&tag!==274)||elements!==1||(type!==3&&type!==4))continue;
   const value=type===3?view.getUint16(p+8,le):view.getUint32(p+8,le);
   if(tag===256)width=value;
-  else height=value;
+  else if(tag===257)height=value;
+  else orientation=value;
  }
  if(width<32||height<32||width>50000||height>50000||width*height>800_000_000)
   throw Error('TIFF-filen mangler gyldig bredde eller høyde.');
- return {width,height,metadataOnly:true};
+ if(orientation<1||orientation>8)throw Error('Ugyldig TIFF-orientering.');
+ // TIFF orientations 5–8 rotate display dimensions by 90 degrees.
+ const rotates=orientation>=5;
+ return {width:rotates?height:width,height:rotates?width:height,
+  metadataOnly:true,orientation,rotationApplied:rotates};
 }
 function screenMasterDimensions(width,height,target){
  if(!Number.isInteger(width)||!Number.isInteger(height)||width<32||height<32||
@@ -354,7 +359,8 @@ function updateMasterCheck(){
  el.textContent=name+' · '+width.toLocaleString('no-NO')+' × '+height.toLocaleString('no-NO')+
   ' px. '+(result.pixelPass?'Pikselkravet er oppfylt.':'Pikselkravet er IKKE oppfylt.')+
   (result.ratioMatches?' Sideforholdet stemmer.':' Sideforholdet krever beskjæring eller omkomponering.')+
-  (metadataOnly?' TIFF-dimensjonene er kun lest fra metadata; bildeinnholdet er ikke dekodet.':'')+
+  (metadataOnly?' TIFF-dimensjonene er kun lest fra metadata for første bilde; bildeinnholdet er ikke dekodet.':'')+
+  (masterCandidate.rotationApplied?' TIFF-orientering er tatt med i dimensjonene.':'')+
   ' Filen er bare vurdert lokalt for piksler og format, ikke kunstnerisk kvalitet, fargerom, kilde eller printgodkjenning.';
 }
 async function inspectPrivateMasterFile(file){
