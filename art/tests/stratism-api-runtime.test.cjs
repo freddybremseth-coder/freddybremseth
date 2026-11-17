@@ -16,7 +16,7 @@ function fakeJpeg(width=1280,height=1600){
 function harness({enabled=false,userId=null,member=null,providerStatus=200,reference=null}={}){
  let calls=0,dbCalls=0,lastEndpoint=null,lastOptions=null;
  const env={STRATISM_GENERATION_ENABLED:enabled?'true':'false',
-   OPENAI_API_KEY:'dummy-only',SUPABASE_URL:'https://example.invalid',SUPABASE_SERVICE_ROLE_KEY:'fake'};
+   OPENAI_API_KEY:'dummy-only',STRATISM_SUPABASE_URL:'https://example.invalid',STRATISM_SUPABASE_PUBLISHABLE_KEY:'public-test-only'};
  const client={
   auth:{getUser:async()=>({data:{user:userId?{id:userId}:null},error:null})},
   from:(table)=>{dbCalls++;assert.equal(table,'art_gallery_admin_users');return{
@@ -26,7 +26,7 @@ function harness({enabled=false,userId=null,member=null,providerStatus=200,refer
  const module={exports:{}};
  const sandbox={module,exports:module.exports,process:{env,},console:{error:()=>{}},
   Buffer,Blob,FormData,AbortController,setTimeout,clearTimeout,
-  require:(id)=>{assert.equal(id,'@supabase/supabase-js');return{createClient:()=>client}},
+  require:(id)=>{assert.equal(id,'@supabase/supabase-js');return{createClient:(url,key,options)=>{assert.equal(key,'public-test-only');assert.match(options.global.headers.Authorization,/^Bearer /);return client}}},
   fetch:async(url,opts)=>{calls++;lastEndpoint=url;lastOptions=opts;assert.match(url,/api\.openai\.com/);
    return {ok:providerStatus===200,status:providerStatus,json:async()=>({data:[{b64_json:fakeJpeg()}]})};
   }
@@ -220,4 +220,11 @@ test('invalid JPEG, wrong dimensions or absent SOF must not be accepted as a Str
  assert.match(code,/jpegDimensions\(bytes\)/);
  assert.match(code,/dimensions\.width!==CONCEPT_WIDTH\|\|dimensions\.height!==CONCEPT_HEIGHT/);
  assert.equal(fakeJpeg(1280,1600).length>100,true);
+});
+
+test('generation never requires or uses service-role credentials',()=>{
+ assert.doesNotMatch(code,/process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
+ assert.doesNotMatch(code,/process\.env\.SUPABASE_URL/);
+ assert.match(code,/process\.env\.STRATISM_SUPABASE_PUBLISHABLE_KEY/);
+ assert.match(code,/global:\{headers:\{Authorization:'Bearer '\+token\}\}/);
 });
