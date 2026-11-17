@@ -10,7 +10,7 @@ function harness({member=true,enabled=false,configured=false,validUser=true}={})
   from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:member?{user_id:'abc-user'}:null})})})})};
  const env={STRATISM_SUPABASE_URL:'https://example.invalid',STRATISM_SUPABASE_PUBLISHABLE_KEY:'publishable-test',
   ...(enabled?{STRATISM_GENERATION_ENABLED:'true'}:{}),
-  ...(configured?{OPENAI_API_KEY:'test',SUPABASE_URL:'https://example.invalid',SUPABASE_SERVICE_ROLE_KEY:'mock-secret'}:{})};
+  ...(configured?{OPENAI_API_KEY:'test'}:{})};
  const ctx={module:{exports:{}},process:{env},console:{error:()=>{}},require:(name)=>{
   assert.equal(name,'@supabase/supabase-js');return{createClient:(url,key,opts)=>{
    accesses++;assert.equal(key,'publishable-test');
@@ -53,4 +53,9 @@ test('browser blocks billable buttons before readiness and displays status in ad
  assert.match(client,/!providerReadiness\.canGenerate/);
  assert.match(client,/api\/stratism-readiness/);
  assert.match(client,/stratism-check-provider'\)\.addEventListener\('click',checkProviderReadiness\)/);
+});
+
+test('readiness does not depend on a service role',()=>{
+ assert.doesNotMatch(api,/SUPABASE_SERVICE_ROLE_KEY/);
+ assert.match(api,/STRATISM_SUPABASE_PUBLISHABLE_KEY/);
 });
