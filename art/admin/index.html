@@ -114,6 +114,7 @@
     <div class="stratism-refine-controls">
      <label>Forbedre valgt forslag – bevar motivet
       <select id="stratism-refinement-kind">
+       <option value="qa-guided">Rett punktene markert «Må forbedres»</option>
        <option value="subtler-colour">Demp fargene ytterligere</option>
        <option value="preserve-details">Bevar viktige detaljer bedre</option>
        <option value="more-linen">Mer synlig rå lin og utvalgte grafittspor</option>
@@ -124,6 +125,7 @@
       <select id="stratism-revision-select" aria-label="Velg original eller forbedret versjon"><option value="0">Originalforslag</option></select>
      </label>
      <button id="stratism-refine-selected" type="button" disabled>Forbedre valgt bilde (AI-kall)</button>
+     <p id="stratism-refine-hint" class="stratism-notice" role="status" aria-live="polite">Marker først punkter som må forbedres, eller velg en enkelt forbedring.</p>
     </div>
 
     <div class="stratism-quality-panel" id="stratism-quality-panel" aria-labelledby="stratism-quality-title">
