@@ -49,9 +49,14 @@ async function checkProviderReadiness(){
   providerReadiness.canGenerate=data.can_generate===true&&data.preview_only===true&&
    data.sale_approval===false&&data.print_approval===false;
   providerReadiness.model=typeof data.model==='string'?data.model:null;
+  const blockers=Array.isArray(data.blockers)?data.blockers:[];
+  const reasons=[];
+  if(blockers.includes('GENERATION_DISABLED'))reasons.push('Privat generering er deaktivert i Vercel');
+  if(blockers.includes('PROVIDER_KEY_MISSING'))reasons.push('OpenAI API-nøkkel mangler i dette miljøet');
   $('stratism-provider-readiness').textContent=providerReadiness.canGenerate?
-   'Privat AI-motor er konfigurert og aktivert ('+providerReadiness.model+'). Denne statussjekken kostet ingenting.':
-   'AI-generering er ikke aktivert eller konfigurert her. Du kan fortsatt lage brief, kontrollere bilder og lagre prosjekter uten kostnad.';
+   'Konfigurasjonen er klar ('+providerReadiness.model+'). Modelltilgang og kreditter er IKKE bekreftet hos OpenAI. Ingen bildekall er utført.':
+   (reasons.length?reasons.join('. ')+'. ':'AI-generering er ikke konfigurert her. ')+
+    'Du kan fortsatt lage brief, kontrollere bilder og lagre prosjekter uten kostnad.';
  }catch(e){
   providerReadiness.checked=false;providerReadiness.canGenerate=false;
   $('stratism-provider-readiness').textContent='Kunne ikke bekrefte AI-tilkoblingen: '+e.message;
