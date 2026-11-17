@@ -28,7 +28,7 @@
   <section class="intro"><div><p class="eyebrow">GALLERY CONTROL ROOM</p><h1>Add art. Set the story<span class="period">.</span></h1><p>Upload image files or one ZIP archive. For new artworks, AI can visually analyse each work and automatically choose the closest collection and artistic style from your existing gallery taxonomy. You can review and override every suggestion before upload. Full-resolution sources are stored in a private bucket; only reduced WebP previews are published.</p></div><div class="stat"><strong id="catalog-count">—</strong><span>catalogue works</span><strong id="master-count">—</strong><span>private masters registered · not necessarily verified</span></div></section>
   <section class="panel stratism-panel" aria-labelledby="stratism-studio-title">
    <div class="panel-head"><span class="step">STRATISM</span><h2 id="stratism-studio-title">Stratism Studio · kunstnerisk brief</h2></div>
-   <p>Lag en konsistent Stratism-instruksjon fra din egen beskrivelse. Dette er en <strong>privat planleggingsmodul</strong> – den genererer foreløpig ikke bilder, bruker ingen API-kreditter og publiserer ingenting.</p>
+   <p>Lag en konsistent Stratism-instruksjon fra din egen beskrivelse. Dette er en <strong>privat arbeidsmodul</strong>. AI-generering krever godkjent administrator og et særskilt aktivert API. Ingen kunstverk publiseres automatisk.</p>
    <form id="stratism-brief-form">
     <div class="stratism-grid">
      <label>Arbeidstittel<input id="stratism-title" maxlength="100" placeholder="Living Memory – Doña Anna"></label>
@@ -52,6 +52,13 @@
     </div>
     <div class="stratism-actions"><button class="primary" type="submit">Lag Stratism-brief</button><button id="stratism-download-brief" type="button" disabled>Last ned JSON</button><button id="stratism-generate-private" type="button" disabled>Generer forslag 1 (AI)</button></div>
    </form>
+   <div class="stratism-project-actions" aria-label="Privat prosjektarkiv">
+    <button id="stratism-export-project" type="button" disabled>Lagre prosjektfil med bilder</button>
+    <label for="stratism-import-project" class="stratism-project-import">Åpne lagret prosjektfil
+      <input id="stratism-import-project" type="file" accept=".json,application/json">
+    </label>
+    <p class="stratism-notice">Prosjektfilen lagres kun på din enhet. Den inneholder private kunstbilder og må oppbevares sikkert. Originalt referansefoto må velges på nytt etter import.</p>
+   </div>
    <p id="stratism-brief-status" class="stratism-notice" role="status" aria-live="polite">Ingen brief generert.</p>
    <div id="stratism-result" class="stratism-result" hidden>
     <h3>Private bildeforslag <small id="stratism-variant-count">0 av 3</small></h3>
@@ -77,7 +84,7 @@
     <button id="stratism-reset-variants" type="button">Tøm lokale forslag</button>
     <p>Kun private AI-konsepter · ikke lagret på server · ikke godkjent for salg eller print.</p>
    </div><pre id="stratism-brief-output" class="stratism-output" aria-label="Stratism produksjonsinstruksjon">Produksjonsinstruksjonen vises her.</pre>
-   <p class="stratism-notice">Neste fase: server-side bildegenerering, private jobber, kontroll av originaloppløsning og separat kunstner-/salgs-/printgodkjenning. Ingen av disse funksjonene er aktivert her.</p>
+   <p class="stratism-notice">Privat AI-bildegenerering er implementert, men deaktivert i testmiljøet inntil leverandør og tilgang er verifisert. Digitalt salg og printgodkjenning er ikke koblet til denne modulen.</p>
   </section>
   <section class="panel master-audit-panel" aria-labelledby="master-audit-title"><div class="panel-head"><span class="step">FILE CHECK</span><h2 id="master-audit-title">Private originals · upload progress</h2></div><p>Counts below check the <strong>actual private Storage object</strong>, not only its catalogue record. Private files are not published or available for purchase from this dashboard.</p><div class="master-audit-stats"><div><strong id="master-stored">—</strong><span>Files in private Storage</span></div><div><strong id="master-missing">—</strong><span>Works needing a private file</span></div><div><strong id="master-verified">—</strong><span>Sale masters verified · not print certification</span></div></div><p id="master-audit-note" class="subtle" aria-live="polite">Checking private files…</p><button id="show-missing" type="button">Show works needing files ↓</button></section>
   <section class="panel print-master-panel" aria-labelledby="print-master-title"><div class="panel-head"><span class="step">PRINT</span><h2 id="print-master-title">Print Master quality</h2></div><p>This checks the best private JPG/PNG source for each artwork and estimates the largest sensible Enhanced Matte print size from its real pixel dimensions. It does not invent detail or treat DPI metadata as resolution.</p><div class="print-master-stats"><div><strong id="print-master-statement">—</strong><span>Statement ready · approx. 60×90 cm+</span></div><div><strong id="print-master-large">—</strong><span>Large ready · approx. 50×70 cm+</span></div><div><strong id="print-master-medium">—</strong><span>Medium ready · approx. 40×50 cm+</span></div><div><strong id="print-master-upgrade">—</strong><span>Needs a larger print master</span></div></div><p id="print-master-note" class="subtle" aria-live="polite">Calculating print capability…</p><button id="show-print-upgrades" type="button">Show works needing a larger print master ↓</button></section>
