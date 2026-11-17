@@ -437,3 +437,25 @@ test('paid revision checks exact image and QA checklist via free preflight befor
  assert.match(helper,/payload\.reference_jpeg_base64\|\|payload\.revision_jpeg_base64/);
  assert.match(helper,/data\.revision!==\(payload\.revision_mode\|\|null\)/);
 });
+
+test('Stratism concepts disclose real 300 PPI dimensions and cannot masquerade as sale or print masters',()=>{
+ new vm.Script(js);
+ for(const id of ['stratism-concept-file-status','stratism-concept-resolution','stratism-concept-limit'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(html,/300 DPI i metadata gir ikke flere piksler/);
+ assert.match(html,/En JPEG-prøve er ikke en digital salgs-master eller print-master/);
+ const start=js.indexOf('function updateConceptFileStatus(selected)');
+ const end=js.indexOf('function refreshVariantUI()',start);
+ assert.ok(start>=0&&end>start);
+ const section=js.slice(start,end);
+ assert.match(section,/1280\/300\*CM_PER_INCH/);
+ assert.match(section,/1600\/300\*CM_PER_INCH/);
+ assert.match(section,/Arkiverte bilder kan ha andre dimensjoner/);
+ assert.match(section,/Ingen fil er godkjent for print eller digitalt salg/);
+ const calc=vm.runInNewContext('const CM_PER_INCH=2.54;'+
+  "[(1280/300*CM_PER_INCH).toFixed(1),(1600/300*CM_PER_INCH).toFixed(1)]");
+ assert.deepEqual(Array.from(calc),['10.8','13.5']);
+ assert.match(js,/updateConceptFileStatus\(selected\)/);
+ assert.match(js,/stratism-private-concept-not-print-ready-/);
+ assert.doesNotMatch(section,/fetch\(|stratismRequest\(/);
+});
