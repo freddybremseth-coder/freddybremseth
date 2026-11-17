@@ -186,3 +186,15 @@ test('quality-guided revision stays optional, saveable and original-preserving',
  assert.match(js,/variant\.revision=\{url,mode,createdAt:new Date\(\)\.toISOString\(\),qa_failed:qaFailed\|\|\[\]\}/);
  assert.match(js,/commercial_release:false,print_release:false/);
 });
+
+test('ordinary generation never references QA-revision-only variables',()=>{
+ const begin=js.indexOf("$('stratism-generate-private').addEventListener");
+ const end=js.indexOf("$('stratism-save-preview').addEventListener",begin);
+ assert.ok(begin>0&&end>begin);
+ const generation=js.slice(begin,end);
+ assert.doesNotMatch(generation,/mode==='qa-guided'|qaFailed/);
+ assert.match(generation,/reference_rights:state\.brief\.provenance\?\.reference_rights_confirmed===true\}\)/);
+ const revision=js.slice(js.indexOf("$('stratism-refine-selected').addEventListener"),js.indexOf('const ARCHIVE_SCHEMA'));
+ assert.match(revision,/qa_failed:qaFailed/);
+ assert.match(revision,/revision_mode:mode/);
+});
