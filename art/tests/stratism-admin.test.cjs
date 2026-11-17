@@ -123,3 +123,19 @@ test('private project backup and restore include each preview and revision with 
  assert.match(js,/referenceInput\.value=''/);
  assert.doesNotMatch(js,/\.storage\.from\(|\/api\/publish|stripe\/checkout/);
 });
+
+test('three art presets are selectable and saved with individual briefs',()=>{
+ for(const value of ['stratum-no4-v1','olivos-de-biar-v1','stratism-working-v09'])
+  assert.match(html,new RegExp('<option value="'+value+'">'));
+ assert.match(html,/id="stratism-preset"/);
+ assert.match(js,/preset,reference_note/);
+ assert.match(js,/style:\{name:'Stratism',preset/);
+ assert.match(js,/preset:state\.brief\.preset/);
+ assert.match(js,/state\.brief=\{\.\.\.archive\.brief,preset:archive\.brief\.preset\|\|'stratism-working-v09'/);
+ assert.match(js,/STRATISM_PRESET_IDS\.includes\(brief\.preset\)/);
+ assert.match(js,/function updatePresetDescription\(\)/);
+ assert.match(js,/form\.addEventListener\('change'/);
+ assert.match(js,/BROAD FLAT OPAQUE/);
+ assert.match(js,/Original Olivos de Biar model/);
+ assert.match(js,/Original working Stratism v0\.9/);
+});
