@@ -155,9 +155,12 @@ $('stratism-refinement-kind').addEventListener('change',refreshRefinementHint);
 function validateQuality(value){
  if(value==null)return null; // Compatibility with archives from before reviews existed.
  if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Ugyldig kunstnerisk vurdering.');
+ if(Object.keys(value).some(key=>!['original','revision'].includes(key)))throw Error('Ukjent vurderingsfelt i prosjektet.');
  for(const key of ['original','revision']){
   const record=value[key];if(record==null)continue;
-  if(typeof record!=='object'||!record.ratings||typeof record.ratings!=='object'||
+  if(typeof record!=='object'||Array.isArray(record)||
+    !record.ratings||typeof record.ratings!=='object'||Array.isArray(record.ratings)||
+    Object.keys(record).some(field=>!['ratings','notes','updated_at'].includes(field))||
     typeof record.notes!=='string'||record.notes.length>700||
     (record.updated_at!==null&&record.updated_at!==undefined&&
      (typeof record.updated_at!=='string'||record.updated_at.length>40)))throw Error('Ugyldig vurderingsnotat.');
@@ -644,8 +647,11 @@ async function serializePrivateProject(){
  if(!state.brief)throw Error('Opprett en brief før lagring.');
   const variants=[];
   for(const v of state.variants){
+   const reviews=validateQuality(v.reviews&&Object.keys(v.reviews).length?v.reviews:null);
+   if(reviews?.revision&&!v.revision)throw Error('Revisjonsvurdering uten revisjonsbilde.');
+   if(v.showRevision&&!v.revision)throw Error('Valgt revisjon mangler revisjonsbilde.');
    variants.push({variation:v.variation,createdAt:v.createdAt,showRevision:!!v.showRevision,
-    image_base64:await urlToBase64(v.url),reviews:v.reviews||null,revision:v.revision?{
+    image_base64:await urlToBase64(v.url),reviews:reviews||null,revision:v.revision?{
       mode:v.revision.mode,createdAt:v.revision.createdAt,qa_failed:v.revision.qa_failed||[],
       image_base64:await urlToBase64(v.revision.url)
     }:null});
