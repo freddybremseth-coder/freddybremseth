@@ -193,7 +193,7 @@ test('ordinary generation never references QA-revision-only variables',()=>{
  assert.ok(begin>0&&end>begin);
  const generation=js.slice(begin,end);
  assert.doesNotMatch(generation,/mode==='qa-guided'|qaFailed/);
- assert.match(generation,/reference_rights:state\.brief\.provenance\?\.reference_rights_confirmed===true\}\)/);
+ assert.match(generation,/stratismRequest\(requestFromCurrentBrief\(variation,referenceJpeg\)\)/);
  const revision=js.slice(js.indexOf("$('stratism-refine-selected').addEventListener"),js.indexOf('const ARCHIVE_SCHEMA'));
  assert.match(revision,/qa_failed:qaFailed/);
  assert.match(revision,/revision_mode:mode/);
@@ -213,4 +213,17 @@ test('paid generation and revision require explicit user approval and show helpf
  assert.match(js,/PROVIDER_ACCESS/);
  assert.match(js,/PROVIDER_AUTH/);
  assert.match(js,/Ingen automatisk ny forespørsel sendes/);
+});
+
+test('preflight and real generation share the exact same prepared private request',()=>{
+ new vm.Script(js);
+ assert.match(html,/id="stratism-preflight"/);
+ assert.match(html,/id="stratism-preflight-status"/);
+ assert.match(js,/function requestFromCurrentBrief\(variation,referenceJpeg\)/);
+ assert.match(js,/async function prepareReferenceJpeg\(\)/);
+ assert.match(js,/const payload=requestFromCurrentBrief\(/);
+ assert.match(js,/stratismRequest\(requestFromCurrentBrief\(variation,referenceJpeg\)\)/);
+ assert.match(js,/\/api\/stratism-preflight/);
+ assert.match(js,/data\.no_provider_call!==true/);
+ assert.match(js,/\$\('stratism-preflight'\)\.disabled=!state\.brief\|\|state\.busy/);
 });
