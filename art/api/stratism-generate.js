@@ -186,6 +186,16 @@ function validateGenerationRequest(body){
    refinementFor(preset,source.composition,revisionMode,body);
  return {prompt,reference,variation,revisionMode,preset,source};
 }
+const VALIDATION_CODES=new Set([
+ 'INVALID_SOURCE_OR_COMPOSITION','CLIENT_CONSENT_REQUIRED','INVALID_PRESET',
+ 'DESCRIPTION_REQUIRED','INVALID_VARIATION','INVALID_REFINEMENT',
+ 'UNEXPECTED_QUALITY_REVIEW','INVALID_REFERENCE','INVALID_REFERENCE_DIMENSIONS',
+ 'MISSING_REVISION_IMAGE','PHOTO_REQUIRED','PHOTO_RIGHTS_REQUIRED',
+ 'INVALID_QUALITY_REVIEW'
+]);
+function validationErrorCode(error){
+ return VALIDATION_CODES.has(error?.message)?error.message:'INVALID_ART_REQUEST';
+}
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');
  if(req.method!=='POST'){res.setHeader('Allow','POST');return res.status(405).json({error:'Method not allowed'})}
@@ -197,8 +207,8 @@ module.exports=async(req,res)=>{
  if(!token)return res.status(401).json({error:'Administrator sign-in required'});
  if(Number(req.headers['content-length']||0)>2_600_000)return res.status(413).json({error:'Request too large'});
  let parsed;
- try{parsed=validateGenerationRequest(req.body)}catch{
-  return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'});
+ try{parsed=validateGenerationRequest(req.body)}catch(error){
+  return res.status(400).json({error:'Invalid Stratism description, variant or reference photo',code:validationErrorCode(error)});
  }
  const {prompt,reference,variation,revisionMode,preset,source}=parsed;
  const admin=createClient(process.env.STRATISM_SUPABASE_URL,process.env.STRATISM_SUPABASE_PUBLISHABLE_KEY,{
@@ -258,4 +268,5 @@ module.exports=async(req,res)=>{
 module.exports.promptFrom=promptFrom;
 module.exports.PRESET_IDS=PRESET_IDS;
 module.exports.validateGenerationRequest=validateGenerationRequest;
+module.exports.validationErrorCode=validationErrorCode;
 module.exports.CONCEPT_SIZE=CONCEPT_SIZE;
