@@ -71,6 +71,12 @@ function readReference(base64){
  const bytes=Buffer.from(base64,'base64');
  if(bytes.length<80||bytes.length>MAX_REFERENCE_BYTES||bytes[0]!==0xff||bytes[1]!==0xd8||bytes[2]!==0xff)
   throw new Error('INVALID_REFERENCE');
+ const dimensions=jpegDimensions(bytes);
+ // The preflight and generator must reject missing or implausible JPEG headers before a paid call.
+ if(!dimensions||dimensions.width<32||dimensions.height<32||
+    dimensions.width>12000||dimensions.height>12000||
+    dimensions.width*dimensions.height>80_000_000)
+  throw new Error('INVALID_REFERENCE_DIMENSIONS');
  return bytes;
 }
 
