@@ -260,3 +260,19 @@ test('QA revisions send selected failed criteria to the API and never unlock on 
  assert.doesNotMatch(refresh,/disabled=\$\('stratism-refine-selected'\)\.disabled\|\|/);
  assert.match(refresh,/updateQualityUI\(\)/);
 });
+
+test('human quality criteria are tailored to each model without changing the persisted six review fields',()=>{
+ new vm.Script(js);
+ for(const p of ['stratum-no4-v1','three-anchors','olivos-de-biar-v1','stratism-working-v09'])
+  assert.match(js,new RegExp("'"+p+"':Object\\.freeze\\(\\{"));
+ assert.match(js,/Dempede olivengrønne og naturlige jordfarger/);
+ assert.match(js,/Organisk, myk overgang til bar lin – ikke tvungne dryp/);
+ assert.match(js,/Gjennomsiktig vask og lange dryp – uten fem faste bånd/);
+ assert.match(js,/Fem ulike overganger, mauve vask og utvalgte lange dryp/);
+ assert.match(js,/function activeQualityLabels\(\)/);
+ assert.match(js,/control\.closest\('label'\)/);
+ assert.match(js,/label\.firstChild\.nodeValue=labels\[control\.dataset\.stratismQuality\]/);
+ assert.match(js,/const QUALITY_FIELDS=\['subject','colour','brush','transitions','linen','texture'\]/);
+ assert.match(js,/reviews:v\.reviews\|\|null/);
+ assert.match(js,/const reviews=validateQuality\(entry\.reviews\)/);
+});
