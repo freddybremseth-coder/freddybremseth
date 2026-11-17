@@ -11,6 +11,9 @@ const PRESET_RULES=Object.freeze({
  'olivos-de-biar-v1':"Create a highly refined, quiet olive-tree-style fine-art painting preserving the ORIGINAL OLIVOS DE BIAR aesthetic, rather than the five-band Stratism formula. Closely observe the recognizable main subject and its silhouette. The subject is painted delicately and naturally with realistic fine brush and tempera-like detail, atmospheric softened distances and restrained natural earth colours. The image gradually fades organically downwards into quiet raw warm linen with elegant graphite sketches of the surviving roots or defining contours. Thin transparent softness is desirable here; do NOT add a saturated turquoise horizontal band or palette-knife red scraped stripe. This is the original softer, naturalistic olive painting series, distinct from formal Stratism. No scale-like emboss, digital filter or fake peeling collage. Portrait 4:5, full subject inside frame, softly natural atmosphere.",
  'stratism-working-v09':null
 });
+const COMPOSITION_MODES=new Set(['five-states','three-anchors']);
+const SOURCE_KINDS=new Set(['concept','own-photo','client-photo']);
+const THREE_ANCHORS_RULE="Use only THREE mandatory instantly recognizable painterly anchors: (1) exactly ONE saturated colour chord painted as BROAD FLAT OPAQUE shapes with visible wet-into-wet brush edges, no glow; (2) transparent grey-mauve wash with LONG THIN DRIPS visibly flowing into the bare linen below; (3) an unfinished graphite sketch of the same subject on exposed raw-looking beige linen with a small discreet graphite signature. The other material states from Stratism may be present but should NOT be forced into rigid equally spaced bands. Maintain one coherent subject, portrait 4:5, all inside frame, quiet pale muted grey-blue background, no orange soil or secondary saturated colours, no embossed or repetitive digital texture. This is a DIGITAL depiction of paint, linen and graphite; do not imply physical hand-finishing.";
 const MAX_REFERENCE_BYTES=1_350_000;
 const REFINEMENTS=Object.freeze({
  'subtler-colour':'Revise the attached existing Stratism painting with notably subtler chroma; preserve subject identity, geometry, all surviving details and composition. Do not introduce a strong colour stripe.',
@@ -35,19 +38,37 @@ function readReference(base64){
 
 function text(value,max=1500){return typeof value==='string'?value.trim().slice(0,max):''}
 function choice(value,allowed,fallback){return allowed.has(value)?value:fallback}
+function sourceContext(body){
+ const sourceKind=body?.source_kind??'concept';
+ const composition=body?.composition_mode??'five-states';
+ if(!SOURCE_KINDS.has(sourceKind)||!COMPOSITION_MODES.has(composition))throw new Error('INVALID_SOURCE_OR_COMPOSITION');
+ const place=text(body?.place,140),story=text(body?.story,1000),photoCredit=text(body?.photo_credit,120);
+ if(sourceKind==='client-photo'&&body?.reference_rights!==true)throw new Error('CLIENT_CONSENT_REQUIRED');
+ return {sourceKind,composition,place,story,photoCredit};
+}
+function sourceSupplement(context){
+ let extra='';
+ if(context.place)extra+=' Location supplied by creator: '+context.place+'.';
+ if(context.story)extra+=' Creator-supplied personal story to inform subject detail: '+context.story+'.';
+ if(context.photoCredit)extra+=' Creator-reported photograph credit: '+context.photoCredit+'.';
+ if(context.sourceKind==='own-photo'||context.sourceKind==='client-photo')
+  extra+=' Use the attached authorized photograph as the factual source of the distinct subject structure. Do not invent extra people, buildings or trees.';
+ return extra;
+}
 function promptFrom(body){
  const description=text(body?.description,1500);
  const preset=body?.preset??'stratism-working-v09';
+ const context=sourceContext(body);
  if(!PRESET_IDS.has(preset))throw new Error('INVALID_PRESET');
  if(description.length<12)throw new Error('DESCRIPTION_REQUIRED');
  const chord=choice(body?.chord,CHORDS,preset==='stratum-no4-v1'?'cobalt turquoise and teal':'muted olive green and warm ochre');
  const emphasis=choice(body?.emphasis,EMPHASES,"the main subject's distinctive features");
  const strength=choice(body?.strength,STRENGTHS,'subtle');
  const legacy=`Create an original fine-art painting in the developing Stratism art system by Freddy Bremseth. The artistic subject is: ${description}. A single coherent subject passes through five fixed states of time in descending order: precise matte presence, restrained emotional colour, translucent memory wash, localized physically believable abrasion, and near-absence on truly bare unprimed linen. The motif remains recognizable and continuous across all five states, but the techniques differ in material character and selected defining details survive low into the otherwise unfinished composition. Choose the following colour chord: ${chord}. Strength: ${strength}; the colour never becomes a broad, dominant horizontal stripe. Preserve ${emphasis}. Transition boundaries should be asymmetric and organic rather than straight bands. The exact material character must vary by state: very smooth matte fine detail, soft colour wash, thin translucent stain, a small area of rubbed-back pigment, then unpainted woven linen and a few delicate graphite traces. Avoid homogeneous embossed scale patterns, global grain filters, paper collage/peeling paper, decorative flourishes, frames and borders. Full-bleed vertical composition, 4:5 framing within portrait output. Add only a discreet cursive signature reading 'Freddy Bremseth' on the raw linen in the lower right. No other lettering. This is a review concept, not an approved printable or salable original.`;
- if(preset==='stratism-working-v09')return legacy;
- const rules=PRESET_RULES[preset];
+ if(preset==='stratism-working-v09')return legacy+sourceSupplement(context);
+ const rules=preset==='stratum-no4-v1'&&context.composition==='three-anchors'?THREE_ANCHORS_RULE:PRESET_RULES[preset];
  const singleChord=preset==='stratum-no4-v1'?chord:'restrained natural olive-green, beige and muted earth tones';
- return `${rules} Main subject: ${description}. Keep ${emphasis}. Colour chord: ${singleChord}. Chroma intensity ${strength}. Make any physically possible cloth/grain natural and localized, never applied uniformly as a digital dot pattern. Add only a discreet small cursive graphite-like Freddy Bremseth signature on the lower-right linen; NO OTHER TEXT. Private review concept, never commercially or print approved.`;
+ return `${rules} Main subject: ${description}. Keep ${emphasis}. Colour chord: ${singleChord}. Chroma intensity ${strength}. Make any physically possible cloth/grain natural and localized, never applied uniformly as a digital dot pattern. Add only a discreet small cursive graphite-like Freddy Bremseth signature on the lower-right linen; NO OTHER TEXT. Private review concept, never commercially or print approved.${sourceSupplement(context)}`;
 }
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');
@@ -59,8 +80,9 @@ module.exports=async(req,res)=>{
  const token=header.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
  if(!token)return res.status(401).json({error:'Administrator sign-in required'});
  if(Number(req.headers['content-length']||0)>2_600_000)return res.status(413).json({error:'Request too large'});
- let prompt,reference,variation,revisionMode,preset;try{
+ let prompt,reference,variation,revisionMode,preset,source;try{
  preset=req.body?.preset??'stratism-working-v09';
+ source=sourceContext(req.body);
  if(!PRESET_IDS.has(preset))throw new Error('INVALID_PRESET');
  variation=req.body?.variation===undefined?1:req.body?.variation;
  if(!Number.isInteger(variation)||variation<1||variation>3)throw new Error('INVALID_VARIATION');
@@ -68,6 +90,8 @@ module.exports=async(req,res)=>{
  if(revisionMode!==undefined&&(!Object.hasOwn(REFINEMENTS,revisionMode)||req.body?.reference_jpeg_base64!=null))throw new Error('INVALID_REFINEMENT');
  reference=readReference(revisionMode===undefined?req.body?.reference_jpeg_base64:req.body?.revision_jpeg_base64);
  if(revisionMode!==undefined&&!reference)throw new Error('MISSING_REVISION_IMAGE');
+ if(revisionMode===undefined&&source.sourceKind!=='concept'&&!reference)throw new Error('PHOTO_REQUIRED');
+ if(revisionMode===undefined&&reference&&req.body?.reference_rights!==true)throw new Error('PHOTO_RIGHTS_REQUIRED');
  prompt=promptFrom(req.body)+' '+(preset==='stratum-no4-v1'?
   VARIATION_DIRECTIVES[variation]:
   preset==='olivos-de-biar-v1'?
@@ -109,7 +133,7 @@ module.exports=async(req,res)=>{
   if(!response.ok){console.error('Stratism image provider status',response.status);return res.status(502).json({error:'Image provider declined the request',code:'PROVIDER_'+response.status})}
   const result=await response.json(),b64=result?.data?.[0]?.b64_json;
   if(typeof b64!=='string'||b64.length<100||b64.length>9_000_000)return res.status(502).json({error:'Generated preview missing or too large'});
-  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference,variation,preset,refinement_applied:revisionMode||null});
+  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference,variation,preset,composition_mode:source.composition,source_kind:source.sourceKind,refinement_applied:revisionMode||null});
  }catch(error){console.error('Stratism generation failed',error?.name||'unknown');return res.status(502).json({error:'Private preview generation unavailable'})}
 };
 module.exports.promptFrom=promptFrom;
