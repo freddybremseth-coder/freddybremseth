@@ -108,6 +108,32 @@ function promptFrom(body){
  const singleChord=preset==='stratum-no4-v1'?chord:'restrained natural olive-green, beige and muted earth tones';
  return `${rules} Main subject: ${description}. Keep ${emphasis}. Colour chord: ${singleChord}. Chroma intensity ${strength}. Make any physically possible cloth/grain natural and localized, never applied uniformly as a digital dot pattern. Add only a discreet small cursive graphite-like Freddy Bremseth signature on the lower-right linen; NO OTHER TEXT. Private review concept, never commercially or print approved.${sourceSupplement(context)}`;
 }
+function validateGenerationRequest(body){
+ let prompt,reference,variation,revisionMode,preset,source;
+ preset=body?.preset??'stratism-working-v09';
+ source=sourceContext(body);
+ if(!PRESET_IDS.has(preset))throw new Error('INVALID_PRESET');
+ variation=body?.variation===undefined?1:body?.variation;
+ if(!Number.isInteger(variation)||variation<1||variation>3)throw new Error('INVALID_VARIATION');
+ revisionMode=body?.revision_mode;
+ if(revisionMode!==undefined&&(
+ (revisionMode!=='qa-guided'&&!Object.hasOwn(REFINEMENTS,revisionMode))||
+ body?.reference_jpeg_base64!=null))throw new Error('INVALID_REFINEMENT');
+ if(revisionMode!=='qa-guided'&&body?.qa_failed!==undefined)
+  throw new Error('UNEXPECTED_QUALITY_REVIEW');
+ reference=readReference(revisionMode===undefined?body?.reference_jpeg_base64:body?.revision_jpeg_base64);
+ if(revisionMode!==undefined&&!reference)throw new Error('MISSING_REVISION_IMAGE');
+ if(revisionMode===undefined&&source.sourceKind!=='concept'&&!reference)throw new Error('PHOTO_REQUIRED');
+ if(revisionMode===undefined&&reference&&body?.reference_rights!==true)throw new Error('PHOTO_RIGHTS_REQUIRED');
+ prompt=promptFrom(body)+' '+(preset==='stratum-no4-v1'?
+  VARIATION_DIRECTIVES[variation]:
+  preset==='olivos-de-biar-v1'?
+  'Preserve the original soft naturalistic olive painting language; the three variants change composition nuance, not into a saturated five-band style.':
+  VARIATION_DIRECTIVES[variation]);
+ if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+
+   (revisionMode==='qa-guided'?qualityRevision(body):REFINEMENTS[revisionMode]);
+ return {prompt,reference,variation,revisionMode,preset,source};
+}
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');
  if(req.method!=='POST'){res.setHeader('Allow','POST');return res.status(405).json({error:'Method not allowed'})}
@@ -118,30 +144,11 @@ module.exports=async(req,res)=>{
  const token=header.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
  if(!token)return res.status(401).json({error:'Administrator sign-in required'});
  if(Number(req.headers['content-length']||0)>2_600_000)return res.status(413).json({error:'Request too large'});
- let prompt,reference,variation,revisionMode,preset,source;try{
- preset=req.body?.preset??'stratism-working-v09';
- source=sourceContext(req.body);
- if(!PRESET_IDS.has(preset))throw new Error('INVALID_PRESET');
- variation=req.body?.variation===undefined?1:req.body?.variation;
- if(!Number.isInteger(variation)||variation<1||variation>3)throw new Error('INVALID_VARIATION');
- revisionMode=req.body?.revision_mode;
- if(revisionMode!==undefined&&(
- (revisionMode!=='qa-guided'&&!Object.hasOwn(REFINEMENTS,revisionMode))||
- req.body?.reference_jpeg_base64!=null))throw new Error('INVALID_REFINEMENT');
- if(revisionMode!=='qa-guided'&&req.body?.qa_failed!==undefined)
-  throw new Error('UNEXPECTED_QUALITY_REVIEW');
- reference=readReference(revisionMode===undefined?req.body?.reference_jpeg_base64:req.body?.revision_jpeg_base64);
- if(revisionMode!==undefined&&!reference)throw new Error('MISSING_REVISION_IMAGE');
- if(revisionMode===undefined&&source.sourceKind!=='concept'&&!reference)throw new Error('PHOTO_REQUIRED');
- if(revisionMode===undefined&&reference&&req.body?.reference_rights!==true)throw new Error('PHOTO_RIGHTS_REQUIRED');
- prompt=promptFrom(req.body)+' '+(preset==='stratum-no4-v1'?
-  VARIATION_DIRECTIVES[variation]:
-  preset==='olivos-de-biar-v1'?
-  'Preserve the original soft naturalistic olive painting language; the three variants change composition nuance, not into a saturated five-band style.':
-  VARIATION_DIRECTIVES[variation]);
- if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+
-   (revisionMode==='qa-guided'?qualityRevision(req.body):REFINEMENTS[revisionMode]);
- }catch{return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'})}
+ let parsed;
+ try{parsed=validateGenerationRequest(req.body)}catch{
+  return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'});
+ }
+ const {prompt,reference,variation,revisionMode,preset,source}=parsed;
  const admin=createClient(process.env.STRATISM_SUPABASE_URL,process.env.STRATISM_SUPABASE_PUBLISHABLE_KEY,{
   auth:{persistSession:false,autoRefreshToken:false},
   global:{headers:{Authorization:'Bearer '+token}}
@@ -198,3 +205,5 @@ module.exports=async(req,res)=>{
 };
 module.exports.promptFrom=promptFrom;
 module.exports.PRESET_IDS=PRESET_IDS;
+module.exports.validateGenerationRequest=validateGenerationRequest;
+module.exports.CONCEPT_SIZE=CONCEPT_SIZE;
