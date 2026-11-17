@@ -28,8 +28,18 @@
   <section class="intro"><div><p class="eyebrow">GALLERY CONTROL ROOM</p><h1>Add art. Set the story<span class="period">.</span></h1><p>Upload image files or one ZIP archive. For new artworks, AI can visually analyse each work and automatically choose the closest collection and artistic style from your existing gallery taxonomy. You can review and override every suggestion before upload. Full-resolution sources are stored in a private bucket; only reduced WebP previews are published.</p></div><div class="stat"><strong id="catalog-count">—</strong><span>catalogue works</span><strong id="master-count">—</strong><span>private masters registered · not necessarily verified</span></div></section>
   <section class="panel stratism-panel" aria-labelledby="stratism-studio-title">
    <div class="panel-head"><span class="step">STRATISM</span><h2 id="stratism-studio-title">Stratism Studio · kunstnerisk brief</h2></div>
-   <p>Lag en konsistent Stratism-instruksjon fra din egen beskrivelse. Dette er en <strong>privat arbeidsmodul</strong>. AI-generering krever godkjent administrator og et særskilt aktivert API. Ingen kunstverk publiseres automatisk.</p>
+   <p>Velg mellom vår nye Stratum No. 4-standard, den opprinnelige naturtro oliventremodellen og den tidligere eksperimentelle Stratism-motoren. Dette er en <strong>privat arbeidsmodul</strong>. AI-generering krever godkjent administrator og et særskilt aktivert API. Ingen kunstverk publiseres automatisk.</p>
    <form id="stratism-brief-form">
+    <div class="stratism-preset-control">
+     <label for="stratism-preset">Kunstnerisk modell
+      <select id="stratism-preset">
+       <option value="stratum-no4-v1">Stratum No. 4 – fem materialtilstander (hovedmodell)</option>
+       <option value="olivos-de-biar-v1">Olivos de Biar – første oliventremodell, naturtro</option>
+       <option value="stratism-working-v09">Stratism Original – tidligere eksperimentell motor v0.9</option>
+      </select>
+     </label>
+     <p id="stratism-preset-description" class="stratism-notice" aria-live="polite">Hovedmodell: ett motiv gjennom fem tydelige maleriske tilstander, én sterk turkis fargeakkord, vask med dryp, skraping og rå lin. 4:5 stående.</p>
+    </div>
     <div class="stratism-grid">
      <label>Arbeidstittel<input id="stratism-title" maxlength="100" placeholder="Living Memory – Doña Anna"></label>
      <label>Referansefoto (beskrivelse, ikke filopplasting)<input id="stratism-source" maxlength="120" placeholder="Doña Anna – gammelt oliventre"></label>
@@ -46,7 +56,7 @@
     </div>
     <label>Motiv og fortelling<textarea id="stratism-description" required minlength="12" maxlength="2000" placeholder="Et gammelt oliventre fra gården vår. Kronen er fullt til stede; utvalgte røtter overlever som grafittspor."></textarea></label>
     <div class="stratism-grid">
-     <label>Fargeakkord<select id="stratism-chord"><option value="muted olive green and warm ochre">Olivengrønn og varm oker</option><option value="restrained ultramarine and slate">Dempet ultramarin</option><option value="soft amber and oxblood">Myk rav og oker-rød</option><option value="muted violet and mauve">Dempet fiolett</option><option value="neutral earth and linen">Jordfarger og lin</option></select></label>
+     <label>Fargeakkord<select id="stratism-chord"><option value="cobalt turquoise and teal">Koboltturkis og teal (Stratum No. 4)</option><option value="muted olive green and warm ochre">Olivengrønn og varm oker</option><option value="restrained ultramarine and slate">Dempet ultramarin</option><option value="soft amber and oxblood">Myk rav og oker-rød</option><option value="muted violet and mauve">Dempet fiolett</option><option value="neutral earth and linen">Jordfarger og lin</option></select></label>
      <label>Det som overlever<select id="stratism-emphasis"><option value="selected roots and trunk contours">Røtter og stamme</option><option value="the eyes and a few facial contours">Øyne og ansikt</option><option value="the principal architectural lines">Arkitektur</option><option value="the main subject's distinctive features">Motivets særtrekk</option></select></label>
      <label>Fargestyrke<select id="stratism-strength"><option value="subtle">Subtil</option><option value="very subtle">Svært dempet</option><option value="moderate but subordinate to subject">Moderat, underordnet motivet</option></select></label>
     </div>
