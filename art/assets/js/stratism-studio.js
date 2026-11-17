@@ -187,6 +187,7 @@ function updateQualityUI(){
  const statuses=controls.map(control=>control.value);
  const passed=statuses.filter(x=>x==='pass').length,failed=statuses.filter(x=>x==='revise').length;
  refreshRefinementHint();
+ if(selected?.revision)updateRevisionComparison(selected);
  $('stratism-quality-status').textContent=!selected?'Velg et forslag for kunstnerisk gjennomgang.':
   failed?failed+' punkter trenger forbedring · '+passed+' av 6 bestått.':
   passed===6?'Alle seks manuelle kontrollpunkter er bestått. Dette er IKKE salg- eller printgodkjenning.':
@@ -206,6 +207,29 @@ $('stratism-quality-notes').addEventListener('input',()=>{
  review.notes=$('stratism-quality-notes').value.slice(0,700);
  review.updated_at=new Date().toISOString();
 });
+function reviewScore(variant,kind){
+ const ratings=variant?.reviews?.[kind]?.ratings||{};
+ const passed=QUALITY_FIELDS.filter(key=>ratings[key]==='pass').length;
+ const failed=QUALITY_FIELDS.filter(key=>ratings[key]==='revise').length;
+ const remaining=6-passed-failed;
+ return passed+' av 6 bestått'+(failed?' · '+failed+' må forbedres':'')+(remaining?' · '+remaining+' ikke vurdert':'');
+}
+function updateRevisionComparison(selected){
+ const panel=$('stratism-before-after');
+ const visible=!!(selected?.revision&&selected?.url&&selected.revision.url);
+ panel.hidden=!visible;
+ if(!visible){
+  $('stratism-compare-original').removeAttribute('src');
+  $('stratism-compare-revision').removeAttribute('src');
+  $('stratism-original-score').textContent='';
+  $('stratism-revision-score').textContent='';
+  return;
+ }
+ $('stratism-compare-original').src=selected.url;
+ $('stratism-compare-revision').src=selected.revision.url;
+ $('stratism-original-score').textContent=' · '+reviewScore(selected,'original');
+ $('stratism-revision-score').textContent=' · '+reviewScore(selected,'revision');
+}
 function refreshVariantUI(){
  const gallery=$('stratism-variant-gallery');
  gallery.replaceChildren();
@@ -228,6 +252,7 @@ function refreshVariantUI(){
  });
  $('stratism-result').hidden=count===0;
  const selected=state.variants[state.selectedVariant];
+ updateRevisionComparison(selected);
  const revisionSelect=$('stratism-revision-select');
  revisionSelect.replaceChildren();
  for(const [value,label] of [['0','Originalforslag'],...(selected?.revision?[['1','Forbedret versjon']]:[])]){
