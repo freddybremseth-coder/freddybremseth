@@ -59,6 +59,51 @@ function qualityRevision(body){
  return 'Correct ONLY these creator-identified weaknesses, keeping all other successful elements unchanged: '+
   failures.map(key=>QUALITY_FIXES[key]).join(' ')+' Do not repaint the entire artwork or add new subjects.';
 }
+// A revision must not accidentally turn the original soft Olivos model into Stratum No. 4.
+const OLIVOS_QUALITY_FIXES=Object.freeze({
+ subject:'Restore the exact natural silhouette and recognizable roots, leaves and trunk contours; do not invent another tree or setting.',
+ colour:'Keep only natural, restrained olive-green, warm grey, ochre and beige. Do NOT add saturated turquoise or an opaque horizontal colour block.',
+ brush:'Replace synthetic glow and digital filters with precise soft naturalistic brushwork and muted matte pigment; do NOT introduce aggressive opaque painterly bands.',
+ transitions:'Make the naturalistic tree fade softly and organically into linen, with delicate watercolor diffusion rather than mandatory long straight drips or five fixed layers.',
+ linen:'Reveal some natural fine-woven beige linen below the motif with delicate graphite root contours and a discreet signature, without forcing a fifth stripe.',
+ texture:'Remove embossing, uniform scales and digital grain. Use subtle authentic matte paint and exposed linen; no palette-knife gouges or oxblood scraping.'
+});
+const WORKING_QUALITY_FIXES=Object.freeze({
+ subject:QUALITY_FIXES.subject,
+ colour:'Restore one restrained, subordinate emotional colour chord and keep the rest soft and atmospheric; no artificially imposed saturated band.',
+ brush:'Use credible fine-art paint and selective brush marks rather than digital airbrush effects; retain the original experimental language.',
+ transitions:'Restore freely flowing, asymmetric translucent transitions between material impressions without rigid equal stripes.',
+ linen:'Keep convincing bare linen and restrained graphite traces of the same motif, without adding a new unrelated subject.',
+ texture:'Remove embossed scales, repeated mechanical textures and global filters; preserve restrained matte brush and subtle local abrasion.'
+});
+function refinementFor(preset,composition,revisionMode,body){
+ if(revisionMode==='qa-guided'){
+  // Validate the submitted checklist in one shared place, even for the older presets.
+  qualityRevision(body);
+  const rules=preset==='olivos-de-biar-v1'?OLIVOS_QUALITY_FIXES:
+   preset==='stratism-working-v09'?WORKING_QUALITY_FIXES:
+   composition==='three-anchors'?{...QUALITY_FIXES,
+    transitions:'Keep translucent grey-mauve washes and some long natural drips, without imposing five equally sized horizontal stripes.',
+    texture:'Remove repeated digital scales or emboss; retain flat opaque paint, transparent wash and graphite on bare-looking linen without forcing a scraped fourth band.'}:
+   QUALITY_FIXES;
+  return 'Correct ONLY these creator-identified weaknesses; retain the original composition and all successful aspects: '+
+    body.qa_failed.map(key=>rules[key]).join(' ')+
+    ' No unrelated imagery, new style, unnecessary layers or wholesale repainting.';
+ }
+ if(preset==='olivos-de-biar-v1'){
+  return ({
+   'subtler-colour':'Reduce chroma only slightly while preserving natural olive-green, soft earth colours and the original tree identity. No saturated colour stripe.',
+   'preserve-details':'Restore recognizable leaves, branch silhouette, ancient trunk and characteristic root contours in delicate naturalistic paint. Never impose five fixed material states.',
+   'more-linen':'Reveal slightly more natural beige linen organically at the bottom, preserving an elegant fine graphite sketch of roots and the soft atmospheric tree.',
+   'remove-texture':'Remove digital scales and embossed overlays. Keep delicate naturalistic paint, soft fading edges and fine linen weave; do not add bold scraped oxblood layers.'
+  })[revisionMode];
+ }
+ if(preset==='stratum-no4-v1'&&composition==='three-anchors'){
+  if(revisionMode==='preserve-details')return 'Preserve more defining contours in the same subject, but keep the free three-anchor composition rather than introducing five rigid painting bands.';
+  if(revisionMode==='remove-texture')return 'Remove synthetic scales and embossed repetition. Preserve the single opaque colour chord, watery wash with long drips, and delicate graphite on beige linen; do not add a mandatory scraped band.';
+ }
+ return REFINEMENTS[revisionMode];
+}
 const VARIATION_DIRECTIVES=Object.freeze({
  1:'First interpretation: prioritize faithful subject identity, calm brushwork, restrained chroma and a strong center of presence.',
  2:'Second interpretation: maintain the subject and five states, but use more irregular, selective memory transitions and preserve a few additional evocative contours.',
@@ -135,9 +180,11 @@ function validateGenerationRequest(body){
   VARIATION_DIRECTIVES[variation]:
   preset==='olivos-de-biar-v1'?
   'Preserve the original soft naturalistic olive painting language; the three variants change composition nuance, not into a saturated five-band style.':
+  preset==='stratum-no4-v1'&&source.composition==='three-anchors'?
+  'Maintain the same subject and three painterly anchors; vary asymmetry and balance, never impose five equally spaced bands.':
   VARIATION_DIRECTIVES[variation]);
  if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+
-   (revisionMode==='qa-guided'?qualityRevision(body):REFINEMENTS[revisionMode]);
+   refinementFor(preset,source.composition,revisionMode,body);
  return {prompt,reference,variation,revisionMode,preset,source};
 }
 module.exports=async(req,res)=>{
