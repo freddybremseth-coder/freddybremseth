@@ -484,3 +484,37 @@ test('300 PPI print planner calculates target pixel requirements without creatin
  assert.match(js,/ikke en faktisk oppskalering eller printgodkjenning/);
  assert.doesNotMatch(code,/fetch\(|stratismRequest\(/);
 });
+
+test('local print master candidate screening checks pixels and TIFF metadata without uploading',()=>{
+ new vm.Script(js);
+ for(const id of ['stratism-master-file','stratism-master-check'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ const begin=js.indexOf('function parseTiffDimensions(buffer)');
+ const end=js.indexOf('function refreshVariantUI()',begin);
+ assert.ok(begin>=0&&end>begin);
+ const section=js.slice(begin,end);
+ assert.match(section,/createImageBitmap\(file\)/);
+ assert.match(section,/file\.slice\(0,256\*1024\)\.arrayBuffer\(\)/);
+ assert.match(section,/if\(inspectionId!==masterInspectionId\)return/);
+ assert.match(section,/Filen er bare vurdert lokalt for piksler og format/);
+ assert.doesNotMatch(section,/fetch\(|stratismRequest\(|upload_url|approved:true/);
+ const pure=section.slice(0,section.indexOf('let masterCandidate='));
+ const evaluate=vm.runInNewContext('const CM_PER_INCH=2.54;'+
+  js.slice(js.indexOf('const STRATISM_PRINT_TARGETS='),js.indexOf('function updatePrintPlan('))+
+  pure+'; ({screenMasterDimensions,parseTiffDimensions})');
+ const check=evaluate.screenMasterDimensions;
+ assert.equal(check(9449,11812,'80x100').pixelPass,true);
+ assert.equal(check(9448,11811,'80x100').pixelPass,false);
+ assert.equal(check(9000,12000,'30x40').ratioMatches,true);
+ assert.equal(check(9449,11812,'30x40').ratioMatches,false);
+ assert.equal(check(9449,11812,'80x100').approved,false);
+ const buf=Buffer.alloc(64);
+ buf.write('II',0);buf.writeUInt16LE(42,2);buf.writeUInt32LE(8,4);
+ buf.writeUInt16LE(2,8);
+ buf.writeUInt16LE(256,10);buf.writeUInt16LE(4,12);buf.writeUInt32LE(1,14);buf.writeUInt32LE(9449,18);
+ buf.writeUInt16LE(257,22);buf.writeUInt16LE(4,24);buf.writeUInt32LE(1,26);buf.writeUInt32LE(11812,30);
+ const dims=evaluate.parseTiffDimensions(buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.byteLength));
+ assert.deepEqual([dims.width,dims.height,dims.metadataOnly],[9449,11812,true]);
+ assert.throws(()=>evaluate.parseTiffDimensions(new ArrayBuffer(8)),/for lite lesbar metadata/);
+ assert.match(section,/\/\\\.\(tif\|tiff\)\$\/i/);
+});
