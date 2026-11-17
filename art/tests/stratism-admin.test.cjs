@@ -15,7 +15,7 @@ test('all composer controls are present',()=>{
  'stratism-emphasis','stratism-strength','stratism-download-brief','stratism-brief-output',
  'stratism-brief-status','stratism-reference-file','stratism-reference-preview',
  'stratism-reference-status','stratism-print-capacity',
- 'stratism-generate-private','stratism-generated-preview','stratism-result','stratism-save-preview'])assert.ok(html.includes('id="'+id+'"'),id);
+ 'stratism-generate-private','stratism-variant-gallery','stratism-variant-count','stratism-result','stratism-save-preview','stratism-reset-variants'])assert.ok(html.includes('id="'+id+'"'),id);
 });
 test('client script parses and cannot auto publish or call external API',()=>{
  assert.ok(!js.includes('XMLHttpRequest')&&!js.includes('publishArtwork('));
@@ -57,4 +57,20 @@ test('photo edit path validates JPEG and does not persist reference image',()=>{
  assert.match(js,/reference_jpeg_base64:referenceJpeg/);
  assert.match(html,/Generer privat forslag/);
  assert.doesNotMatch(apiText,/\.storage\.from\(|\.insert\(|\.upsert\(/);
+});
+
+test('variant compare preserves three private candidate previews and never auto batches',()=>{
+ const api=fs.readFileSync(path.join(root,'api/stratism-generate.js'),'utf8');
+ new vm.Script(js);
+ assert.match(js,/MAX_VARIANTS=3/);
+ assert.match(js,/state\.variants\.push/);
+ assert.match(js,/state\.selectedVariant/);
+ assert.match(js,/clearVariants\(\)/);
+ assert.match(js,/reference_jpeg_base64:referenceJpeg,variation/);
+ assert.match(api,/VARIATION_DIRECTIVES/);
+ assert.match(api,/Number\.isInteger\(variation\)/);
+ assert.match(api,/variation<1\|\|variation>3/);
+ assert.match(api,/reference_used:!!reference,variation/);
+ assert.match(api,/not_print_approved:true/);
+ assert.doesNotMatch(api,/\.storage\.from\(|\.insert\(|\.upsert\(/);
 });
