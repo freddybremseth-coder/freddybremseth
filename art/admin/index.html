@@ -44,6 +44,35 @@
      <label>Arbeidstittel<input id="stratism-title" maxlength="100" placeholder="Living Memory – Doña Anna"></label>
      <label>Referansefoto (beskrivelse, ikke filopplasting)<input id="stratism-source" maxlength="120" placeholder="Doña Anna – gammelt oliventre"></label>
     </div>
+    <div class="stratism-grid">
+     <label>Komposisjonsregel
+      <select id="stratism-composition-rule">
+       <option value="five-states">Fem tydelige materialtilstander – No. 4 standard</option>
+       <option value="three-anchors">Tre gjenkjennelige kjennetegn – friere maleri</option>
+      </select>
+     </label>
+     <label>Opphav til motivet
+      <select id="stratism-source-kind">
+       <option value="concept">Fritt konsept – uten fotografisk bevis</option>
+       <option value="own-photo">Eget fotografi fra et virkelig sted</option>
+       <option value="client-photo">Kundens fotografi – privat bestillingsverk</option>
+      </select>
+     </label>
+     <label>Sted / motivets identitet (valgfritt)
+      <input id="stratism-place" maxlength="140" placeholder="Olivenlunden på Doña Anna, Biar">
+     </label>
+     <label>Fotografens navn / kilde (valgfritt)
+      <input id="stratism-photo-credit" maxlength="120" placeholder="Eget foto / fotograf">
+     </label>
+    </div>
+    <label>Historien bak motivet (valgfritt)
+     <textarea id="stratism-story" maxlength="1000" rows="3" placeholder="Hva gjør akkurat dette treet, huset eller stedet spesielt?"></textarea>
+    </label>
+    <label class="stratism-consent">
+     <input id="stratism-reference-rights" type="checkbox">
+     Jeg bekrefter at jeg har rett til å bruke referansefotografiet for AI-bearbeiding, og ved kundebilde at kunden har samtykket til bruken.
+    </label>
+    <p class="stratism-notice">Opprinnelse og historie lagres som opplysninger fra deg, ikke som uavhengig dokumenterte fakta. Kundebilder behandles bare til private utkast, aldri automatisk publisering.</p>
     <div class="stratism-reference">
      <label>Referansefoto (valgfritt – analyseres kun i nettleseren)
       <input id="stratism-reference-file" type="file" accept="image/jpeg,image/png,image/webp">
