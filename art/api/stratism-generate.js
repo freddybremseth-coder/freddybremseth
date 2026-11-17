@@ -15,6 +15,27 @@ const COMPOSITION_MODES=new Set(['five-states','three-anchors']);
 const SOURCE_KINDS=new Set(['concept','own-photo','client-photo']);
 const THREE_ANCHORS_RULE="Use only THREE mandatory instantly recognizable painterly anchors: (1) exactly ONE saturated colour chord painted as BROAD FLAT OPAQUE shapes with visible wet-into-wet brush edges, no glow; (2) transparent grey-mauve wash with LONG THIN DRIPS visibly flowing into the bare linen below; (3) an unfinished graphite sketch of the same subject on exposed raw-looking beige linen with a small discreet graphite signature. The other material states from Stratism may be present but should NOT be forced into rigid equally spaced bands. Maintain one coherent subject, portrait 4:5, all inside frame, quiet pale muted grey-blue background, no orange soil or secondary saturated colours, no embossed or repetitive digital texture. This is a DIGITAL depiction of paint, linen and graphite; do not imply physical hand-finishing.";
 const MAX_REFERENCE_BYTES=1_350_000;
+const CONCEPT_WIDTH=1280,CONCEPT_HEIGHT=1600;
+const CONCEPT_SIZE=`${CONCEPT_WIDTH}x${CONCEPT_HEIGHT}`;
+function jpegDimensions(bytes){
+ // Read JPEG SOF dimensions without decoding the file; no metadata is trusted as a print certificate.
+ for(let p=2;p+9<bytes.length;){
+  if(bytes[p]!==0xff){p++;continue}
+  while(p<bytes.length&&bytes[p]===0xff)p++;
+  const marker=bytes[p++];if(marker===0xd9||marker===0xda)break;
+  if(marker===0xd8||marker===0x01||(marker>=0xd0&&marker<=0xd7))continue;
+  if(p+2>bytes.length)break;
+  const length=bytes.readUInt16BE(p);
+  if(length<2||p+length>bytes.length)break;
+  if((marker>=0xc0&&marker<=0xc3)||(marker>=0xc5&&marker<=0xc7)||
+     (marker>=0xc9&&marker<=0xcb)||(marker>=0xcd&&marker<=0xcf)){
+   if(length<7)break;
+   return {width:bytes.readUInt16BE(p+5),height:bytes.readUInt16BE(p+3)};
+  }
+  p+=length;
+ }
+ return null;
+}
 const REFINEMENTS=Object.freeze({
  'subtler-colour':'Revise the attached existing Stratism painting with notably subtler chroma; preserve subject identity, geometry, all surviving details and composition. Do not introduce a strong colour stripe.',
  'preserve-details':'Revise the attached existing Stratism painting to preserve more of the existing meaningful contours and identity, particularly the chosen focal details; maintain all five material states.',
@@ -136,7 +157,7 @@ module.exports=async(req,res)=>{
       payload.append('model',model);
       payload.append('image',new Blob([reference],{type:'image/jpeg'}),'reference.jpg');
       payload.append('prompt',prompt+' Faithfully preserve the attached image identity, silhouette and scene structure. If this is a revision, do not replace the artwork or rearrange the subject.');
-      payload.append('size','1024x1536');
+      payload.append('size',CONCEPT_SIZE);
       payload.append('quality','high');
       payload.append('output_format','jpeg');
       payload.append('n','1');
@@ -147,7 +168,7 @@ module.exports=async(req,res)=>{
     }else{
       response=await fetch('https://api.openai.com/v1/images/generations',{
         method:'POST',headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({model,prompt,size:'1024x1536',quality:'high',output_format:'jpeg',n:1}),
+        body:JSON.stringify({model,prompt,size:CONCEPT_SIZE,quality:'high',output_format:'jpeg',n:1}),
         signal:controller.signal
       });
     }
@@ -155,7 +176,13 @@ module.exports=async(req,res)=>{
   if(!response.ok){console.error('Stratism image provider status',response.status);return res.status(502).json({error:'Image provider declined the request',code:'PROVIDER_'+response.status})}
   const result=await response.json(),b64=result?.data?.[0]?.b64_json;
   if(typeof b64!=='string'||b64.length<100||b64.length>9_000_000)return res.status(502).json({error:'Generated preview missing or too large'});
-  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference,variation,preset,composition_mode:source.composition,source_kind:source.sourceKind,refinement_applied:revisionMode||null});
+  const bytes=Buffer.from(b64,'base64');
+  if(bytes.length<80||bytes.length>6_750_000||bytes[0]!==0xff||bytes[1]!==0xd8||bytes[2]!==0xff)
+   return res.status(502).json({error:'Image provider returned an invalid JPEG'});
+  const dimensions=jpegDimensions(bytes);
+  if(!dimensions||dimensions.width!==CONCEPT_WIDTH||dimensions.height!==CONCEPT_HEIGHT)
+   return res.status(502).json({error:'Image provider returned an unexpected aspect ratio'});
+  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',width:CONCEPT_WIDTH,height:CONCEPT_HEIGHT,aspect_ratio:'4:5',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference,variation,preset,composition_mode:source.composition,source_kind:source.sourceKind,refinement_applied:revisionMode||null});
  }catch(error){console.error('Stratism generation failed',error?.name||'unknown');return res.status(502).json({error:'Private preview generation unavailable'})}
 };
 module.exports.promptFrom=promptFrom;
