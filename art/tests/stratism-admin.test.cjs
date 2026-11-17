@@ -246,3 +246,17 @@ test('preflight verdict is cleared whenever source, brief or project changes',()
  assert.match(js,/referenceInput\.addEventListener\('change',async\(\)=>\{\n if\(state\.busy\)return;\n invalidatePreflight\(\)/);
  assert.match(js,/function restorePrivateProject\(archive\)\{\n invalidatePreflight\(\)/);
 });
+
+test('QA revisions send selected failed criteria to the API and never unlock on disabled readiness',()=>{
+ const begin=js.indexOf("$('stratism-refine-selected').addEventListener");
+ const end=js.indexOf('// A portable, private archive',begin);
+ assert.ok(begin>0&&end>begin);
+ const section=js.slice(begin,end);
+ assert.match(section,/const qaFailed=mode==='qa-guided'\?failedQualityKeys\(variant\):null/);
+ assert.match(section,/\.\.\.\(mode==='qa-guided'\?\{qa_failed:qaFailed\}:\{\}\)/);
+ assert.match(section,/stratismRequest\(\{/);
+ assert.match(js,/\$\('stratism-refine-selected'\)\.disabled=!variant\|\|!!variant\.revision\|\|state\.busy\|\|!providerReadiness\.canGenerate/);
+ const refresh=js.slice(js.indexOf('function refreshVariantUI()'),js.indexOf('// Changing the chosen artistic model'));
+ assert.doesNotMatch(refresh,/disabled=\$\('stratism-refine-selected'\)\.disabled\|\|/);
+ assert.match(refresh,/updateQualityUI\(\)/);
+});
