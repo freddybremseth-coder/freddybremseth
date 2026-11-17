@@ -165,7 +165,7 @@ test('Stratism human quality reviews are per original or revision and stored pri
   assert.match(html,new RegExp('data-stratism-quality="'+criterion+'"'));
  assert.match(js,/function qualityFor\(variant\)/);
  assert.match(js,/variant\.showRevision&&variant\.revision\?'revision':'original'/);
- assert.match(js,/reviews:v\.reviews\|\|null/);
+ assert.match(js,/reviews:reviews\|\|null/);
  assert.match(js,/const reviews=validateQuality\(entry\.reviews\)/);
  assert.match(js,/if\(value==null\)return null/);
  assert.match(js,/!QUALITY_VALUES\.includes\(status\)/);
@@ -273,7 +273,7 @@ test('human quality criteria are tailored to each model without changing the per
  assert.match(js,/control\.closest\('label'\)/);
  assert.match(js,/label\.firstChild\.nodeValue=labels\[control\.dataset\.stratismQuality\]/);
  assert.match(js,/const QUALITY_FIELDS=\['subject','colour','brush','transitions','linen','texture'\]/);
- assert.match(js,/reviews:v\.reviews\|\|null/);
+ assert.match(js,/reviews:reviews\|\|null/);
  assert.match(js,/const reviews=validateQuality\(entry\.reviews\)/);
 });
 
