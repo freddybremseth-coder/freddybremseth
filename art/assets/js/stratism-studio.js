@@ -212,6 +212,7 @@ function refreshVariantUI(){
 // Changing the chosen artistic model must not silently send an outdated brief.
 form.addEventListener('change',()=>{
  if(state.busy)return;
+ invalidatePreflight();
  updatePresetDescription();
  if(!state.brief)return;
  clearVariants();state.brief=null;output.textContent='Modellen eller innstillingene er endret. Lag en ny brief før generering.';
@@ -225,6 +226,10 @@ $('stratism-preset').addEventListener('change',()=>{
  updatePresetDescription();
 });
 updatePresetDescription();
+function invalidatePreflight(){
+ const node=$('stratism-preflight-status');
+ if(node)node.textContent='Ingen gyldig gratis-test for gjeldende innstillinger. Lag en brief og test forespørselen på nytt.';
+}
 function clearVariants(){
  if(state.busy)return;
  for(const variant of state.variants){URL.revokeObjectURL(variant.url);if(variant.revision)URL.revokeObjectURL(variant.revision.url);}
@@ -233,6 +238,7 @@ function clearVariants(){
 const referenceInput=$('stratism-reference-file');
 referenceInput.addEventListener('change',async()=>{
  if(state.busy)return;
+ invalidatePreflight();
  const file=referenceInput.files?.[0];
  clearVariants();state.reference=null;
  if(state.previewUrl){URL.revokeObjectURL(state.previewUrl);state.previewUrl=null;}
@@ -303,6 +309,7 @@ function buildBrief(){
 }
 form.addEventListener('submit',ev=>{
  ev.preventDefault();if(state.busy)return;
+ invalidatePreflight();
  try{clearVariants();state.brief=buildBrief();output.textContent=state.brief.render_instruction;
  $('stratism-brief-status').textContent='Brief opprettet lokalt. Ingen bildejobb er sendt og ingenting er publisert.';
  $('stratism-download-brief').disabled=false;refreshVariantUI();}
@@ -320,14 +327,17 @@ async function prepareReferenceJpeg(){
  let referenceJpeg=null;
   // The original reference stays local; a resized JPEG derivative is sent only on an explicit preflight or generation click.
   // Resize a temporary derivative: never use this JPEG as a sale or print master.
-  if(referenceInput.files?.[0]&&state.reference){
+  if(referenceInput.files?.[0]&&!state.reference)throw Error('Referansefotoet er ikke validert. Velg bildet på nytt.');
+ if(referenceInput.files?.[0]&&state.reference){
    const img=$('stratism-reference-preview');
    if(!img.complete||!img.naturalWidth)throw Error('Referansefotoet er ikke ferdig innlest.');
    const maxEdge=1400,scale=Math.min(1,maxEdge/Math.max(img.naturalWidth,img.naturalHeight));
    const canvas=document.createElement('canvas');
    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
    canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
-   canvas.getContext('2d',{alpha:false}).drawImage(img,0,0,canvas.width,canvas.height);
+   const ctx=canvas.getContext('2d',{alpha:false});
+   ctx.fillStyle='#f4f0e8';ctx.fillRect(0,0,canvas.width,canvas.height);
+   ctx.drawImage(img,0,0,canvas.width,canvas.height);
    const encoded=canvas.toDataURL('image/jpeg',0.76).split(',')[1];
    if(encoded.length>1_800_000)throw Error('Referansefotoet er for stort for sikker forhåndsvisning. Velg et mindre bilde.');
    referenceJpeg=encoded;
@@ -434,7 +444,9 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const canvas=document.createElement('canvas');
   canvas.width=Math.max(1,Math.round(source.naturalWidth*scale));
   canvas.height=Math.max(1,Math.round(source.naturalHeight*scale));
-  canvas.getContext('2d',{alpha:false}).drawImage(source,0,0,canvas.width,canvas.height);
+  const ctx=canvas.getContext('2d',{alpha:false});
+  ctx.fillStyle='#f4f0e8';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(source,0,0,canvas.width,canvas.height);
   const imageData=canvas.toDataURL('image/jpeg',0.77).split(',')[1];
   if(imageData.length>1_800_000)throw Error('Prøvebildet er for stort for revisjon.');
   const mode=$('stratism-refinement-kind').value;
@@ -549,6 +561,7 @@ $('stratism-export-project').addEventListener('click',async()=>{
  finally{state.busy=false;refreshVariantUI()}
 });
 function restorePrivateProject(archive){
+ invalidatePreflight();
  let temporaryUrls=[];
  try{
   if(archive?.schema!==ARCHIVE_SCHEMA||!validArchiveBrief(archive.brief)||
