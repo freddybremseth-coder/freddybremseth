@@ -14,6 +14,38 @@ async function stratismRequest(payload){
  if(response.status===401)response=await send(true);
  return response;
 }
+const providerReadiness={checked:false,canGenerate:false,checking:false,model:null};
+async function checkProviderReadiness(){
+ if(providerReadiness.checking||state.busy)return;
+ providerReadiness.checking=true;
+ $('stratism-provider-readiness').textContent='Kontrollerer AI-motoren – ingen bildejobb startes…';
+ $('stratism-check-provider').disabled=true;
+ try{
+  const getToken=window.ART_ADMIN_GET_ACCESS_TOKEN;
+  if(typeof getToken!=='function')throw Error('Logg inn som galleriadministrator først.');
+  const send=async(forceRefresh)=>fetch('/api/stratism-readiness',{method:'GET',
+   headers:{Authorization:'Bearer '+await getToken({forceRefresh})},cache:'no-store'});
+  let response=await send(false);
+  if(response.status===401)response=await send(true);
+  const data=await response.json();
+  if(!response.ok)throw Error(String(data.error||'Kunne ikke kontrollere AI-status').slice(0,160));
+  providerReadiness.checked=true;
+  providerReadiness.canGenerate=data.can_generate===true&&data.preview_only===true&&
+   data.sale_approval===false&&data.print_approval===false;
+  providerReadiness.model=typeof data.model==='string'?data.model:null;
+  $('stratism-provider-readiness').textContent=providerReadiness.canGenerate?
+   'Privat AI-motor er konfigurert og aktivert ('+providerReadiness.model+'). Denne statussjekken kostet ingenting.':
+   'AI-generering er ikke aktivert eller konfigurert her. Du kan fortsatt lage brief, kontrollere bilder og lagre prosjekter uten kostnad.';
+ }catch(e){
+  providerReadiness.checked=false;providerReadiness.canGenerate=false;
+  $('stratism-provider-readiness').textContent='Kunne ikke bekrefte AI-tilkoblingen: '+e.message;
+ }finally{
+  providerReadiness.checking=false;
+  $('stratism-check-provider').disabled=state.busy;
+  refreshVariantUI();
+ }
+}
+$('stratism-check-provider').addEventListener('click',checkProviderReadiness);
 const CM_PER_INCH=2.54;
 function printCheck(width,height){
  const short=Math.min(width,height),long=Math.max(width,height);
@@ -155,7 +187,9 @@ function refreshVariantUI(){
   'Forslag '+(state.selectedVariant+1)+' er valgt til lokal nedlasting. Ikke salg- eller printgodkjent.';
  const generate=$('stratism-generate-private');
  generate.textContent=count?'Generer nytt forslag ('+(count+1)+' av '+MAX_VARIANTS+')':'Generer forslag 1 (AI)';
- generate.disabled=!state.brief||count>=MAX_VARIANTS||state.busy;
+ generate.disabled=!state.brief||count>=MAX_VARIANTS||state.busy||!providerReadiness.canGenerate;
+ $('stratism-check-provider').disabled=state.busy||providerReadiness.checking;
+ $('stratism-refine-selected').disabled=$('stratism-refine-selected').disabled||!providerReadiness.canGenerate;
  updateQualityUI();
 }
 // Changing the chosen artistic model must not silently send an outdated brief.
@@ -267,6 +301,7 @@ $('stratism-download-brief').addEventListener('click',()=>{
 });
 $('stratism-generate-private').addEventListener('click',async()=>{
  if(!state.brief||state.variants.length>=MAX_VARIANTS||state.busy)return;
+ if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='Kontroller AI-motoren først. Generering starter aldri uten bekreftet tilkobling.';return;}
  if(referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
  if(state.brief.provenance?.source_kind!=='concept'&&!referenceInput.files?.[0]){$('stratism-brief-status').textContent='Velg referansefoto for et virkelig motiv.';return;}
  state.busy=true;refreshVariantUI();
@@ -330,6 +365,7 @@ $('stratism-revision-select').addEventListener('change',()=>{
 $('stratism-refine-selected').addEventListener('click',async()=>{
  const index=state.selectedVariant,variant=state.variants[index];
  if(!variant||variant.revision||!state.brief||state.busy)return;
+ if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='AI-motoren må være aktivert før revisjon.';return;}
  state.busy=true;refreshVariantUI();
  $('stratism-brief-status').textContent='Forbedrer valgt kunstverk. Originalen beholdes…';
  try{
