@@ -15,7 +15,7 @@ test('all composer controls are present',()=>{
  'stratism-emphasis','stratism-strength','stratism-download-brief','stratism-brief-output',
  'stratism-brief-status','stratism-reference-file','stratism-reference-preview',
  'stratism-reference-status','stratism-print-capacity',
- 'stratism-generate-private','stratism-variant-gallery','stratism-variant-count','stratism-result','stratism-save-preview','stratism-reset-variants'])assert.ok(html.includes('id="'+id+'"'),id);
+ 'stratism-generate-private','stratism-variant-gallery','stratism-variant-count','stratism-result','stratism-save-preview','stratism-reset-variants','stratism-refine-selected','stratism-revision-select','stratism-refinement-kind'])assert.ok(html.includes('id="'+id+'"'),id);
 });
 test('client script parses and cannot auto publish or call external API',()=>{
  assert.ok(!js.includes('XMLHttpRequest')&&!js.includes('publishArtwork('));
@@ -71,6 +71,25 @@ test('variant compare preserves three private candidate previews and never auto 
  assert.match(api,/Number\.isInteger\(variation\)/);
  assert.match(api,/variation<1\|\|variation>3/);
  assert.match(api,/reference_used:!!reference,variation/);
+ assert.match(api,/not_print_approved:true/);
+ assert.doesNotMatch(api,/\.storage\.from\(|\.insert\(|\.upsert\(/);
+});
+
+test('manual revision preserves original and stays private',()=>{
+ const api=fs.readFileSync(path.join(root,'api/stratism-generate.js'),'utf8');
+ new vm.Script(js);new vm.Script(api);
+ assert.match(api,/const REFINEMENTS=Object\.freeze/);
+ assert.match(api,/revision_mode/);
+ assert.match(api,/revision_jpeg_base64/);
+ assert.match(api,/if\(revisionMode!==undefined&&!reference\)/);
+ assert.match(api,/refinement_applied:revisionMode\|\|null/);
+ assert.match(js,/variant\.revision=\{url,mode,createdAt:/);
+ assert.match(js,/variant\.showRevision=true/);
+ assert.match(js,/variant\.showRevision&&variant\.revision/);
+ assert.match(js,/!variant\|\|variant\.revision\|\|!state\.brief\|\|state\.busy/);
+ assert.match(api,/admin\.auth\.getUser\(token\)/);
+ assert.match(api,/art_gallery_admin_users/);
+ assert.match(api,/not_sale_approved:true/);
  assert.match(api,/not_print_approved:true/);
  assert.doesNotMatch(api,/\.storage\.from\(|\.insert\(|\.upsert\(/);
 });
