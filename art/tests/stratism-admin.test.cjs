@@ -276,3 +276,27 @@ test('human quality criteria are tailored to each model without changing the per
  assert.match(js,/reviews:v\.reviews\|\|null/);
  assert.match(js,/const reviews=validateQuality\(entry\.reviews\)/);
 });
+
+test('original and revised versions appear side by side only when revision exists',()=>{
+ new vm.Script(js);
+ for(const id of ['stratism-before-after','stratism-compare-original','stratism-compare-revision',
+  'stratism-original-score','stratism-revision-score']){
+  assert.match(html,new RegExp('id="'+id+'"'));
+ }
+ assert.match(js,/function updateRevisionComparison\(selected\)/);
+ assert.match(js,/const visible=!!\(selected\?\.revision&&selected\?\.url&&selected\.revision\.url\)/);
+ assert.match(js,/panel\.hidden=!visible/);
+ assert.match(js,/\$\('stratism-compare-original'\)\.src=selected\.url/);
+ assert.match(js,/\$\('stratism-compare-revision'\)\.src=selected\.revision\.url/);
+ assert.match(js,/updateRevisionComparison\(selected\)/);
+ const update=js.slice(js.indexOf('function updateRevisionComparison'),js.indexOf('function refreshVariantUI()'));
+ assert.doesNotMatch(update,/fetch\(|stratismRequest\(|preflightRequest\(/);
+});
+test('original and revision retain independent quality summaries without approving sales',()=>{
+ assert.match(js,/function reviewScore\(variant,kind\)/);
+ assert.match(js,/variant\?\.reviews\?\.\[kind\]/);
+ assert.match(js,/reviewScore\(selected,'original'\)/);
+ assert.match(js,/reviewScore\(selected,'revision'\)/);
+ assert.match(html,/Ingen nye AI-kall startes her/);
+ assert.match(html,/Hvert bilde har sin egen kvalitetsvurdering/);
+});
