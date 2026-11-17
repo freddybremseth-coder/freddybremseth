@@ -5,6 +5,11 @@ const CHORDS=new Set(['muted olive green and warm ochre','restrained ultramarine
 const EMPHASES=new Set(['selected roots and trunk contours','the eyes and a few facial contours','the principal architectural lines',"the main subject's distinctive features"]);
 const STRENGTHS=new Set(['subtle','very subtle','moderate but subordinate to subject']);
 const MAX_REFERENCE_BYTES=1_350_000;
+const VARIATION_DIRECTIVES=Object.freeze({
+ 1:'First interpretation: prioritize faithful subject identity, calm brushwork, restrained chroma and a strong center of presence.',
+ 2:'Second interpretation: maintain the subject and five states, but use more irregular, selective memory transitions and preserve a few additional evocative contours.',
+ 3:'Third interpretation: maintain the subject and five states, but use more unpainted linen, restrained graphite and carefully localized material abrasion, without losing crucial subject features.'
+});
 function readReference(base64){
  if(base64==null)return null;
  if(typeof base64!=='string'||base64.length<100||base64.length>1_800_000||!/^[A-Za-z0-9+/]+={0,2}$/.test(base64))
@@ -35,8 +40,11 @@ module.exports=async(req,res)=>{
  const token=header.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
  if(!token)return res.status(401).json({error:'Administrator sign-in required'});
  if(Number(req.headers['content-length']||0)>2_600_000)return res.status(413).json({error:'Request too large'});
- let prompt,reference;try{prompt=promptFrom(req.body);reference=readReference(req.body?.reference_jpeg_base64)}
- catch{return res.status(400).json({error:'Invalid Stratism description or reference photo'})}
+ let prompt,reference,variation;try{
+ variation=req.body?.variation===undefined?1:req.body?.variation;
+ if(!Number.isInteger(variation)||variation<1||variation>3)throw new Error('INVALID_VARIATION');
+ prompt=promptFrom(req.body)+' '+VARIATION_DIRECTIVES[variation];reference=readReference(req.body?.reference_jpeg_base64)}
+ catch{return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'})}
  const admin=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
  try{
   const {data:user,error:authError}=await admin.auth.getUser(token);
@@ -71,7 +79,7 @@ module.exports=async(req,res)=>{
   if(!response.ok){console.error('Stratism image provider status',response.status);return res.status(502).json({error:'Image provider declined the request',code:'PROVIDER_'+response.status})}
   const result=await response.json(),b64=result?.data?.[0]?.b64_json;
   if(typeof b64!=='string'||b64.length<100||b64.length>9_000_000)return res.status(502).json({error:'Generated preview missing or too large'});
-  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference});
+  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference,variation});
  }catch(error){console.error('Stratism generation failed',error?.name||'unknown');return res.status(502).json({error:'Private preview generation unavailable'})}
 };
 module.exports.promptFrom=promptFrom;
