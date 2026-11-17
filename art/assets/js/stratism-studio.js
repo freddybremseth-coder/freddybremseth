@@ -101,7 +101,7 @@ function refreshRefinementHint(){
  const variant=state.variants[state.selectedVariant];
  const qa=$('stratism-refinement-kind').value==='qa-guided';
  const failed=failedQualityKeys(variant);
- $('stratism-refine-selected').disabled=!variant||!!variant.revision||state.busy||(qa&&failed.length===0);
+ $('stratism-refine-selected').disabled=!variant||!!variant.revision||state.busy||!providerReadiness.canGenerate||(qa&&failed.length===0);
  $('stratism-refine-hint').textContent=qa?
   failed.length?failed.length+' kontrollpunkter markert for målrettet revisjon. Bare originalen redigeres; den beholdes.':
   'Marker minst ett punkt som «Må forbedres» på originalbildet, eller velg én manuell forbedring.':
@@ -206,7 +206,6 @@ function refreshVariantUI(){
  generate.textContent=count?'Generer nytt forslag ('+(count+1)+' av '+MAX_VARIANTS+')':'Generer forslag 1 (AI)';
  generate.disabled=!state.brief||count>=MAX_VARIANTS||state.busy||!providerReadiness.canGenerate;
  $('stratism-check-provider').disabled=state.busy||providerReadiness.checking;
- $('stratism-refine-selected').disabled=$('stratism-refine-selected').disabled||!providerReadiness.canGenerate;
  updateQualityUI();
 }
 // Changing the chosen artistic model must not silently send an outdated brief.
@@ -459,7 +458,8 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
      source_kind:state.brief.provenance?.source_kind||'concept',
      place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
      photo_credit:state.brief.provenance?.photo_credit||'',
-     reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
+     reference_rights:state.brief.provenance?.reference_rights_confirmed===true,
+     ...(mode==='qa-guided'?{qa_failed:qaFailed}:{})});
   const data=await response.json();
   if(!response.ok)throw Error(providerErrorMessage(response,data));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
