@@ -18,7 +18,7 @@ test('all composer controls are present',()=>{
  'stratism-generate-private','stratism-generated-preview','stratism-result','stratism-save-preview'])assert.ok(html.includes('id="'+id+'"'),id);
 });
 test('client script parses and cannot auto publish or call external API',()=>{
- assert.doesNotMatch(js,/\\bXMLHttpRequest\\b|\\bpublishArtwork\\s*\\(/);
+ assert.ok(!js.includes('XMLHttpRequest')&&!js.includes('publishArtwork('));
  assert.match(js,/commercial_release:false/);assert.match(js,/print_release:false/);
 });
 
@@ -28,7 +28,7 @@ test('reference inspection stays local with no upload or false print certificati
  assert.match(js,/pixelPass/);
  assert.match(js,/aspectPass/);
  assert.match(js,/ikke printgodkjenning/);
- assert.doesNotMatch(js,/\\bXMLHttpRequest\\b|\\bpublishArtwork\\s*\\(/);
+ assert.ok(!js.includes('XMLHttpRequest')&&!js.includes('publishArtwork('));
 });
 
 test('AI generation is server authorized and cannot publish or sell',()=>{
