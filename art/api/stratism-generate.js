@@ -4,6 +4,17 @@ const ALLOWED_MODELS=new Set(['gpt-image-2','gpt-image-2.5-sunburst','gpt-image-
 const CHORDS=new Set(['muted olive green and warm ochre','restrained ultramarine and slate','soft amber and oxblood','muted violet and mauve','neutral earth and linen']);
 const EMPHASES=new Set(['selected roots and trunk contours','the eyes and a few facial contours','the principal architectural lines',"the main subject's distinctive features"]);
 const STRENGTHS=new Set(['subtle','very subtle','moderate but subordinate to subject']);
+const MAX_REFERENCE_BYTES=1_350_000;
+function readReference(base64){
+ if(base64==null)return null;
+ if(typeof base64!=='string'||base64.length<100||base64.length>1_800_000||!/^[A-Za-z0-9+/]+={0,2}$/.test(base64))
+  throw new Error('INVALID_REFERENCE');
+ const bytes=Buffer.from(base64,'base64');
+ if(bytes.length<80||bytes.length>MAX_REFERENCE_BYTES||bytes[0]!==0xff||bytes[1]!==0xd8||bytes[2]!==0xff)
+  throw new Error('INVALID_REFERENCE');
+ return bytes;
+}
+
 function text(value,max=1500){return typeof value==='string'?value.trim().slice(0,max):''}
 function choice(value,allowed,fallback){return allowed.has(value)?value:fallback}
 function promptFrom(body){
@@ -23,8 +34,9 @@ module.exports=async(req,res)=>{
  const header=typeof req.headers.authorization==='string'?req.headers.authorization:'';
  const token=header.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
  if(!token)return res.status(401).json({error:'Administrator sign-in required'});
- if(Number(req.headers['content-length']||0)>8192)return res.status(413).json({error:'Request too large'});
- let prompt;try{prompt=promptFrom(req.body)}catch{return res.status(400).json({error:'A longer subject description is required'})}
+ if(Number(req.headers['content-length']||0)>2_600_000)return res.status(413).json({error:'Request too large'});
+ let prompt,reference;try{prompt=promptFrom(req.body);reference=readReference(req.body?.reference_jpeg_base64)}
+ catch{return res.status(400).json({error:'Invalid Stratism description or reference photo'})}
  const admin=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
  try{
   const {data:user,error:authError}=await admin.auth.getUser(token);
@@ -34,16 +46,32 @@ module.exports=async(req,res)=>{
   const model=ALLOWED_MODELS.has(process.env.STRATISM_IMAGE_MODEL)?process.env.STRATISM_IMAGE_MODEL:'gpt-image-2';
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),100000);
   let response;
-  try{response=await fetch('https://api.openai.com/v1/images/generations',{
-    method:'POST',
-    headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({model,prompt,size:'1024x1536',quality:'high',output_format:'jpeg',n:1}),
-    signal:controller.signal
-  })}finally{clearTimeout(timer)}
+  try{
+    if(reference){
+      const payload=new FormData();
+      payload.append('model',model);
+      payload.append('image',new Blob([reference],{type:'image/jpeg'}),'reference.jpg');
+      payload.append('prompt',prompt+' Faithfully use the attached reference photograph as the source of subject identity, silhouette and scene structure. Do not replace the subject with a generic alternative.');
+      payload.append('size','1024x1536');
+      payload.append('quality','high');
+      payload.append('output_format','jpeg');
+      payload.append('n','1');
+      response=await fetch('https://api.openai.com/v1/images/edits',{
+        method:'POST',headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY},
+        body:payload,signal:controller.signal
+      });
+    }else{
+      response=await fetch('https://api.openai.com/v1/images/generations',{
+        method:'POST',headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({model,prompt,size:'1024x1536',quality:'high',output_format:'jpeg',n:1}),
+        signal:controller.signal
+      });
+    }
+  }finally{clearTimeout(timer)}
   if(!response.ok){console.error('Stratism image provider status',response.status);return res.status(502).json({error:'Image provider declined the request',code:'PROVIDER_'+response.status})}
   const result=await response.json(),b64=result?.data?.[0]?.b64_json;
   if(typeof b64!=='string'||b64.length<100||b64.length>9_000_000)return res.status(502).json({error:'Generated preview missing or too large'});
-  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false});
+  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference});
  }catch(error){console.error('Stratism generation failed',error?.name||'unknown');return res.status(502).json({error:'Private preview generation unavailable'})}
 };
 module.exports.promptFrom=promptFrom;
