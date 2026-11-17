@@ -176,12 +176,11 @@ function validateGenerationRequest(body){
  if(revisionMode!==undefined&&!reference)throw new Error('MISSING_REVISION_IMAGE');
  if(revisionMode===undefined&&source.sourceKind!=='concept'&&!reference)throw new Error('PHOTO_REQUIRED');
  if(revisionMode===undefined&&reference&&body?.reference_rights!==true)throw new Error('PHOTO_RIGHTS_REQUIRED');
- prompt=promptFrom(body)+' '+(preset==='stratum-no4-v1'?
-  VARIATION_DIRECTIVES[variation]:
+ prompt=promptFrom(body)+' '+(preset==='stratum-no4-v1'&&source.composition==='three-anchors'?
+  'Maintain the same subject and three painterly anchors; vary asymmetry and balance, never impose five equally spaced bands.':
+  preset==='stratum-no4-v1'?VARIATION_DIRECTIVES[variation]:
   preset==='olivos-de-biar-v1'?
   'Preserve the original soft naturalistic olive painting language; the three variants change composition nuance, not into a saturated five-band style.':
-  preset==='stratum-no4-v1'&&source.composition==='three-anchors'?
-  'Maintain the same subject and three painterly anchors; vary asymmetry and balance, never impose five equally spaced bands.':
   VARIATION_DIRECTIVES[variation]);
  if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+
    refinementFor(preset,source.composition,revisionMode,body);
