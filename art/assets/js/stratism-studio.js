@@ -140,16 +140,31 @@ function buildBrief(){
  const chord=$('stratism-chord').value;
  const emphasis=$('stratism-emphasis').value;
  const strength=$('stratism-strength').value;
+ const compositionMode=$('stratism-composition-rule').value;
+ const sourceKind=$('stratism-source-kind').value;
+ const place=clean($('stratism-place').value,140);
+ const photoCredit=clean($('stratism-photo-credit').value,120);
+ const story=clean($('stratism-story').value,1000);
+ const referenceRights=$('stratism-reference-rights').checked;
+ if(!['five-states','three-anchors'].includes(compositionMode)||!['concept','own-photo','client-photo'].includes(sourceKind))
+  throw Error('Ukjent kilde eller komposisjonsregel.');
+ if(sourceKind==='client-photo'&&!referenceRights)
+  throw Error('Bekreft kundens samtykke til AI-bearbeiding.');
+
  const title=clean($('stratism-title').value,100)||'Untitled Stratism';
  const preset=activePreset();
  if(!STRATISM_PRESET_IDS.includes(preset))throw Error('Ukjent Stratism-modell.');
  return {
-  schema:'stratism-brief-v1',title,description,preset,reference_note:source||null,reference_metadata:state.reference,
+  schema:'stratism-brief-v1',title,description,preset,composition_mode:compositionMode,
+  provenance:{source_kind:sourceKind,place,story,photo_credit:photoCredit,reference_rights_confirmed:referenceRights,
+   verified:false},reference_note:source||null,reference_metadata:state.reference,
   style:{name:'Stratism',preset,rules_version:preset,sequence:['presence','feeling','memory','erasure','absence'],
    palette:chord,emphasis,colour_strength:strength,signature:'Freddy Bremseth',
    constraints:['one continuous subject','no broad dominant colour stripe','no global embossed texture',
     'no paper-flake simulation','preserve selected meaningful features','visible unpainted linen']},
-  render_instruction:preset==='olivos-de-biar-v1'?
+  render_instruction:preset==='stratum-no4-v1'&&compositionMode==='three-anchors'?
+   `Stratism three-anchor interpretation for ${description}. Mandatory: ONE saturated ${chord} band as flat opaque brush shapes with visible edges, THIN grey-mauve washes with long drips reaching the bare beige linen, and a delicate graphite sketch of ${emphasis} on the unprinted-looking digital linen with a small cursive signature. The five states remain the conceptual background, but composition may vary freely. No digital emboss or other strong colours; 4:5 portrait.`:
+   preset==='olivos-de-biar-v1'?
    `Original Olivos de Biar model. Paint ${description} as a finely detailed, naturalistic, softly atmospheric olive-style artwork. Keep the subject recognizable and use delicate tempera-like brushwork, muted organic colours, natural fine raw linen gradually emerging below and pencil roots/defining contours. No saturated colour band and no scraped oxblood stripe. Avoid embossed uniform digital texture. 4:5 portrait, full subject visible, discreet Freddy Bremseth signature on the lower-right linen.`:
    preset==='stratum-no4-v1'?
    `Stratum No. 4 master. Paint ${description} with one coherent recognizable subject in FIVE states: finely precise matte tempera top, ONE saturated ${chord} chord as BROAD FLAT OPAQUE wet-into-wet paint with VISIBLE BRUSH EDGES (not a glow), NARROW THIN WATERY grey-mauve wash with LONG DRIPS, long horizontal DRAG MARKS WITH A FLAT BLADE in oxblood and grey-green, then BARE BEIGE LINEN with faint pencil traces. Preserve ${emphasis}. The background is quiet pale muted grey-blue sky and raw linen; no hills, distant secondary motifs or orange soil. No digital embossed scale pattern. Keep the full subject inside the 4:5 portrait. Sign Freddy Bremseth discreetly bottom-right.`:
@@ -176,6 +191,8 @@ $('stratism-download-brief').addEventListener('click',()=>{
 });
 $('stratism-generate-private').addEventListener('click',async()=>{
  if(!state.brief||state.variants.length>=MAX_VARIANTS||state.busy)return;
+ if(referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
+ if(state.brief.provenance?.source_kind!=='concept'&&!referenceInput.files?.[0]){$('stratism-brief-status').textContent='Velg referansefoto for et virkelig motiv.';return;}
  state.busy=true;refreshVariantUI();
  const variation=state.variants.length+1;
  $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
@@ -198,10 +215,15 @@ $('stratism-generate-private').addEventListener('click',async()=>{
   }
   const response=await stratismRequest({description:state.brief.description,
      chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
-     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation,preset:state.brief.preset});
+     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation,preset:state.brief.preset,
+     composition_mode:state.brief.composition_mode||'five-states',
+     source_kind:state.brief.provenance?.source_kind||'concept',
+     place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
+     photo_credit:state.brief.provenance?.photo_credit||'',
+     reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
-  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset)
+  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
    throw Error('Uventet genereringsstatus. Bildet er ikke vist.');
   // Hold de tre forslagene privat i denne nettlesersesjonen.
   const encoded=data.image_base64;
@@ -246,10 +268,15 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const mode=$('stratism-refinement-kind').value;
   const response=await stratismRequest({description:state.brief.description,chord:state.brief.style.palette,
     emphasis:state.brief.style.emphasis,strength:state.brief.style.colour_strength,
-    variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData,preset:state.brief.preset});
+    variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData,preset:state.brief.preset,
+     composition_mode:state.brief.composition_mode||'five-states',
+     source_kind:state.brief.provenance?.source_kind||'concept',
+     place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
+     photo_credit:state.brief.provenance?.photo_credit||'',
+     reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Revisjon feilet').slice(0,180));
-  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode||data.preset!==state.brief.preset)
+  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
    throw Error('Uventet svar fra revisjonsmotoren.');
   const encoded=data.image_base64;
   if(typeof encoded!=='string'||encoded.length>9_000_000)throw Error('Ugyldig revisjonsbilde.');
@@ -295,6 +322,13 @@ function validArchiveBrief(brief){
  typeof brief.title==='string'&&brief.title.length<=100&&
  typeof brief.description==='string'&&brief.description.length>=12&&brief.description.length<=2000&&
  (brief.preset===undefined||STRATISM_PRESET_IDS.includes(brief.preset))&&
+ (brief.composition_mode===undefined||['five-states','three-anchors'].includes(brief.composition_mode))&&
+ (brief.provenance===undefined||(brief.provenance&&
+ ['concept','own-photo','client-photo'].includes(brief.provenance.source_kind)&&
+ typeof brief.provenance.place==='string'&&brief.provenance.place.length<=140&&
+ typeof brief.provenance.story==='string'&&brief.provenance.story.length<=1000&&
+ typeof brief.provenance.photo_credit==='string'&&brief.provenance.photo_credit.length<=120&&
+ typeof brief.provenance.reference_rights_confirmed==='boolean'))&&
  !!brief.style&&['cobalt turquoise and teal','muted olive green and warm ochre','restrained ultramarine and slate',
  'soft amber and oxblood','muted violet and mauve','neutral earth and linen'].includes(brief.style.palette)&&
  ['selected roots and trunk contours','the eyes and a few facial contours',
@@ -371,10 +405,21 @@ function restorePrivateProject(archive){
   // Only commit restored data after every image and field has been validated.
   for(const old of state.variants){URL.revokeObjectURL(old.url);if(old.revision)URL.revokeObjectURL(old.revision.url)}
   state.variants=restored;state.selectedVariant=archive.selected_variant;
-  state.brief={...archive.brief,preset:archive.brief.preset||'stratism-working-v09',reference_metadata:null,
+  state.brief={...archive.brief,preset:archive.brief.preset||'stratism-working-v09',
+   composition_mode:archive.brief.composition_mode||'five-states',
+   provenance:archive.brief.provenance||{source_kind:'concept',place:'',story:'',photo_credit:'',reference_rights_confirmed:false,verified:false},
+   reference_metadata:null,
    production:{provider:'NOT_CONNECTED',generation_status:'BRIEF_ONLY',
     commercial_release:false,print_release:false,human_approval_required:true}};
   $('stratism-preset').value=state.brief.preset;
+  $('stratism-composition-rule').value=state.brief.composition_mode;
+  $('stratism-source-kind').value=state.brief.provenance.source_kind;
+  $('stratism-place').value=state.brief.provenance.place||'';
+  $('stratism-photo-credit').value=state.brief.provenance.photo_credit||'';
+  $('stratism-story').value=state.brief.provenance.story||'';
+  // Imported assertions never silently count as a fresh rights confirmation.
+  $('stratism-reference-rights').checked=false;
+  state.brief.provenance.reference_rights_confirmed=false;
   updatePresetDescription();
   $('stratism-title').value=state.brief.title;
   $('stratism-source').value=state.brief.reference_note||'';
