@@ -548,3 +548,28 @@ test('TIFF orientation is reflected in displayed pixel dimensions before aspect 
  assert.match(js,/TIFF-dimensjonene er kun lest fra metadata for første bilde/);
  assert.match(js,/TIFF-orientering er tatt med i dimensjonene/);
 });
+
+test('private web JPEG derivative is locally generated at <=1600px without sale or print approval',()=>{
+ new vm.Script(js);
+ assert.match(html,/id="stratism-export-web"/);
+ assert.match(html,/id="stratism-web-export-status"/);
+ const start=js.indexOf('function webDerivativeSize(width,height,maxEdge=1600)');
+ const end=js.indexOf('function refreshVariantUI()',start);
+ assert.ok(start>0&&end>start);
+ const section=js.slice(start,end);
+ const dims=vm.runInNewContext(section.slice(0,section.indexOf('async function createLocalWebDerivative'))+';webDerivativeSize');
+ assert.deepEqual(Array.from(Object.values(dims(1280,1600))),[1280,1600]);
+ assert.deepEqual(Array.from(Object.values(dims(8000,10000))),[1280,1600]);
+ assert.deepEqual(Array.from(Object.values(dims(3000,1000))),[1600,533]);
+ assert.deepEqual(Array.from(Object.values(dims(640,480))),[640,480]);
+ assert.throws(()=>dims(0,500),/Ugyldige bildedimensjoner/);
+ assert.match(section,/createImageBitmap\(file\)/);
+ assert.match(section,/ctx\.drawImage\(bitmap,0,0,size\.width,size\.height\)/);
+ assert.match(section,/canvas\.toBlob/);
+ assert.match(section,/image\/jpeg',0\.88/);
+ assert.match(section,/web-preview-not-sale-approved\.jpg/);
+ assert.match(section,/inspectionId!==masterInspectionId/);
+ assert.match(section,/Originalen er uendret/);
+ assert.match(section,/masterCandidate\.metadataOnly/);
+ assert.doesNotMatch(section,/fetch\(|stratismRequest\(|upload_url|approved:true/);
+});
