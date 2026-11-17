@@ -86,6 +86,45 @@ function updatePresetDescription(){
 const MAX_VARIANTS=3;
 const QUALITY_FIELDS=['subject','colour','brush','transitions','linen','texture'];
 const QUALITY_VALUES=['pending','pass','revise'];
+const QUALITY_LABELS=Object.freeze({
+ 'stratum-no4-v1':Object.freeze({
+  subject:'Motivets identitet gjennom fem materialtilstander',
+  colour:'Én tydelig, mettet fargeakkord – ingen konkurrerende farge',
+  brush:'Bred, ugjennomsiktig maling med synlige penselkanter',
+  transitions:'Fem ulike overganger, mauve vask og utvalgte lange dryp',
+  linen:'Bar beige lin, grafittspor og diskré signatur',
+  texture:'Ingen digital skjellstruktur eller kunstig relieff'
+ }),
+ 'three-anchors':Object.freeze({
+  subject:'Samme gjenkjennelige motiv gjennom hele komposisjonen',
+  colour:'Én sterk fargeakkord malt som ugjennomsiktig flate',
+  brush:'Tydelige malte flater fremfor digital glød',
+  transitions:'Gjennomsiktig vask og lange dryp – uten fem faste bånd',
+  linen:'Synlig lin og grafittskisse av samme motiv',
+  texture:'Ingen mekanisk tekstur eller påtvunget skrapebånd'
+ }),
+ 'olivos-de-biar-v1':Object.freeze({
+  subject:'Naturtro tre, stamme, grener og særpreg',
+  colour:'Dempede olivengrønne og naturlige jordfarger',
+  brush:'Myke, detaljerte penselstrøk – ingen kunstig glød',
+  transitions:'Organisk, myk overgang til bar lin – ikke tvungne dryp',
+  linen:'Naturlig lin og fine grafittspor av røttene',
+  texture:'Ingen digital skjellstruktur eller kraftige skrapelag'
+ }),
+ 'stratism-working-v09':Object.freeze({
+  subject:'Samme motiv bevart gjennom eksperimentelle overganger',
+  colour:'Dempet, sammenhengende følelsesmessig fargeuttrykk',
+  brush:'Troverdig maling uten mekaniske filtereffekter',
+  transitions:'Asymmetriske frie overganger uten stive bånd',
+  linen:'Bar lin og varsomme grafittspor',
+  texture:'Ingen repetitiv digital tekstur'
+ })
+});
+function activeQualityLabels(){
+ const preset=state.brief?.preset||activePreset();
+ return QUALITY_LABELS[preset==='stratum-no4-v1'&&state.brief?.composition_mode==='three-anchors'?'three-anchors':preset]
+   ||QUALITY_LABELS['stratum-no4-v1'];
+}
 function qualityFor(variant){
  if(!variant)return null;
  const key=variant.showRevision&&variant.revision?'revision':'original';
@@ -131,7 +170,10 @@ function updateQualityUI(){
   'Stratum No. 4 – vurder alle fem materialtilstandene og bare én mettet fargeakkord.';
  $('stratism-quality-context').textContent=mode+' Manuell vurdering – aldri automatisk salgs- eller printgodkjenning.';
  const controls=[...document.querySelectorAll('[data-stratism-quality]')];
+ const labels=activeQualityLabels();
  for(const control of controls){
+  const label=control.closest('label');
+  if(label&&label.firstChild?.nodeType===3)label.firstChild.nodeValue=labels[control.dataset.stratismQuality]+' ';
   control.value=review?.ratings?.[control.dataset.stratismQuality]||'pending';
   control.disabled=!selected||state.busy;
  }
