@@ -58,6 +58,8 @@ function refreshVariantUI(){
  $('stratism-refine-selected').disabled=!selected||!!selected.revision||state.busy;
  $('stratism-save-preview').disabled=!selected||state.busy;
  $('stratism-reset-variants').disabled=state.busy;
+ $('stratism-export-project').disabled=!state.brief||state.busy;
+ $('stratism-import-project').disabled=state.busy;
  $('stratism-reference-file').disabled=state.busy;
  for(const input of form.querySelectorAll('input,select,textarea,button'))input.disabled=state.busy;
  $('stratism-selected-description').textContent=state.selectedVariant<0?'Velg en prøve for å laste ned.':
@@ -224,6 +226,142 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
  }catch(error){$('stratism-brief-status').textContent=error.message}
  finally{state.busy=false;refreshVariantUI()}
 });
+
+// A portable, private archive is an intentional user download, NOT cloud storage.
+// Generated JPG concepts are never promoted to digital or print masters here.
+const ARCHIVE_SCHEMA='stratism-project-v1';
+const MAX_ARCHIVE_BYTES=48*1024*1024;
+const MAX_ARCHIVE_IMAGE_CHARS=9_000_000;
+function binaryToBase64(bytes){
+ let out='';const chunk=32768;
+ for(let i=0;i<bytes.length;i+=chunk)out+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+ return btoa(out);
+}
+function base64ToJpegUrl(encoded){
+ if(typeof encoded!=='string'||encoded.length<100||encoded.length>MAX_ARCHIVE_IMAGE_CHARS||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))throw Error('Ugyldige bildedata i prosjektfilen.');
+ const binary=atob(encoded);
+ if(binary.charCodeAt(0)!==255||binary.charCodeAt(1)!==216||binary.charCodeAt(2)!==255)
+  throw Error('Prosjektfilen inneholder et bilde som ikke er JPEG.');
+ const bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return URL.createObjectURL(new Blob([bytes],{type:'image/jpeg'}));
+}
+async function urlToBase64(url){
+ const response=await fetch(url);
+ if(!response.ok)throw Error('Kunne ikke lese et privat prøvebilde fra nettleseren.');
+ const blob=await response.blob();
+ if(blob.type!=='image/jpeg'||blob.size>6_750_000)throw Error('Et prøvebilde er for stort for prosjektfilen.');
+ return binaryToBase64(new Uint8Array(await blob.arrayBuffer()));
+}
+function validArchiveBrief(brief){
+ return !!brief&&brief.schema==='stratism-brief-v1'&&
+ typeof brief.title==='string'&&brief.title.length<=100&&
+ typeof brief.description==='string'&&brief.description.length>=12&&brief.description.length<=2000&&
+ !!brief.style&&['muted olive green and warm ochre','restrained ultramarine and slate',
+ 'soft amber and oxblood','muted violet and mauve','neutral earth and linen'].includes(brief.style.palette)&&
+ ['selected roots and trunk contours','the eyes and a few facial contours',
+ 'the principal architectural lines',"the main subject's distinctive features"].includes(brief.style.emphasis)&&
+ ['subtle','very subtle','moderate but subordinate to subject'].includes(brief.style.colour_strength);
+}
+function saveDownload(data,name){
+ const blob=new Blob([data],{type:'application/json'});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement('a');
+ link.href=url;link.download=name;
+ document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+$('stratism-export-project').addEventListener('click',async()=>{
+ if(state.busy||!state.brief)return;
+ state.busy=true;refreshVariantUI();
+ $('stratism-brief-status').textContent='Pakker privat prosjektfil…';
+ try{
+  const variants=[];
+  for(const v of state.variants){
+   variants.push({variation:v.variation,createdAt:v.createdAt,showRevision:!!v.showRevision,
+    image_base64:await urlToBase64(v.url),revision:v.revision?{
+      mode:v.revision.mode,createdAt:v.revision.createdAt,
+      image_base64:await urlToBase64(v.revision.url)
+    }:null});
+  }
+  const brief={...state.brief,reference_metadata:null};
+  const archive={schema:ARCHIVE_SCHEMA,saved_at:new Date().toISOString(),brief,
+   variants,selected_variant:state.selectedVariant,
+   approvals:{commercial_release:false,print_release:false}};
+  const json=JSON.stringify(archive);
+  if(json.length>MAX_ARCHIVE_BYTES)throw Error('Prosjektet overskrider sikker størrelsesgrense for lokal eksport.');
+  const slug=state.brief.title.toLowerCase().normalize('NFKD')
+   .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,45)||'kunstverk';
+  saveDownload(json,'stratism-'+slug+'.json');
+  $('stratism-brief-status').textContent='Prosjektfil lastet ned på din enhet. Ta en sikkerhetskopi; dette er ikke skylagring.';
+ }catch(error){$('stratism-brief-status').textContent=error.message}
+ finally{state.busy=false;refreshVariantUI()}
+});
+$('stratism-import-project').addEventListener('change',async()=>{
+ const input=$('stratism-import-project');
+ const file=input.files?.[0];
+ input.value='';
+ if(!file||state.busy)return;
+ state.busy=true;refreshVariantUI();
+ let temporaryUrls=[];
+ try{
+  if(file.size>MAX_ARCHIVE_BYTES||file.size<20)throw Error('Prosjektfilen er ugyldig eller for stor.');
+  const archive=JSON.parse(await file.text());
+  if(archive?.schema!==ARCHIVE_SCHEMA||!validArchiveBrief(archive.brief)||
+   !Array.isArray(archive.variants)||archive.variants.length>MAX_VARIANTS||
+   archive.approvals?.commercial_release!==false||archive.approvals?.print_release!==false)
+   throw Error('Ugyldig eller ukjent Stratism-prosjektformat.');
+  if(!Number.isInteger(archive.selected_variant)||archive.selected_variant< -1||
+   archive.selected_variant>=archive.variants.length||
+   (archive.variants.length>0&&archive.selected_variant===-1))
+   throw Error('Ugyldig valg i prosjektfilen.');
+  const restored=[];
+  for(let i=0;i<archive.variants.length;i++){
+   const entry=archive.variants[i];
+   if(entry?.variation!==i+1||typeof entry.createdAt!=='string'||
+    entry.createdAt.length>50)throw Error('Ugyldig prosjektvariant.');
+   const url=base64ToJpegUrl(entry.image_base64);temporaryUrls.push(url);
+   let revision=null;
+   if(entry.revision!=null){
+    if(!['subtler-colour','preserve-details','more-linen','remove-texture'].includes(entry.revision.mode)||
+      typeof entry.revision.createdAt!=='string'||entry.revision.createdAt.length>50)
+      throw Error('Ugyldig revidert prosjektbilde.');
+    const revUrl=base64ToJpegUrl(entry.revision.image_base64);temporaryUrls.push(revUrl);
+    revision={url:revUrl,mode:entry.revision.mode,createdAt:entry.revision.createdAt};
+   }
+   restored.push({url,variation:i+1,createdAt:entry.createdAt,revision,
+    showRevision:!!revision&&entry.showRevision===true});
+  }
+  // Only commit restored data after every image and field has been validated.
+  for(const old of state.variants){URL.revokeObjectURL(old.url);if(old.revision)URL.revokeObjectURL(old.revision.url)}
+  state.variants=restored;state.selectedVariant=archive.selected_variant;
+  state.brief={...archive.brief,reference_metadata:null,
+   production:{provider:'NOT_CONNECTED',generation_status:'BRIEF_ONLY',
+    commercial_release:false,print_release:false,human_approval_required:true}};
+  $('stratism-title').value=state.brief.title;
+  $('stratism-source').value=state.brief.reference_note||'';
+  $('stratism-description').value=state.brief.description;
+  $('stratism-chord').value=state.brief.style.palette;
+  $('stratism-emphasis').value=state.brief.style.emphasis;
+  $('stratism-strength').value=state.brief.style.colour_strength;
+  output.textContent=state.brief.render_instruction||'Stratism-brief hentet fra prosjektfil.';
+  // No original reference image is in the archive; require re-selection before image edits.
+  referenceInput.value='';state.reference=null;
+  if(state.previewUrl){URL.revokeObjectURL(state.previewUrl);state.previewUrl=null}
+  $('stratism-reference-preview').hidden=true;
+  $('stratism-reference-preview').removeAttribute('src');
+  $('stratism-reference-status').textContent='Referansefoto må velges på nytt etter import.';
+  $('stratism-print-capacity').textContent='Originalt referansefoto er ikke lagret i prosjektfilen.';
+  $('stratism-download-brief').disabled=false;
+  temporaryUrls=[];
+  $('stratism-brief-status').textContent='Privat prosjekt åpnet. Bilder og revisjoner er gjenopprettet; ingen publisering.';
+ }catch(error){
+  for(const url of temporaryUrls)URL.revokeObjectURL(url);
+  $('stratism-brief-status').textContent='Import mislyktes: '+error.message;
+ }finally{state.busy=false;refreshVariantUI()}
+});
+
 $('stratism-reset-variants').addEventListener('click',()=>{
  if(state.busy)return;
  clearVariants();
