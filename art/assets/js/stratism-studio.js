@@ -570,6 +570,32 @@ function binaryToBase64(bytes){
  for(let i=0;i<bytes.length;i+=chunk)out+=String.fromCharCode(...bytes.subarray(i,i+chunk));
  return btoa(out);
 }
+function inspectArchivedJpeg(bytes){
+ if(bytes.length<100||bytes[0]!==255||bytes[1]!==216||bytes[2]!==255)
+  throw Error('Ugyldig JPEG-bilde i prosjektfilen.');
+ // JPEG segment scanner: dimensions are read from SOF, not inferred from a filename.
+ for(let p=2;p+9<bytes.length;){
+  if(bytes[p]!==255){p++;continue;}
+  while(p<bytes.length&&bytes[p]===255)p++;
+  const marker=bytes[p++];
+  if(marker===217||marker===218)break;
+  if(marker===216||marker===1||(marker>=208&&marker<=215))continue;
+  if(p+2>bytes.length)break;
+  const length=(bytes[p]<<8)|bytes[p+1];
+  if(length<2||p+length>bytes.length)break;
+  if((marker>=192&&marker<=195)||(marker>=197&&marker<=199)||
+     (marker>=201&&marker<=203)||(marker>=205&&marker<=207)){
+   if(length<7)break;
+   const height=(bytes[p+3]<<8)|bytes[p+4];
+   const width=(bytes[p+5]<<8)|bytes[p+6];
+   if(width<32||height<32||width>12000||height>12000||width*height>80_000_000)
+    throw Error('Bildet i prosjektfilen har ugyldig oppløsning.');
+   return {width,height};
+  }
+  p+=length;
+ }
+ throw Error('Prosjektbildet mangler lesbar JPEG-oppløsning.');
+}
 function base64ToJpegUrl(encoded){
  if(typeof encoded!=='string'||encoded.length<100||encoded.length>MAX_ARCHIVE_IMAGE_CHARS||
     !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))throw Error('Ugyldige bildedata i prosjektfilen.');
@@ -578,6 +604,7 @@ function base64ToJpegUrl(encoded){
   throw Error('Prosjektfilen inneholder et bilde som ikke er JPEG.');
  const bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ inspectArchivedJpeg(bytes);
  return URL.createObjectURL(new Blob([bytes],{type:'image/jpeg'}));
 }
 async function urlToBase64(url){
