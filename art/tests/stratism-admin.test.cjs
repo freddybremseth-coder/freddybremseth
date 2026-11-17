@@ -223,9 +223,11 @@ test('preflight and real generation share the exact same prepared private reques
  assert.match(js,/function requestFromCurrentBrief\(variation,referenceJpeg\)/);
  assert.match(js,/async function prepareReferenceJpeg\(\)/);
  assert.match(js,/const payload=requestFromCurrentBrief\(/);
- assert.match(js,/stratismRequest\(requestFromCurrentBrief\(variation,referenceJpeg\)\)/);
+ assert.match(js,/const payload=requestFromCurrentBrief\(variation,referenceJpeg\)/);
+ assert.match(js,/stratismRequest\(payload\)/);
  assert.match(js,/\/api\/stratism-preflight/);
  assert.match(js,/data\.no_provider_call!==true/);
+ assert.match(js,/async function verifyFreePreflight\(payload\)/);
  assert.match(js,/\$\('stratism-preflight'\)\.disabled=!state\.brief\|\|state\.busy/);
 });
 
@@ -392,7 +394,28 @@ test('preflight gives actionable Norwegian errors and validates the exact photo 
  const start=js.indexOf("$('stratism-preflight').addEventListener");
  const end=js.indexOf("$('stratism-generate-private').addEventListener",start);
  const part=js.slice(start,end);
- assert.match(part,/data\.source_kind!==\(state\.brief\.provenance\?\.source_kind\|\|'concept'\)/);
- assert.match(part,/data\.reference_used!==!!referenceJpeg/);
- assert.match(part,/data\.variation!==payload\.variation/);
+ assert.match(js,/data\.source_kind!==payload\.source_kind/);
+ assert.match(js,/data\.reference_used!==!!payload\.reference_jpeg_base64/);
+ assert.match(js,/data\.variation!==payload\.variation/);
+});
+
+test('paid generation requires free preflight of identical payload before charge approval and provider call',()=>{
+ const start=js.indexOf("$('stratism-generate-private').addEventListener");
+ const end=js.indexOf("$('stratism-save-preview').addEventListener",start);
+ assert.ok(start>0&&end>start);
+ const body=js.slice(start,end);
+ const prepare=body.indexOf('const payload=requestFromCurrentBrief(variation,referenceJpeg)');
+ const preflight=body.indexOf('await verifyFreePreflight(payload)');
+ const charge=body.indexOf("approveImageCharge('Generering')");
+ const provider=body.indexOf('await stratismRequest(payload)');
+ assert.ok(prepare>=0&&preflight>prepare&&charge>preflight&&provider>charge);
+ assert.match(body,/if\(!approveImageCharge\('Generering'\)\)\{/);
+ assert.match(body,/finally\{state\.busy=false;refreshVariantUI\(\)\}/);
+ const check=js.slice(js.indexOf('async function verifyFreePreflight(payload)'),start);
+ assert.match(check,/data\.no_provider_call!==true/);
+ assert.match(check,/data\.preset!==payload\.preset/);
+ assert.match(check,/data\.source_kind!==payload\.source_kind/);
+ assert.match(check,/data\.reference_used!==!!payload\.reference_jpeg_base64/);
+ assert.match(check,/data\.revision!==\(payload\.revision_mode\|\|null\)/);
+ assert.match(check,/data\.sale_approval!==false\|\|data\.print_approval!==false/);
 });
