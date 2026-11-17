@@ -21,7 +21,10 @@ module.exports=async(req,res)=>{
   if(memberError||!member)return res.status(403).json({error:'Administrator approval required'});
   let parsed;
   try{parsed=generator.validateGenerationRequest(req.body)}
-  catch{return res.status(400).json({error:'Invalid art model, image, rights, description or revision request'})}
+  catch(error){return res.status(400).json({
+   error:'Invalid art model, image, rights, description or revision request',
+   code:generator.validationErrorCode(error)
+  })}
   return res.status(200).json({
    valid:true,preview_only:true,no_provider_call:true,cost_estimate:'No image charges for preflight',
    preset:parsed.preset,composition_mode:parsed.source.composition,
