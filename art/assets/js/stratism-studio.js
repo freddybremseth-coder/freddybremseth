@@ -433,7 +433,7 @@ $('stratism-export-master-report').addEventListener('click',()=>{
   const report=makeMasterInspectionReport(masterCandidate,
    $('stratism-print-target').value,new Date().toISOString());
   const json=JSON.stringify(report,null,2);
-  const stem=masterCandidate.name.replace(/\\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60)||'kunstverk';
+  const stem=masterCandidate.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60)||'kunstverk';
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   try{
