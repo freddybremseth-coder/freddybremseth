@@ -19,7 +19,7 @@ module.exports=async(req,res)=>{
    .select('user_id').eq('user_id',user.id).maybeSingle();
   if(adminError||!admin)return res.status(403).json({error:'Administrator approval required'});
   const enabled=process.env.STRATISM_GENERATION_ENABLED==='true';
-  const configured=!!(process.env.OPENAI_API_KEY&&process.env.SUPABASE_URL&&process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const configured=!!(process.env.OPENAI_API_KEY&&process.env.STRATISM_SUPABASE_URL&&process.env.STRATISM_SUPABASE_PUBLISHABLE_KEY);
   const model=ALLOWED_MODELS.has(process.env.STRATISM_IMAGE_MODEL)?process.env.STRATISM_IMAGE_MODEL:'gpt-image-2';
   return res.status(200).json({
    enabled,configured,can_generate:enabled&&configured,model,
