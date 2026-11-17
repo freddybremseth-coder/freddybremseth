@@ -45,6 +45,21 @@ function qualityFor(variant){
  variant.reviews[key]??={ratings:{},notes:'',updated_at:null};
  return variant.reviews[key];
 }
+function failedQualityKeys(variant){
+ const review=variant?.reviews?.original;
+ return QUALITY_FIELDS.filter(key=>review?.ratings?.[key]==='revise');
+}
+function refreshRefinementHint(){
+ const variant=state.variants[state.selectedVariant];
+ const qa=$('stratism-refinement-kind').value==='qa-guided';
+ const failed=failedQualityKeys(variant);
+ $('stratism-refine-selected').disabled=!variant||!!variant.revision||state.busy||(qa&&failed.length===0);
+ $('stratism-refine-hint').textContent=qa?
+  failed.length?failed.length+' kontrollpunkter markert for målrettet revisjon. Bare originalen redigeres; den beholdes.':
+  'Marker minst ett punkt som «Må forbedres» på originalbildet, eller velg én manuell forbedring.':
+  'Ett målrettet AI-kall. Originalen beholdes alltid.';
+}
+$('stratism-refinement-kind').addEventListener('change',refreshRefinementHint);
 function validateQuality(value){
  if(value==null)return null; // Compatibility with archives from before reviews existed.
  if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Ugyldig kunstnerisk vurdering.');
@@ -76,6 +91,7 @@ function updateQualityUI(){
  $('stratism-quality-notes').disabled=!selected||state.busy;
  const statuses=controls.map(control=>control.value);
  const passed=statuses.filter(x=>x==='pass').length,failed=statuses.filter(x=>x==='revise').length;
+ refreshRefinementHint();
  $('stratism-quality-status').textContent=!selected?'Velg et forslag for kunstnerisk gjennomgang.':
   failed?failed+' punkter trenger forbedring · '+passed+' av 6 bestått.':
   passed===6?'Alle seks manuelle kontrollpunkter er bestått. Dette er IKKE salg- eller printgodkjenning.':
@@ -124,7 +140,7 @@ function refreshVariantUI(){
  }
  revisionSelect.value=selected?.showRevision?'1':'0';
  revisionSelect.disabled=!selected||!selected.revision||state.busy;
- $('stratism-refine-selected').disabled=!selected||!!selected.revision||state.busy;
+ refreshRefinementHint();
  $('stratism-save-preview').disabled=!selected||state.busy;
  $('stratism-reset-variants').disabled=state.busy;
  $('stratism-export-project').disabled=!state.brief||state.busy;
@@ -280,7 +296,8 @@ $('stratism-generate-private').addEventListener('click',async()=>{
      source_kind:state.brief.provenance?.source_kind||'concept',
      place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
      photo_credit:state.brief.provenance?.photo_credit||'',
-     reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
+     reference_rights:state.brief.provenance?.reference_rights_confirmed===true,
+     ...(mode==='qa-guided'?{qa_failed:qaFailed}:{})});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
@@ -326,6 +343,8 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const imageData=canvas.toDataURL('image/jpeg',0.77).split(',')[1];
   if(imageData.length>1_800_000)throw Error('Prøvebildet er for stort for revisjon.');
   const mode=$('stratism-refinement-kind').value;
+  const qaFailed=mode==='qa-guided'?failedQualityKeys(variant):null;
+  if(mode==='qa-guided'&&!qaFailed.length)throw Error('Marker minst ett kvalitetskriterium for forbedring.');
   const response=await stratismRequest({description:state.brief.description,chord:state.brief.style.palette,
     emphasis:state.brief.style.emphasis,strength:state.brief.style.colour_strength,
     variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData,preset:state.brief.preset,
@@ -343,7 +362,7 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const binary=atob(encoded),bytes=new Uint8Array(binary.length);
   for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
   const url=URL.createObjectURL(new Blob([bytes],{type:'image/jpeg'}));
-  variant.revision={url,mode,createdAt:new Date().toISOString()};
+  variant.revision={url,mode,createdAt:new Date().toISOString(),qa_failed:qaFailed||[]};
   variant.showRevision=true;state.selectedVariant=index;
   $('stratism-brief-status').textContent='Forbedret versjon klar. Originalen er fortsatt tilgjengelig. Ingen publisering.';
  }catch(error){$('stratism-brief-status').textContent=error.message}
@@ -409,7 +428,7 @@ async function serializePrivateProject(){
   for(const v of state.variants){
    variants.push({variation:v.variation,createdAt:v.createdAt,showRevision:!!v.showRevision,
     image_base64:await urlToBase64(v.url),reviews:v.reviews||null,revision:v.revision?{
-      mode:v.revision.mode,createdAt:v.revision.createdAt,
+      mode:v.revision.mode,createdAt:v.revision.createdAt,qa_failed:v.revision.qa_failed||[],
       image_base64:await urlToBase64(v.revision.url)
     }:null});
   }
@@ -453,11 +472,15 @@ function restorePrivateProject(archive){
    const url=base64ToJpegUrl(entry.image_base64);temporaryUrls.push(url);
    let revision=null;
    if(entry.revision!=null){
-    if(!['subtler-colour','preserve-details','more-linen','remove-texture'].includes(entry.revision.mode)||
+    if(!['qa-guided','subtler-colour','preserve-details','more-linen','remove-texture'].includes(entry.revision.mode)||
       typeof entry.revision.createdAt!=='string'||entry.revision.createdAt.length>50)
       throw Error('Ugyldig revidert prosjektbilde.');
     const revUrl=base64ToJpegUrl(entry.revision.image_base64);temporaryUrls.push(revUrl);
-    revision={url:revUrl,mode:entry.revision.mode,createdAt:entry.revision.createdAt};
+    const qaFailed=entry.revision.qa_failed??[];
+    if(!Array.isArray(qaFailed)||qaFailed.length>6||new Set(qaFailed).size!==qaFailed.length||
+       qaFailed.some(key=>!QUALITY_FIELDS.includes(key)))throw Error('Ugyldig revisjonsvurdering.');
+    if(entry.revision.mode==='qa-guided'&&qaFailed.length===0)throw Error('Manglende grunnlag for revisjon.');
+    revision={url:revUrl,mode:entry.revision.mode,createdAt:entry.revision.createdAt,qa_failed:qaFailed};
    }
    const reviews=validateQuality(entry.reviews);
    if(reviews?.revision&&!revision)throw Error('Vurdering for manglende revisjon.');
