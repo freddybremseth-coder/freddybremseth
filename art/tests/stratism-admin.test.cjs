@@ -300,3 +300,18 @@ test('original and revision retain independent quality summaries without approvi
  assert.match(html,/Ingen nye AI-kall startes her/);
  assert.match(html,/Hvert bilde har sin egen kvalitetsvurdering/);
 });
+
+test('comparison buttons select original or revision and synchronize reviews and downloads',()=>{
+ for(const id of ['stratism-choose-original','stratism-choose-revision'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(js,/function chooseComparedVersion\(showRevision\)/);
+ assert.match(js,/if\(!selected\?\.revision\|\|state\.busy\)return/);
+ assert.match(js,/selected\.showRevision=showRevision/);
+ assert.match(js,/refreshVariantUI\(\)/);
+ assert.match(js,/stratism-choose-original'\)\.addEventListener\('click',\(\)=>chooseComparedVersion\(false\)\)/);
+ assert.match(js,/stratism-choose-revision'\)\.addEventListener\('click',\(\)=>chooseComparedVersion\(true\)\)/);
+ assert.match(js,/\$\('stratism-choose-original'\)\.setAttribute\('aria-pressed'/);
+ assert.match(js,/\$\('stratism-choose-revision'\)\.setAttribute\('aria-pressed'/);
+ assert.match(js,/const key=variant\.showRevision&&variant\.revision\?'revision':'original'/);
+ assert.match(js,/variant\.showRevision=\$\('stratism-revision-select'\)\.value==='1'/);
+});
