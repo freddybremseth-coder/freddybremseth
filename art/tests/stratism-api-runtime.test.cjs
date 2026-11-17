@@ -62,7 +62,7 @@ test('approved admin generates only private review result, never sale or print a
 const jpeg=Buffer.concat([Buffer.from([0xff,0xd8,0xff]),Buffer.alloc(120,1)]).toString('base64');
 test('reference photograph uses image edits, not text-only generation',async()=>{
  const h=harness({enabled:true,userId:'user-1',member:true});
- const r=await h.request({token:'valid',body:{...validBody,reference_jpeg_base64:jpeg}});
+ const r=await h.request({token:'valid',body:{...validBody,reference_jpeg_base64:jpeg,reference_rights:true}});
  assert.equal(r.code,200);assert.equal(r.payload.reference_used,true);
  assert.match(h.stats().lastEndpoint,/\/images\/edits$/);
  assert.equal(h.stats().lastOptions.body.get('model'),'gpt-image-2');
@@ -84,7 +84,7 @@ test('unsupported revision never reaches billable provider',async()=>{
 test('missing revision input or combined reference inputs are rejected',async()=>{
  const h=harness({enabled:true,userId:'user-1',member:true});
  const missing=await h.request({token:'valid',body:{...validBody,revision_mode:'more-linen'}});
- const mixed=await h.request({token:'valid',body:{...validBody,revision_mode:'more-linen',reference_jpeg_base64:jpeg,revision_jpeg_base64:jpeg}});
+ const mixed=await h.request({token:'valid',body:{...validBody,revision_mode:'more-linen',reference_jpeg_base64:jpeg,reference_rights:true,revision_jpeg_base64:jpeg}});
  assert.equal(missing.code,400);assert.equal(mixed.code,400);assert.equal(h.stats().calls,0);
 });
 test('malformed reference and provider errors do not approve artworks',async()=>{
@@ -127,4 +127,41 @@ test('Stratum No. 4 reference-photo edit carries flat opaque paint rule',async()
  assert.equal(r.payload.reference_used,true);
  assert.match(h.stats().lastOptions.body.get('prompt'),/DRAG MARKS WITH A FLAT BLADE/);
  assert.match(h.stats().lastOptions.body.get('prompt'),/NO DISTANT TREES, NO HILLS, NO ORANGE SOIL/);
+});
+
+test('three-anchor composition is optional and keeps the five-state master untouched',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const r=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1',composition_mode:'three-anchors'}});
+ assert.equal(r.code,200);assert.equal(r.payload.composition_mode,'three-anchors');
+ const prompt=JSON.parse(h.stats().lastOptions.body).prompt;
+ assert.match(prompt,/THREE mandatory instantly recognizable painterly anchors/);
+ assert.match(prompt,/LONG THIN DRIPS/);
+ assert.match(prompt,/graphite sketch/);
+ const original=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1'}});
+ assert.equal(original.code,200);assert.equal(original.payload.composition_mode,'five-states');
+ assert.match(JSON.parse(h.stats().lastOptions.body).prompt,/FIVE DISTINCT PAINT HANDLING STATES/);
+});
+test('unauthorized source images and unsupported provenance modes are rejected before provider calls',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ for(const body of [
+  {...validBody,reference_jpeg_base64:jpeg},
+  {...validBody,preset:'stratum-no4-v1',source_kind:'client-photo',reference_jpeg_base64:jpeg},
+  {...validBody,preset:'stratum-no4-v1',source_kind:'own-photo'},
+  {...validBody,preset:'stratum-no4-v1',source_kind:'fictional-place'},
+  {...validBody,preset:'stratum-no4-v1',composition_mode:'rainbow'}
+ ]){
+  const r=await h.request({token:'valid',body});assert.equal(r.code,400);
+ }
+ assert.equal(h.stats().calls,0);
+});
+test('authorized personal client photo uses user-supplied place and story, not as verified facts',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const r=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1',
+  source_kind:'client-photo',reference_rights:true,reference_jpeg_base64:jpeg,
+  place:'Benidorm',story:'A meaningful home to the customer'}});
+ assert.equal(r.code,200);assert.equal(r.payload.source_kind,'client-photo');
+ assert.equal(r.payload.reference_used,true);
+ const prompt=h.stats().lastOptions.body.get('prompt');
+ assert.match(prompt,/Location supplied by creator: Benidorm/);
+ assert.match(prompt,/Creator-supplied personal story/);
 });
