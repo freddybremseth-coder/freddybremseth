@@ -21,6 +21,23 @@ const REFINEMENTS=Object.freeze({
  'more-linen':'Revise the attached existing Stratism painting with slightly more visible raw linen and a few subtle graphite traces in the absence area. Preserve the motif and existing composition.',
  'remove-texture':'Revise the attached existing Stratism painting to remove repeated scales, embossed uniform texture and paper-flake effects. Replace with physically credible smooth pigment, translucent wash, local abrasion and bare linen. Keep composition unchanged.'
 });
+const QUALITY_FIXES=Object.freeze({
+ subject:'Keep recognizable identity, silhouette, dimensions and distinct photographic features of the same subject. Do not substitute another subject.',
+ colour:'Use exactly one strong saturated colour chord; mute every other hue and remove competing saturated background or orange soil.',
+ brush:'Replace soft airbrush glows, filters or gradients with broad flat opaque paint with visible physical bristle edges.',
+ transitions:'Clarify thin transparent grey-mauve watercolor-like wash with selected long vertical drips; preserve natural nonidentical transitions.',
+ linen:'Preserve a believable bare linen area, fine graphite remnants of the same subject and a discreet natural cursive signature.',
+ texture:'Remove reptile-scale emboss, uniform dot/grain filters and artificial relief. Use only localized credible palette-knife drag marks.'
+});
+function qualityRevision(body){
+ const failures=body?.qa_failed;
+ if(!Array.isArray(failures)||failures.length<1||failures.length>6||new Set(failures).size!==failures.length)
+  throw new Error('INVALID_QUALITY_REVIEW');
+ if(failures.some(key=>typeof key!=='string'||!Object.hasOwn(QUALITY_FIXES,key)))
+  throw new Error('INVALID_QUALITY_REVIEW');
+ return 'Correct ONLY these creator-identified weaknesses, keeping all other successful elements unchanged: '+
+  failures.map(key=>QUALITY_FIXES[key]).join(' ')+' Do not repaint the entire artwork or add new subjects.';
+}
 const VARIATION_DIRECTIVES=Object.freeze({
  1:'First interpretation: prioritize faithful subject identity, calm brushwork, restrained chroma and a strong center of presence.',
  2:'Second interpretation: maintain the subject and five states, but use more irregular, selective memory transitions and preserve a few additional evocative contours.',
@@ -87,7 +104,11 @@ module.exports=async(req,res)=>{
  variation=req.body?.variation===undefined?1:req.body?.variation;
  if(!Number.isInteger(variation)||variation<1||variation>3)throw new Error('INVALID_VARIATION');
  revisionMode=req.body?.revision_mode;
- if(revisionMode!==undefined&&(!Object.hasOwn(REFINEMENTS,revisionMode)||req.body?.reference_jpeg_base64!=null))throw new Error('INVALID_REFINEMENT');
+ if(revisionMode!==undefined&&(
+ (revisionMode!=='qa-guided'&&!Object.hasOwn(REFINEMENTS,revisionMode))||
+ req.body?.reference_jpeg_base64!=null))throw new Error('INVALID_REFINEMENT');
+ if(revisionMode!=='qa-guided'&&req.body?.qa_failed!==undefined)
+  throw new Error('UNEXPECTED_QUALITY_REVIEW');
  reference=readReference(revisionMode===undefined?req.body?.reference_jpeg_base64:req.body?.revision_jpeg_base64);
  if(revisionMode!==undefined&&!reference)throw new Error('MISSING_REVISION_IMAGE');
  if(revisionMode===undefined&&source.sourceKind!=='concept'&&!reference)throw new Error('PHOTO_REQUIRED');
@@ -97,7 +118,8 @@ module.exports=async(req,res)=>{
   preset==='olivos-de-biar-v1'?
   'Preserve the original soft naturalistic olive painting language; the three variants change composition nuance, not into a saturated five-band style.':
   VARIATION_DIRECTIVES[variation]);
- if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+REFINEMENTS[revisionMode];
+ if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+
+   (revisionMode==='qa-guided'?qualityRevision(req.body):REFINEMENTS[revisionMode]);
  }catch{return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'})}
  const admin=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
  try{
