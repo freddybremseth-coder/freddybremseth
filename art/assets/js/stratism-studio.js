@@ -14,6 +14,22 @@ async function stratismRequest(payload){
  if(response.status===401)response=await send(true);
  return response;
 }
+function providerErrorMessage(response,data){
+ if(response.status===401)return 'Innloggingen er utløpt. Logg inn igjen og kontroller AI-motoren.';
+ if(response.status===403)return 'Kontoen er ikke godkjent som galleriadministrator.';
+ if(response.status===503)return 'AI-generering er deaktivert eller ikke konfigurert. Kontroller AI-motoren.';
+ const byCode={
+  PROVIDER_RATE_LIMIT:'Bildeleverandøren har nådd en grense for forespørsler eller tilgjengelig kvote. Ingen nytt forsøk startes automatisk.',
+  PROVIDER_AUTH:'OpenAI API-nøkkelen er ikke gyldig. Kontroller Vercel-konfigurasjonen.',
+  PROVIDER_ACCESS:'API-kontoen mangler tilgang til valgt bildemodell. Kontroller modellrettigheter.',
+  PROVIDER_INVALID_REQUEST:'Bildeleverandøren avviste bildeinnstillingene. Kontroller modell og bildeformat.',
+  PROVIDER_UNAVAILABLE:'Bildeleverandøren er midlertidig utilgjengelig. Ingen automatisk ny forespørsel sendes.'
+ };
+ return byCode[data?.code]||String(data?.error||'Kunne ikke generere bilde.').slice(0,180);
+}
+function approveImageCharge(action){
+ return window.confirm(action+' sender ett betalt AI-bildekall. Ingen automatisk publisering eller printgodkjenning. Vil du fortsette?');
+}
 const providerReadiness={checked:false,canGenerate:false,checking:false,model:null};
 async function checkProviderReadiness(){
  if(providerReadiness.checking||state.busy)return;
@@ -304,6 +320,7 @@ $('stratism-generate-private').addEventListener('click',async()=>{
  if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='Kontroller AI-motoren først. Generering starter aldri uten bekreftet tilkobling.';return;}
  if(referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
  if(state.brief.provenance?.source_kind!=='concept'&&!referenceInput.files?.[0]){$('stratism-brief-status').textContent='Velg referansefoto for et virkelig motiv.';return;}
+ if(!approveImageCharge('Generering'))return;
  state.busy=true;refreshVariantUI();
  const variation=state.variants.length+1;
  $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
@@ -333,7 +350,7 @@ $('stratism-generate-private').addEventListener('click',async()=>{
      photo_credit:state.brief.provenance?.photo_credit||'',
      reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
   const data=await response.json();
-  if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
+  if(!response.ok)throw Error(providerErrorMessage(response,data));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
    throw Error('Uventet genereringsstatus. Bildet er ikke vist.');
   // Hold de tre forslagene privat i denne nettlesersesjonen.
@@ -365,6 +382,7 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
  const index=state.selectedVariant,variant=state.variants[index];
  if(!variant||variant.revision||!state.brief||state.busy)return;
  if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='AI-motoren må være aktivert før revisjon.';return;}
+ if(!approveImageCharge('Revisjon'))return;
  state.busy=true;refreshVariantUI();
  $('stratism-brief-status').textContent='Forbedrer valgt kunstverk. Originalen beholdes…';
  try{
@@ -389,7 +407,7 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
      photo_credit:state.brief.provenance?.photo_credit||'',
      reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
   const data=await response.json();
-  if(!response.ok)throw Error(String(data.error||'Revisjon feilet').slice(0,180));
+  if(!response.ok)throw Error(providerErrorMessage(response,data));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
    throw Error('Uventet svar fra revisjonsmotoren.');
   const encoded=data.image_base64;
