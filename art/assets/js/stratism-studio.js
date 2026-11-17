@@ -264,6 +264,19 @@ function updateRevisionComparison(selected){
  $('stratism-original-score').textContent=' · '+reviewScore(selected,'original');
  $('stratism-revision-score').textContent=' · '+reviewScore(selected,'revision');
 }
+function updateConceptFileStatus(selected){
+ const output=$('stratism-concept-resolution');
+ if(!selected){
+  output.textContent='Nye AI-konsepter produseres i 1280 × 1600 px. Velg et forslag for å lese om oppløsning og printbegrensninger.';
+  return;
+ }
+ const shortCm=(1280/300*CM_PER_INCH).toFixed(1);
+ const longCm=(1600/300*CM_PER_INCH).toFixed(1);
+ output.textContent='Valgt '+(selected.showRevision&&selected.revision?'revisjon':'original')+
+  ': privat JPEG-konsept. Nye AI-konsepter på 1280 × 1600 px tilsvarer bare ca. '+
+  shortCm+' × '+longCm+' cm ved 300 piksler per tomme (PPI). '+
+  'Arkiverte bilder kan ha andre dimensjoner. Ingen fil er godkjent for print eller digitalt salg.';
+}
 function refreshVariantUI(){
  const gallery=$('stratism-variant-gallery');
  gallery.replaceChildren();
@@ -286,6 +299,7 @@ function refreshVariantUI(){
  });
  $('stratism-result').hidden=count===0;
  const selected=state.variants[state.selectedVariant];
+ updateConceptFileStatus(selected);
  updateRevisionComparison(selected);
  const revisionSelect=$('stratism-revision-select');
  revisionSelect.replaceChildren();
@@ -553,7 +567,7 @@ $('stratism-generate-private').addEventListener('click',async()=>{
 $('stratism-save-preview').addEventListener('click',()=>{
  const variant=state.variants[state.selectedVariant];if(!variant)return;
  const a=document.createElement('a');a.href=variant.showRevision&&variant.revision?variant.revision.url:variant.url;
- a.download='stratism-private-review-'+variant.variation+(variant.showRevision?'-refined':'')+'.jpg';
+ a.download='stratism-private-concept-not-print-ready-'+variant.variation+(variant.showRevision?'-refined':'')+'.jpg';
  document.body.appendChild(a);a.click();a.remove();
 });
 $('stratism-revision-select').addEventListener('change',()=>{
