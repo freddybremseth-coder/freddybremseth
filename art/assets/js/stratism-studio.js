@@ -492,7 +492,8 @@ async function verifyFreePreflight(payload){
  if(data.valid!==true||data.no_provider_call!==true||data.preview_only!==true||
     data.output_format!=='jpeg'||data.size!=='1280x1600'||
     data.preset!==payload.preset||data.composition_mode!==payload.composition_mode||
-    data.source_kind!==payload.source_kind||data.reference_used!==!!payload.reference_jpeg_base64||
+    data.source_kind!==payload.source_kind||
+    data.reference_used!==!!(payload.reference_jpeg_base64||payload.revision_jpeg_base64)||
     data.variation!==payload.variation||data.revision!==(payload.revision_mode||null)||
     data.sale_approval!==false||data.print_approval!==false)
   throw Error('Gratis-testen svarte ikke på den samme forespørselen. Ingen bildegenerering er startet.');
@@ -565,9 +566,8 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
  const index=state.selectedVariant,variant=state.variants[index];
  if(!variant||variant.revision||!state.brief||state.busy)return;
  if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='AI-motoren må være aktivert før revisjon.';return;}
- if(!approveImageCharge('Revisjon'))return;
  state.busy=true;refreshVariantUI();
- $('stratism-brief-status').textContent='Forbedrer valgt kunstverk. Originalen beholdes…';
+ $('stratism-brief-status').textContent='Kontrollerer revidert kunstforespørsel gratis før eventuell betaling…';
  try{
 
   const source=new Image();source.src=variant.url;await source.decode();
@@ -583,7 +583,7 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const mode=$('stratism-refinement-kind').value;
   const qaFailed=mode==='qa-guided'?failedQualityKeys(variant):null;
   if(mode==='qa-guided'&&!qaFailed.length)throw Error('Marker minst ett kvalitetskriterium for forbedring.');
-  const response=await stratismRequest({description:state.brief.description,chord:state.brief.style.palette,
+  const payload={description:state.brief.description,chord:state.brief.style.palette,
     emphasis:state.brief.style.emphasis,strength:state.brief.style.colour_strength,
     variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData,preset:state.brief.preset,
      composition_mode:state.brief.composition_mode||'five-states',
@@ -591,7 +591,15 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
      place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
      photo_credit:state.brief.provenance?.photo_credit||'',
      reference_rights:state.brief.provenance?.reference_rights_confirmed===true,
-     ...(mode==='qa-guided'?{qa_failed:qaFailed}:{})});
+     ...(mode==='qa-guided'?{qa_failed:qaFailed}:{})};
+  await verifyFreePreflight(payload);
+  $('stratism-preflight-status').textContent='Gratis kontroll bestått for målrettet revisjon. Ingen AI-kreditter brukt på kontrollen.';
+  if(!approveImageCharge('Revisjon')){
+   $('stratism-brief-status').textContent='Revisjonen ble avbrutt. Originalen er beholdt, og ingen bilde-API-kall startet.';
+   return;
+  }
+  $('stratism-brief-status').textContent='Forbedrer valgt kunstverk. Originalen beholdes…';
+  const response=await stratismRequest(payload);
   const data=await response.json();
   if(!response.ok)throw Error(providerErrorMessage(response,data));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
