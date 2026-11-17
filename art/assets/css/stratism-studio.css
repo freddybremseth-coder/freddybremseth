@@ -16,3 +16,7 @@
 .stratism-panel .stratism-compare-grid img{width:100%;height:auto;max-height:540px;object-fit:contain;border-radius:6px;background:#f4f0e8}
 .stratism-panel .stratism-compare-grid figcaption{text-align:center;font-size:.87rem;line-height:1.5;margin-top:8px}
 @media(max-width:680px){.stratism-panel .stratism-compare-grid{grid-template-columns:1fr}}
+
+.stratism-panel .stratism-compare-grid button{display:block;width:100%;margin-top:9px;padding:10px 12px;border:1px solid #b6aba0;border-radius:8px;background:transparent;color:inherit;cursor:pointer;font-weight:600}
+.stratism-panel .stratism-compare-grid button[aria-pressed="true"]{border-color:#ae8c5e;background:rgba(174,140,94,.14);box-shadow:inset 0 0 0 1px #ae8c5e}
+.stratism-panel .stratism-compare-grid button:disabled{opacity:.55;cursor:not-allowed}
