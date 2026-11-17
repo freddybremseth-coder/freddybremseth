@@ -315,3 +315,27 @@ test('comparison buttons select original or revision and synchronize reviews and
  assert.match(js,/const key=variant\.showRevision&&variant\.revision\?'revision':'original'/);
  assert.match(js,/variant\.showRevision=\$\('stratism-revision-select'\)\.value==='1'/);
 });
+
+test('archive import rejects corrupt JPEG and invalid dimensions before project replacement',()=>{
+ const begin=js.indexOf('function inspectArchivedJpeg(bytes)');
+ const end=js.indexOf('function base64ToJpegUrl(encoded)',begin);
+ assert.ok(begin>0&&end>begin);
+ const inspect=vm.runInNewContext(js.slice(begin,end)+'; inspectArchivedJpeg');
+ const makeJpeg=(width,height)=>{
+  const sof=Buffer.from([255,192,0,17,8,(height>>8)&255,height&255,(width>>8)&255,width&255,
+   3,1,17,0,2,17,0,3,17,0]);
+  return new Uint8Array(Buffer.concat([Buffer.from([255,216,255,224,0,2]),sof,Buffer.alloc(120,1),Buffer.from([255,217])]));
+ };
+ const good=inspect(makeJpeg(1024,1536));
+ assert.equal(good.width,1024);assert.equal(good.height,1536); // older private previews stay compatible
+ assert.deepEqual(Object.values(inspect(makeJpeg(1280,1600))),[1280,1600]);
+ assert.throws(()=>inspect(new Uint8Array([255,216,255,...Array(150).fill(1)])),/mangler lesbar JPEG/);
+ assert.throws(()=>inspect(makeJpeg(10,20)),/ugyldig oppløsning/);
+ assert.throws(()=>inspect(makeJpeg(12001,12001)),/ugyldig oppløsning/);
+ const convert=js.slice(end,js.indexOf('async function urlToBase64',end));
+ assert.match(convert,/inspectArchivedJpeg\(bytes\)/);
+ const restore=js.slice(js.indexOf('function restorePrivateProject'),js.indexOf("$('stratism-import-project').addEventListener"));
+ assert.match(restore,/const url=base64ToJpegUrl\(entry\.image_base64\)/);
+ assert.match(restore,/const revUrl=base64ToJpegUrl\(entry\.revision\.image_base64\)/);
+ assert.match(restore,/Only commit restored data after every image and field has been validated/);
+});
