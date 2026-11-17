@@ -112,7 +112,7 @@ module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');
  if(req.method!=='POST'){res.setHeader('Allow','POST');return res.status(405).json({error:'Method not allowed'})}
  if(process.env.STRATISM_GENERATION_ENABLED!=='true')return res.status(503).json({error:'Stratism private generation is disabled'});
- if(!process.env.OPENAI_API_KEY||!process.env.SUPABASE_URL||!process.env.SUPABASE_SERVICE_ROLE_KEY)
+ if(!process.env.OPENAI_API_KEY||!process.env.STRATISM_SUPABASE_URL||!process.env.STRATISM_SUPABASE_PUBLISHABLE_KEY)
   return res.status(503).json({error:'Stratism generator is not configured'});
  const header=typeof req.headers.authorization==='string'?req.headers.authorization:'';
  const token=header.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
@@ -142,7 +142,10 @@ module.exports=async(req,res)=>{
  if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+
    (revisionMode==='qa-guided'?qualityRevision(req.body):REFINEMENTS[revisionMode]);
  }catch{return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'})}
- const admin=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+ const admin=createClient(process.env.STRATISM_SUPABASE_URL,process.env.STRATISM_SUPABASE_PUBLISHABLE_KEY,{
+  auth:{persistSession:false,autoRefreshToken:false},
+  global:{headers:{Authorization:'Bearer '+token}}
+ });
  try{
   const {data:user,error:authError}=await admin.auth.getUser(token);
   if(authError||!user?.user?.id)return res.status(401).json({error:'Invalid or expired session'});
