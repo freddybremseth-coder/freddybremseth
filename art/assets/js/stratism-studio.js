@@ -36,6 +36,65 @@ function updatePresetDescription(){
  $('stratism-preset-description').textContent=PRESET_HELP[activePreset()]||PRESET_HELP['stratum-no4-v1'];
 }
 const MAX_VARIANTS=3;
+const QUALITY_FIELDS=['subject','colour','brush','transitions','linen','texture'];
+const QUALITY_VALUES=['pending','pass','revise'];
+function qualityFor(variant){
+ if(!variant)return null;
+ const key=variant.showRevision&&variant.revision?'revision':'original';
+ variant.reviews??={};
+ variant.reviews[key]??={ratings:{},notes:'',updated_at:null};
+ return variant.reviews[key];
+}
+function validateQuality(value){
+ if(value==null)return null; // Compatibility with archives from before reviews existed.
+ if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Ugyldig kunstnerisk vurdering.');
+ for(const key of ['original','revision']){
+  const record=value[key];if(record==null)continue;
+  if(typeof record!=='object'||!record.ratings||typeof record.ratings!=='object'||
+    typeof record.notes!=='string'||record.notes.length>700||
+    (record.updated_at!==null&&record.updated_at!==undefined&&
+     (typeof record.updated_at!=='string'||record.updated_at.length>40)))throw Error('Ugyldig vurderingsnotat.');
+  for(const [criterion,status] of Object.entries(record.ratings)){
+   if(!QUALITY_FIELDS.includes(criterion)||!QUALITY_VALUES.includes(status))throw Error('Ugyldig vurderingsstatus.');
+  }
+ }
+ return value;
+}
+function updateQualityUI(){
+ const selected=state.variants[state.selectedVariant],review=qualityFor(selected);
+ const mode=state.brief?.preset==='olivos-de-biar-v1'?'Olivos de Biar – vurder myk naturtro gjengivelse, ikke et påtvunget turkisbånd.':
+  state.brief?.preset==='stratism-working-v09'?'Stratism Original – vurder et helhetlig, eksperimentelt uttrykk.':
+  state.brief?.composition_mode==='three-anchors'?'Tre kjennetegn – fargeflate, dryp og grafitt/lin er grunnkrav.':
+  'Stratum No. 4 – vurder alle fem materialtilstandene og bare én mettet fargeakkord.';
+ $('stratism-quality-context').textContent=mode+' Manuell vurdering – aldri automatisk salgs- eller printgodkjenning.';
+ const controls=[...document.querySelectorAll('[data-stratism-quality]')];
+ for(const control of controls){
+  control.value=review?.ratings?.[control.dataset.stratismQuality]||'pending';
+  control.disabled=!selected||state.busy;
+ }
+ $('stratism-quality-notes').value=review?.notes||'';
+ $('stratism-quality-notes').disabled=!selected||state.busy;
+ const statuses=controls.map(control=>control.value);
+ const passed=statuses.filter(x=>x==='pass').length,failed=statuses.filter(x=>x==='revise').length;
+ $('stratism-quality-status').textContent=!selected?'Velg et forslag for kunstnerisk gjennomgang.':
+  failed?failed+' punkter trenger forbedring · '+passed+' av 6 bestått.':
+  passed===6?'Alle seks manuelle kontrollpunkter er bestått. Dette er IKKE salg- eller printgodkjenning.':
+  passed+' av 6 kontrollpunkter bestått. Resten er ikke vurdert.';
+}
+document.querySelectorAll('[data-stratism-quality]').forEach(control=>{
+ control.addEventListener('change',()=>{
+  if(state.busy)return;
+  const review=qualityFor(state.variants[state.selectedVariant]);if(!review)return;
+  review.ratings[control.dataset.stratismQuality]=control.value;
+  review.updated_at=new Date().toISOString();updateQualityUI();
+ });
+});
+$('stratism-quality-notes').addEventListener('input',()=>{
+ if(state.busy)return;
+ const review=qualityFor(state.variants[state.selectedVariant]);if(!review)return;
+ review.notes=$('stratism-quality-notes').value.slice(0,700);
+ review.updated_at=new Date().toISOString();
+});
 function refreshVariantUI(){
  const gallery=$('stratism-variant-gallery');
  gallery.replaceChildren();
@@ -81,6 +140,7 @@ function refreshVariantUI(){
  const generate=$('stratism-generate-private');
  generate.textContent=count?'Generer nytt forslag ('+(count+1)+' av '+MAX_VARIANTS+')':'Generer forslag 1 (AI)';
  generate.disabled=!state.brief||count>=MAX_VARIANTS||state.busy;
+ updateQualityUI();
 }
 // Changing the chosen artistic model must not silently send an outdated brief.
 form.addEventListener('change',()=>{
@@ -348,7 +408,7 @@ async function serializePrivateProject(){
   const variants=[];
   for(const v of state.variants){
    variants.push({variation:v.variation,createdAt:v.createdAt,showRevision:!!v.showRevision,
-    image_base64:await urlToBase64(v.url),revision:v.revision?{
+    image_base64:await urlToBase64(v.url),reviews:v.reviews||null,revision:v.revision?{
       mode:v.revision.mode,createdAt:v.revision.createdAt,
       image_base64:await urlToBase64(v.revision.url)
     }:null});
@@ -399,7 +459,9 @@ function restorePrivateProject(archive){
     const revUrl=base64ToJpegUrl(entry.revision.image_base64);temporaryUrls.push(revUrl);
     revision={url:revUrl,mode:entry.revision.mode,createdAt:entry.revision.createdAt};
    }
-   restored.push({url,variation:i+1,createdAt:entry.createdAt,revision,
+   const reviews=validateQuality(entry.reviews);
+   if(reviews?.revision&&!revision)throw Error('Vurdering for manglende revisjon.');
+   restored.push({url,variation:i+1,createdAt:entry.createdAt,revision,reviews:reviews||{},
     showRevision:!!revision&&entry.showRevision===true});
   }
   // Only commit restored data after every image and field has been validated.
