@@ -197,6 +197,7 @@ function refreshVariantUI(){
  $('stratism-cloud-select').disabled=state.busy;
  $('stratism-cloud-open').disabled=state.busy||!$('stratism-cloud-select').value;
  $('stratism-import-project').disabled=state.busy;
+ $('stratism-preflight').disabled=!state.brief||state.busy;
  $('stratism-reference-file').disabled=state.busy;
  for(const input of form.querySelectorAll('input,select,textarea,button'))input.disabled=state.busy;
  $('stratism-selected-description').textContent=state.selectedVariant<0?'Velg en prøve for å laste ned.':
@@ -315,18 +316,8 @@ $('stratism-download-brief').addEventListener('click',()=>{
  link.href=url;link.download='stratism-brief.json';document.body.appendChild(link);link.click();link.remove();
  setTimeout(()=>URL.revokeObjectURL(url),500);
 });
-$('stratism-generate-private').addEventListener('click',async()=>{
- if(!state.brief||state.variants.length>=MAX_VARIANTS||state.busy)return;
- if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='Kontroller AI-motoren først. Generering starter aldri uten bekreftet tilkobling.';return;}
- if(referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
- if(state.brief.provenance?.source_kind!=='concept'&&!referenceInput.files?.[0]){$('stratism-brief-status').textContent='Velg referansefoto for et virkelig motiv.';return;}
- if(!approveImageCharge('Generering'))return;
- state.busy=true;refreshVariantUI();
- const variation=state.variants.length+1;
- $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
- try{
-
-    let referenceJpeg=null;
+async function prepareReferenceJpeg(){
+ let referenceJpeg=null;
   // The reference stays in-browser unless the administrator explicitly asks to generate.
   // Resize a temporary derivative: never use this JPEG as a sale or print master.
   if(referenceInput.files?.[0]&&state.reference){
@@ -341,6 +332,64 @@ $('stratism-generate-private').addEventListener('click',async()=>{
    if(encoded.length>1_800_000)throw Error('Referansefotoet er for stort for sikker forhåndsvisning. Velg et mindre bilde.');
    referenceJpeg=encoded;
   }
+
+ return referenceJpeg;
+}
+function requestFromCurrentBrief(variation,referenceJpeg){
+ if(!state.brief)throw Error('Lag en kunstnerisk brief først.');
+ return {description:state.brief.description,
+  chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
+  strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,
+  variation,preset:state.brief.preset,composition_mode:state.brief.composition_mode||'five-states',
+  source_kind:state.brief.provenance?.source_kind||'concept',
+  place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
+  photo_credit:state.brief.provenance?.photo_credit||'',
+  reference_rights:state.brief.provenance?.reference_rights_confirmed===true};
+}
+async function preflightRequest(payload){
+ const getToken=window.ART_ADMIN_GET_ACCESS_TOKEN;
+ if(typeof getToken!=='function')throw Error('Logg inn som administrator først.');
+ const send=async(forceRefresh)=>fetch('/api/stratism-preflight',{
+  method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+await getToken({forceRefresh})},
+  body:JSON.stringify(payload),cache:'no-store'
+ });
+ let response=await send(false);
+ if(response.status===401)response=await send(true);
+ return response;
+}
+$('stratism-preflight').addEventListener('click',async()=>{
+ if(state.busy||!state.brief)return;
+ state.busy=true;refreshVariantUI();
+ $('stratism-preflight-status').textContent='Tester kunstforespørselen uten bilde-API og uten kostnad…';
+ try{
+  const referenceJpeg=await prepareReferenceJpeg();
+  const payload=requestFromCurrentBrief(Math.min(MAX_VARIANTS,state.variants.length+1),referenceJpeg);
+  const response=await preflightRequest(payload);
+  const data=await response.json();
+  if(!response.ok)throw Error(String(data.error||'Kunstforespørselen ble avvist').slice(0,180));
+  if(data.valid!==true||data.no_provider_call!==true||data.preview_only!==true||
+     data.output_format!=='jpeg'||data.size!=='1280x1600'||
+     data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
+   throw Error('Testen returnerte uventede opplysninger.');
+  $('stratism-preflight-status').textContent='Bestått: '+data.preset+' · '+data.size+' · '+
+    (data.reference_used?'referansefoto kontrollert':'generering fra beskrivelse')+
+    '. Ingen bilder generert eller lagret. Ingen kostnad.';
+ }catch(e){
+  $('stratism-preflight-status').textContent='Test ikke bestått: '+e.message;
+ }finally{state.busy=false;refreshVariantUI();}
+});
+$('stratism-generate-private').addEventListener('click',async()=>{
+ if(!state.brief||state.variants.length>=MAX_VARIANTS||state.busy)return;
+ if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='Kontroller AI-motoren først. Generering starter aldri uten bekreftet tilkobling.';return;}
+ if(referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
+ if(state.brief.provenance?.source_kind!=='concept'&&!referenceInput.files?.[0]){$('stratism-brief-status').textContent='Velg referansefoto for et virkelig motiv.';return;}
+ if(!approveImageCharge('Generering'))return;
+ state.busy=true;refreshVariantUI();
+ const variation=state.variants.length+1;
+ $('stratism-brief-status').textContent='Genererer privat Stratism-konsept (ingen publisering)…';
+ try{
+
+  const referenceJpeg=await prepareReferenceJpeg();
   const response=await stratismRequest({description:state.brief.description,
      chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
      strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation,preset:state.brief.preset,
