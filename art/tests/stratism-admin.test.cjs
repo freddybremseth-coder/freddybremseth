@@ -518,3 +518,33 @@ test('local print master candidate screening checks pixels and TIFF metadata wit
  assert.throws(()=>evaluate.parseTiffDimensions(new ArrayBuffer(8)),/for lite lesbar metadata/);
  assert.match(section,/\/\\\.\(tif\|tiff\)\$\/i/);
 });
+
+test('TIFF orientation is reflected in displayed pixel dimensions before aspect evaluation',()=>{
+ const start=js.indexOf('function parseTiffDimensions(buffer)');
+ const end=js.indexOf('function screenMasterDimensions(',start);
+ const parse=vm.runInNewContext(js.slice(start,end)+';parseTiffDimensions');
+ function makeTiff(orientation,little=true){
+  const buf=Buffer.alloc(70);
+  if(little){buf.write('II',0);buf.writeUInt16LE(42,2);buf.writeUInt32LE(8,4);buf.writeUInt16LE(3,8);}
+  else{buf.write('MM',0);buf.writeUInt16BE(42,2);buf.writeUInt32BE(8,4);buf.writeUInt16BE(3,8);}
+  function entry(pos,tag,type,value){
+   if(little){buf.writeUInt16LE(tag,pos);buf.writeUInt16LE(type,pos+2);buf.writeUInt32LE(1,pos+4);
+    if(type===3)buf.writeUInt16LE(value,pos+8);else buf.writeUInt32LE(value,pos+8);}
+   else{buf.writeUInt16BE(tag,pos);buf.writeUInt16BE(type,pos+2);buf.writeUInt32BE(1,pos+4);
+    if(type===3)buf.writeUInt16BE(value,pos+8);else buf.writeUInt32BE(value,pos+8);}
+  }
+  entry(10,256,4,12000);entry(22,257,4,9000);entry(34,274,3,orientation);
+  return buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.byteLength);
+ }
+ for(const endian of [true,false]){
+  const normal=parse(makeTiff(1,endian));
+  assert.deepEqual([normal.width,normal.height,normal.rotationApplied],[12000,9000,false]);
+  for(const orientation of [5,6,7,8]){
+   const rotated=parse(makeTiff(orientation,endian));
+   assert.deepEqual([rotated.width,rotated.height,rotated.rotationApplied],[9000,12000,true]);
+  }
+  assert.throws(()=>parse(makeTiff(9,endian)),/Ugyldig TIFF-orientering/);
+ }
+ assert.match(js,/TIFF-dimensjonene er kun lest fra metadata for første bilde/);
+ assert.match(js,/TIFF-orientering er tatt med i dimensjonene/);
+});
