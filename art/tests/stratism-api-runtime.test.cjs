@@ -6,6 +6,13 @@ const fs=require('node:fs');
 const path=require('node:path');
 const code=fs.readFileSync(path.join(__dirname,'../api/stratism-generate.js'),'utf8');
 const validBody={description:'An ancient olive tree on unprimed linen, preserving its roots',variation:1};
+function fakeJpeg(width=1280,height=1600){
+ const sof=Buffer.from([0xff,0xc0,0x00,0x11,0x08,
+  (height>>8)&255,height&255,(width>>8)&255,width&255,
+  0x03,0x01,0x11,0x00,0x02,0x11,0x00,0x03,0x11,0x00]);
+ return Buffer.concat([Buffer.from([0xff,0xd8,0xff,0xe0,0x00,0x02]),sof,Buffer.alloc(100,1),Buffer.from([0xff,0xd9])]).toString('base64');
+}
+
 function harness({enabled=false,userId=null,member=null,providerStatus=200,reference=null}={}){
  let calls=0,dbCalls=0,lastEndpoint=null,lastOptions=null;
  const env={STRATISM_GENERATION_ENABLED:enabled?'true':'false',
@@ -21,7 +28,7 @@ function harness({enabled=false,userId=null,member=null,providerStatus=200,refer
   Buffer,Blob,FormData,AbortController,setTimeout,clearTimeout,
   require:(id)=>{assert.equal(id,'@supabase/supabase-js');return{createClient:()=>client}},
   fetch:async(url,opts)=>{calls++;lastEndpoint=url;lastOptions=opts;assert.match(url,/api\.openai\.com/);
-   return {ok:providerStatus===200,status:providerStatus,json:async()=>({data:[{b64_json:'X'.repeat(130)}]})};
+   return {ok:providerStatus===200,status:providerStatus,json:async()=>({data:[{b64_json:fakeJpeg()}]})};
   }
  };
  vm.runInNewContext(code,sandbox,{filename:'stratism-generate.js'});
@@ -197,4 +204,20 @@ test('legacy refinement modes reject QA directives and remain available',async()
  const allowed=await h.request({token:'valid',body:{...validBody,
   revision_mode:'subtler-colour',revision_jpeg_base64:jpeg}});
  assert.equal(allowed.code,200);assert.equal(allowed.payload.refinement_applied,'subtler-colour');
+});
+
+test('Stratism requests exact 4:5 image size and returns measured dimensions',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const r=await h.request({token:'valid'});
+ assert.equal(r.code,200);assert.equal(r.payload.width,1280);assert.equal(r.payload.height,1600);
+ assert.equal(r.payload.aspect_ratio,'4:5');
+ assert.equal(JSON.parse(h.stats().lastOptions.body).size,'1280x1600');
+ const edit=await h.request({token:'valid',body:{...validBody,reference_jpeg_base64:jpeg,reference_rights:true}});
+ assert.equal(edit.code,200);
+ assert.equal(h.stats().lastOptions.body.get('size'),'1280x1600');
+});
+test('invalid JPEG, wrong dimensions or absent SOF must not be accepted as a Stratism concept',async()=>{
+ assert.match(code,/jpegDimensions\(bytes\)/);
+ assert.match(code,/dimensions\.width!==CONCEPT_WIDTH\|\|dimensions\.height!==CONCEPT_HEIGHT/);
+ assert.equal(fakeJpeg(1280,1600).length>100,true);
 });
