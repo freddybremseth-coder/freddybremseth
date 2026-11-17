@@ -264,6 +264,36 @@ function updateRevisionComparison(selected){
  $('stratism-original-score').textContent=' · '+reviewScore(selected,'original');
  $('stratism-revision-score').textContent=' · '+reviewScore(selected,'revision');
 }
+const STRATISM_PRINT_TARGETS=Object.freeze({
+ '40x50':{shortCm:40,longCm:50},
+ '60x75':{shortCm:60,longCm:75},
+ '80x100':{shortCm:80,longCm:100},
+ '30x40':{shortCm:30,longCm:40}
+});
+function calculateConceptPrintPlan(target,conceptWidth=1280,conceptHeight=1600){
+ const size=STRATISM_PRINT_TARGETS[target];
+ if(!size)throw Error('Ukjent printstørrelse.');
+ const requiredWidth=Math.ceil(size.shortCm/CM_PER_INCH*300);
+ const requiredHeight=Math.ceil(size.longCm/CM_PER_INCH*300);
+ const scale=Math.max(requiredWidth/conceptWidth,requiredHeight/conceptHeight);
+ const ratioMatches=Math.abs(conceptWidth/conceptHeight-size.shortCm/size.longCm)<=0.015;
+ return {requiredWidth,requiredHeight,scale,ratioMatches,
+  shortCm:size.shortCm,longCm:size.longCm,ppi:300,approved:false};
+}
+function updatePrintPlan(selected){
+ const target=$('stratism-print-target').value;
+ const plan=calculateConceptPrintPlan(target);
+ const result=$('stratism-print-plan-result');
+ result.textContent=plan.shortCm+' × '+plan.longCm+' cm ved 300 PPI krever minst '+
+  plan.requiredWidth.toLocaleString('no-NO')+' × '+plan.requiredHeight.toLocaleString('no-NO')+
+  ' piksler. Sammenlignet med nye 1280 × 1600-konsepter kreves minst ca. '+
+  plan.scale.toFixed(1)+'× lineær oppskalering.'+
+  (plan.ratioMatches?' Formatet er 4:5.':' Formatet avviker fra 4:5 og krever et bevisst valg om beskjæring eller omkomponering.')+
+  (selected?' Valgt '+(selected.showRevision&&selected.revision?'revisjon':'original')+
+   ' er fortsatt en privat prøve.':' Ingen prøve er valgt.')+
+  ' Dette er kun en kravberegning, ikke en faktisk oppskalering eller printgodkjenning.';
+}
+$('stratism-print-target').addEventListener('change',()=>updatePrintPlan(state.variants[state.selectedVariant]));
 function updateConceptFileStatus(selected){
  const output=$('stratism-concept-resolution');
  if(!selected){
@@ -299,6 +329,7 @@ function refreshVariantUI(){
  });
  $('stratism-result').hidden=count===0;
  const selected=state.variants[state.selectedVariant];
+ updatePrintPlan(selected);
  updateConceptFileStatus(selected);
  updateRevisionComparison(selected);
  const revisionSelect=$('stratism-revision-select');
