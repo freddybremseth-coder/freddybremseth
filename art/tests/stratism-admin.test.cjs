@@ -567,9 +567,29 @@ test('private web JPEG derivative is locally generated at <=1600px without sale 
  assert.match(section,/ctx\.drawImage\(bitmap,0,0,size\.width,size\.height\)/);
  assert.match(section,/canvas\.toBlob/);
  assert.match(section,/image\/jpeg',0\.88/);
- assert.match(section,/web-preview-not-sale-approved\.jpg/);
+ assert.match(section,/not-sale-approved\.jpg/);
+ assert.match(section,/maxEdge===800\?'-preview-800px':'-web-1600px'/);
  assert.match(section,/inspectionId!==masterInspectionId/);
  assert.match(section,/Originalen er uendret/);
  assert.match(section,/masterCandidate\.metadataOnly/);
  assert.doesNotMatch(section,/fetch\(|stratismRequest\(|upload_url|approved:true/);
+});
+
+test('preview and web exports have distinct safe dimensions, names and no provider calls',()=>{
+ assert.match(html,/id="stratism-web-export-size"/);
+ assert.match(html,/value="800"/);
+ assert.match(html,/value="1600" selected/);
+ const start=js.indexOf('function webDerivativeSize(width,height,maxEdge=1600)');
+ const end=js.indexOf('function refreshVariantUI()',start);
+ const code=js.slice(start,end);
+ const helper=vm.runInNewContext(code.slice(0,code.indexOf('async function createLocalWebDerivative'))+';webDerivativeSize');
+ assert.deepEqual(Array.from(Object.values(helper(8000,10000,800))),[640,800]);
+ assert.deepEqual(Array.from(Object.values(helper(8000,10000,1600))),[1280,1600]);
+ assert.deepEqual(Array.from(Object.values(helper(600,400,800))),[600,400]);
+ assert.throws(()=>helper(4000,5000,12000),/Ugyldige bildedimensjoner eller eksportstørrelse/);
+ assert.match(code,/createLocalWebDerivative\(file,maxEdge\)/);
+ assert.match(code,/maxEdge===800\?'-preview-800px':'-web-1600px'/);
+ assert.match(code,/Fargeprofil kan være endret/);
+ assert.match(html,/Fargerom og innebygd profil bevares ikke nødvendigvis/);
+ assert.doesNotMatch(code,/fetch\(|stratismRequest\(|approved:true/);
 });
