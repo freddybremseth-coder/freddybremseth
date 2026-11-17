@@ -348,6 +348,9 @@ function screenMasterDimensions(width,height,target){
  return {pixelPass,ratioMatches,approved:false,requiredShort,requiredLong};
 }
 let masterCandidate=null,masterCandidateFile=null,masterInspectionId=0,webExportBusy=false;
+function refreshMasterReportButton(){
+ $('stratism-export-master-report').disabled=!masterCandidate;
+}
 function refreshWebExportButton(){
  $('stratism-export-web').disabled=webExportBusy||!masterCandidate||!masterCandidateFile||masterCandidate.metadataOnly;
 }
@@ -383,16 +386,17 @@ $('stratism-master-file').addEventListener('change',async()=>{
  const input=$('stratism-master-file'),file=input.files?.[0];
  const inspectionId=++masterInspectionId;
  masterCandidate=null;masterCandidateFile=null;
- refreshWebExportButton();
+ refreshWebExportButton();refreshMasterReportButton();
+ $('stratism-master-report-status').textContent='Ingen kontrollrapport laget for gjeldende fil.';
  $('stratism-web-export-status').textContent='Ingen webfil laget. Originalen er uendret.';
  if(!file){updateMasterCheck();return;}
  $('stratism-master-check').textContent='Kontrollerer filen lokalt – ingen opplasting…';
  try{
   const inspected=await inspectPrivateMasterFile(file);
   if(inspectionId!==masterInspectionId)return;
-  masterCandidate=inspected;
+  masterCandidate={...inspected,bytes:file.size,mime:file.type||'unknown',lastModified:file.lastModified||null};
   masterCandidateFile=inspected.metadataOnly?null:file;
-  refreshWebExportButton();
+  refreshWebExportButton();refreshMasterReportButton();
   updateMasterCheck();
  }catch(error){
   if(inspectionId!==masterInspectionId)return;
@@ -401,6 +405,51 @@ $('stratism-master-file').addEventListener('change',async()=>{
  }
 });
 $('stratism-print-target').addEventListener('change',updateMasterCheck);
+function makeMasterInspectionReport(candidate,target,checkedAt){
+ if(!candidate||!Number.isInteger(candidate.width)||!Number.isInteger(candidate.height))
+  throw Error('Ingen gyldig filkontroll tilgjengelig.');
+ const plan=calculateConceptPrintPlan(target);
+ const screen=screenMasterDimensions(candidate.width,candidate.height,target);
+ return {
+  schema:'stratism-master-candidate-report-v1',checked_at:checkedAt,
+  source:{filename:candidate.name,width_px:candidate.width,height_px:candidate.height,
+   bytes:candidate.bytes??null,mime:candidate.mime??'unknown',
+   last_modified_ms:candidate.lastModified??null,
+   inspection_method:candidate.metadataOnly?'tiff-first-ifd-metadata':'browser-image-decoder',
+   image_content_verified:!candidate.metadataOnly},
+  target:{width_cm:plan.shortCm,height_cm:plan.longCm,ppi:300,
+   min_width_px:plan.requiredWidth,min_height_px:plan.requiredHeight},
+  technical_checks:{pixel_count_sufficient:screen.pixelPass,aspect_ratio_compatible:screen.ratioMatches},
+  outstanding_checks:{artistic_review:false,source_rights_verified:false,
+   colour_profile_verified:false,sharpness_verified:false,print_proof_verified:false},
+  status:'TECHNICAL_SCREENING_ONLY',
+  approvals:{digital_sale:false,print:false,commercial_release:false},
+  disclaimer:'Dette er en lokal kontrollrapport, ikke sertifikat, oppløsningsoppgradering eller salgsgodkjenning.'
+ };
+}
+$('stratism-export-master-report').addEventListener('click',()=>{
+ if(!masterCandidate)return;
+ try{
+  const report=makeMasterInspectionReport(masterCandidate,
+   $('stratism-print-target').value,new Date().toISOString());
+  const json=JSON.stringify(report,null,2);
+  const stem=masterCandidate.name.replace(/\\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60)||'kunstverk';
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  try{
+   const a=document.createElement('a');
+   a.href=url;a.download=stem+'-technical-check-not-approved.json';
+   document.body.appendChild(a);a.click();a.remove();
+  }finally{setTimeout(()=>URL.revokeObjectURL(url),1000)}
+  $('stratism-master-report-status').textContent='Teknisk kontrollrapport lastet ned lokalt. Ingen godkjenning er gitt.';
+ }catch(error){
+  $('stratism-master-report-status').textContent='Kunne ikke lage rapport: '+error.message;
+ }
+});
+$('stratism-print-target').addEventListener('change',()=>{
+ $('stratism-master-report-status').textContent='Trykkstørrelsen er endret. Last ned en ny rapport for gjeldende format.';
+});
+
 function webDerivativeSize(width,height,maxEdge=1600){
  if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||
   ![800,1600].includes(maxEdge))
