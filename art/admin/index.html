@@ -136,6 +136,10 @@
        <input id="stratism-master-file" type="file" accept="image/jpeg,image/png,image/webp,image/tiff,.tif,.tiff">
       </label>
       <p id="stratism-master-check" role="status" aria-live="polite">Ingen masterfil kontrollert. Filen blir ikke lastet opp, lagret eller godkjent.</p>
+      <div class="stratism-master-report">
+       <button id="stratism-export-master-report" type="button" disabled>Last ned teknisk kontrollrapport (JSON)</button>
+       <p id="stratism-master-report-status" class="stratism-notice" role="status" aria-live="polite">Rapporten kan lages når en masterkandidat er undersøkt. Den dokumenterer ikke et godkjent trykk.</p>
+      </div>
       <div class="stratism-web-export">
        <label for="stratism-web-export-size">Velg fil for nettbruk
         <select id="stratism-web-export-size">
