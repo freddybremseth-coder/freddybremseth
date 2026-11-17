@@ -378,6 +378,85 @@ $('stratism-import-project').addEventListener('change',async()=>{
  }finally{state.busy=false;refreshVariantUI()}
 });
 
+async function stratismArchiveRequest(action,body){
+ const getToken=window.ART_ADMIN_GET_ACCESS_TOKEN;
+ if(typeof getToken!=='function')throw Error('Administratorinnloggingen er ikke tilgjengelig.');
+ const send=async forceRefresh=>fetch('/api/stratism-projects',{
+  method:action==='list'?'GET':'POST',
+  headers:{'Authorization':'Bearer '+await getToken({forceRefresh}),
+   ...(action==='list'?{}:{'Content-Type':'application/json'})},
+  ...(action==='list'?{}:{body:JSON.stringify(body)})
+ });
+ let response=await send(false);
+ if(response.status===401)response=await send(true);
+ const data=await response.json();
+ if(!response.ok)throw Error(String(data.error||'Skyarkivet er utilgjengelig').slice(0,200));
+ return data;
+}
+async function listStratismCloud(){
+ const result=await stratismArchiveRequest('list');
+ const select=$('stratism-cloud-select');
+ select.replaceChildren();
+ const rows=Array.isArray(result.projects)?result.projects:[];
+ const placeholder=document.createElement('option');placeholder.value='';
+ placeholder.textContent=rows.length?'Velg et privat prosjekt':'Ingen lagrede prosjekter';
+ select.appendChild(placeholder);
+ for(const project of rows){
+  const option=document.createElement('option');option.value=project.name;
+  option.textContent=project.name.replace(/^\d{13}-/,'').replace(/-[0-9a-f-]{36}\.json$/,'').replace(/-/g,' ')
+   +' · '+(project.created_at?new Date(project.created_at).toLocaleString('no-NO'):'');
+  select.appendChild(option);
+ }
+ refreshVariantUI();
+ return rows.length;
+}
+$('stratism-cloud-select').addEventListener('change',refreshVariantUI);
+$('stratism-cloud-refresh').addEventListener('click',async()=>{
+ if(state.busy)return;
+ state.busy=true;refreshVariantUI();
+ try{const count=await listStratismCloud();
+  $('stratism-brief-status').textContent=count+' private prosjekter tilgjengelig.';
+ }catch(e){$('stratism-brief-status').textContent=e.message}
+ finally{state.busy=false;refreshVariantUI()}
+});
+$('stratism-cloud-save').addEventListener('click',async()=>{
+ if(state.busy||!state.brief)return;
+ state.busy=true;refreshVariantUI();
+ $('stratism-brief-status').textContent='Lagrer en ny privat prosjektversjon i skyarkivet…';
+ try{
+  const json=await serializePrivateProject();
+  const blob=new Blob([json],{type:'application/json'});
+  if(blob.size>MAX_ARCHIVE_BYTES)throw Error('Prosjektfilen er for stor for skyarkivet.');
+  const prepared=await stratismArchiveRequest('prepare',{action:'prepare',title:state.brief.title,bytes:blob.size});
+  if(prepared.private!==true||!prepared.upload_url)throw Error('Skyarkivet kunne ikke sikre opplastingen.');
+  const upload=await fetch(prepared.upload_url,{
+   method:'PUT',headers:{'Content-Type':'application/json'},body:blob
+  });
+  if(!upload.ok)throw Error('Supabase avviste prosjektopplastingen ('+upload.status+').');
+  $('stratism-brief-status').textContent='Privat prosjektversjon er lagret i skyarkivet. Ingen publisering eller salgsaktivering.';
+  await listStratismCloud();
+ }catch(e){$('stratism-brief-status').textContent='Skylagring mislyktes: '+e.message}
+ finally{state.busy=false;refreshVariantUI()}
+});
+$('stratism-cloud-open').addEventListener('click',async()=>{
+ if(state.busy)return;
+ const name=$('stratism-cloud-select').value;if(!name)return;
+ state.busy=true;refreshVariantUI();
+ try{
+  const signed=await stratismArchiveRequest('open',{action:'open',name});
+  if(signed.private!==true||!signed.download_url)throw Error('Ugyldig tilgang til prosjektfil.');
+  const response=await fetch(signed.download_url,{cache:'no-store'});
+  if(!response.ok)throw Error('Kunne ikke hente den private prosjektfilen.');
+  const contentLength=Number(response.headers.get('content-length')||0);
+  if(contentLength>MAX_ARCHIVE_BYTES)throw Error('Prosjektfilen er for stor.');
+  const file=await response.blob();
+  if(file.size<20||file.size>MAX_ARCHIVE_BYTES)throw Error('Prosjektfilen har ugyldig størrelse.');
+  restorePrivateProject(JSON.parse(await file.text()));
+  $('stratism-brief-status').textContent='Prosjektet er åpnet fra privat Supabase-lagring. Ingen publisering.';
+ }catch(e){$('stratism-brief-status').textContent='Kunne ikke åpne skyprosjekt: '+e.message}
+ finally{state.busy=false;refreshVariantUI()}
+});
+
 $('stratism-reset-variants').addEventListener('click',()=>{
  if(state.busy)return;
  clearVariants();
