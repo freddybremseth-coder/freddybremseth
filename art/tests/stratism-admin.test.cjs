@@ -14,7 +14,8 @@ test('all composer controls are present',()=>{
  for(const id of ['stratism-title','stratism-source','stratism-description','stratism-chord',
  'stratism-emphasis','stratism-strength','stratism-download-brief','stratism-brief-output',
  'stratism-brief-status','stratism-reference-file','stratism-reference-preview',
- 'stratism-reference-status','stratism-print-capacity'])assert.ok(html.includes('id="'+id+'"'),id);
+ 'stratism-reference-status','stratism-print-capacity',
+ 'stratism-generate-private','stratism-generated-preview','stratism-result','stratism-save-preview'])assert.ok(html.includes('id="'+id+'"'),id);
 });
 test('client script parses and cannot auto publish or call external API',()=>{
  new vm.Script(js);assert.doesNotMatch(js,/\bfetch\s*\(|\bXMLHttpRequest\b|\bpublishArtwork\s*\(/);
@@ -28,4 +29,18 @@ test('reference inspection stays local with no upload or false print certificati
  assert.match(js,/aspectPass/);
  assert.match(js,/ikke printgodkjenning/);
  assert.doesNotMatch(js,/\bfetch\s*\(|\bXMLHttpRequest\b/);
+});
+
+test('AI generation is server authorized and cannot publish or sell',()=>{
+ const api=fs.readFileSync(path.join(root,'api/stratism-generate.js'),'utf8');
+ new vm.Script(api);
+ assert.match(api,/STRATISM_GENERATION_ENABLED/);
+ assert.match(api,/admin\.auth\.getUser\(token\)/);
+ assert.match(api,/art_gallery_admin_users/);
+ assert.match(api,/not_sale_approved:true/);
+ assert.match(api,/not_print_approved:true/);
+ assert.match(api,/stored:false,published:false/);
+ assert.match(js,/\/api\/stratism-generate/);
+ assert.match(js,/Authorization':'Bearer/);
+ assert.doesNotMatch(api,/\.storage\.from\(|\.insert\(|\.upsert\(/);
 });
