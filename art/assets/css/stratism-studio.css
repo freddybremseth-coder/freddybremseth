@@ -8,3 +8,11 @@
 .stratism-panel .stratism-refine-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:end;margin:12px 0 18px}.stratism-panel .stratism-refine-controls>button{grid-column:1/-1;justify-self:start}.stratism-panel .stratism-refine-controls select{min-width:0}@media(max-width:620px){.stratism-panel .stratism-refine-controls{grid-template-columns:1fr}}
 
 .stratism-panel .stratism-quality-panel{margin:18px 0;padding:16px;border:1px solid #8c8c8c55;border-radius:12px;background:rgba(128,128,128,.035)}.stratism-panel .stratism-quality-panel h4{font-size:1.08rem;margin:0 0 8px}.stratism-panel .stratism-quality-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;row-gap:2px}.stratism-panel #stratism-quality-status{font-size:.95rem;font-weight:650}.stratism-panel #stratism-quality-notes{min-height:74px}@media(max-width:680px){.stratism-panel .stratism-quality-grid{grid-template-columns:1fr}}
+
+.stratism-panel .stratism-before-after{margin:18px 0;padding:16px;border:1px solid #8c8c8c55;border-radius:12px}
+.stratism-panel .stratism-before-after h4{font-size:1.08rem;margin:0 0 8px}
+.stratism-panel .stratism-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.stratism-panel .stratism-compare-grid figure{margin:0;min-width:0}
+.stratism-panel .stratism-compare-grid img{width:100%;height:auto;max-height:540px;object-fit:contain;border-radius:6px;background:#f4f0e8}
+.stratism-panel .stratism-compare-grid figcaption{text-align:center;font-size:.87rem;line-height:1.5;margin-top:8px}
+@media(max-width:680px){.stratism-panel .stratism-compare-grid{grid-template-columns:1fr}}
