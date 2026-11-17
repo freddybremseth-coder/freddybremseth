@@ -318,7 +318,7 @@ $('stratism-download-brief').addEventListener('click',()=>{
 });
 async function prepareReferenceJpeg(){
  let referenceJpeg=null;
-  // The reference stays in-browser unless the administrator explicitly asks to generate.
+  // The original reference stays local; a resized JPEG derivative is sent only on an explicit preflight or generation click.
   // Resize a temporary derivative: never use this JPEG as a sale or print master.
   if(referenceInput.files?.[0]&&state.reference){
    const img=$('stratism-reference-preview');
@@ -390,14 +390,7 @@ $('stratism-generate-private').addEventListener('click',async()=>{
  try{
 
   const referenceJpeg=await prepareReferenceJpeg();
-  const response=await stratismRequest({description:state.brief.description,
-     chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
-     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation,preset:state.brief.preset,
-     composition_mode:state.brief.composition_mode||'five-states',
-     source_kind:state.brief.provenance?.source_kind||'concept',
-     place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
-     photo_credit:state.brief.provenance?.photo_credit||'',
-     reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
+  const response=await stratismRequest(requestFromCurrentBrief(variation,referenceJpeg));
   const data=await response.json();
   if(!response.ok)throw Error(providerErrorMessage(response,data));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
