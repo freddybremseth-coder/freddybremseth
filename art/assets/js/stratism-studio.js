@@ -214,10 +214,22 @@ function reviewScore(variant,kind){
  const remaining=6-passed-failed;
  return passed+' av 6 bestått'+(failed?' · '+failed+' må forbedres':'')+(remaining?' · '+remaining+' ikke vurdert':'');
 }
+function chooseComparedVersion(showRevision){
+ const selected=state.variants[state.selectedVariant];
+ if(!selected?.revision||state.busy)return;
+ selected.showRevision=showRevision;
+ refreshVariantUI();
+}
+$('stratism-choose-original').addEventListener('click',()=>chooseComparedVersion(false));
+$('stratism-choose-revision').addEventListener('click',()=>chooseComparedVersion(true));
 function updateRevisionComparison(selected){
  const panel=$('stratism-before-after');
  const visible=!!(selected?.revision&&selected?.url&&selected.revision.url);
  panel.hidden=!visible;
+ $('stratism-choose-original').disabled=!visible||state.busy;
+ $('stratism-choose-revision').disabled=!visible||state.busy;
+ $('stratism-choose-original').setAttribute('aria-pressed',String(visible&&!selected.showRevision));
+ $('stratism-choose-revision').setAttribute('aria-pressed',String(visible&&!!selected.showRevision));
  if(!visible){
   $('stratism-compare-original').removeAttribute('src');
   $('stratism-compare-revision').removeAttribute('src');
