@@ -24,3 +24,7 @@
 .stratism-panel .stratism-concept-file-status{margin:14px 0;padding:15px;border:1px solid #8c8c8c55;border-radius:10px;background:rgba(128,128,128,.035)}
 .stratism-panel .stratism-concept-file-status h4{margin:0 0 9px;font-size:1.04rem}
 .stratism-panel .stratism-concept-file-status p{max-width:74ch;margin:6px 0;line-height:1.5;text-align:left}
+
+.stratism-panel .stratism-print-plan{margin:12px 0;padding:12px;border:1px solid #8c8c8c55;border-radius:8px}
+.stratism-panel .stratism-print-plan label{margin:0 0 8px}
+.stratism-panel .stratism-print-plan p{margin:8px 0 0;text-align:left;line-height:1.55}
