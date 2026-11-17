@@ -100,7 +100,7 @@ test('malformed reference and provider errors do not approve artworks',async()=>
 test('three art models generate distinct server prompts without changing provider generation contract',async()=>{
  const h=harness({enabled:true,userId:'user-1',member:true});
  const cases=[
-  ['stratum-no4-v1',/BROAD FLAT OPAQUE wet-into-wet/],
+  ['stratum-no4-v1',/broad FLAT OPAQUE wet-into-wet/],
   ['olivos-de-biar-v1',/ORIGINAL OLIVOS DE BIAR aesthetic/],
   ['stratism-working-v09',/developing Stratism art system/]
  ];
