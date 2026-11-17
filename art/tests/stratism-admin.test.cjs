@@ -139,3 +139,19 @@ test('three art presets are selectable and saved with individual briefs',()=>{
  assert.match(js,/Original Olivos de Biar model/);
  assert.match(js,/Original working Stratism v0\.9/);
 });
+
+test('personal-story form and two composition modes preserve art models and private archive',()=>{
+ for(const id of ['stratism-composition-rule','stratism-source-kind','stratism-place',
+ 'stratism-story','stratism-photo-credit','stratism-reference-rights'])
+  assert.ok(html.includes('id="'+id+'"'),id);
+ assert.match(html,/value="five-states"/);assert.match(html,/value="three-anchors"/);
+ assert.match(js,/reference_rights_confirmed:referenceRights/);
+ assert.match(js,/composition_mode:compositionMode/);
+ assert.match(js,/source_kind:sourceKind/);
+ assert.match(js,/STRATISM_PRESET_IDS/);
+ assert.match(js,/state\.brief\.provenance\?\.reference_rights_confirmed/);
+ assert.match(js,/state\.brief=\{\.\.\.archive\.brief/);
+ assert.match(js,/state\.brief\.provenance\.reference_rights_confirmed=false/);
+ assert.match(js,/commercial_release:false/);
+ assert.match(js,/print_release:false/);
+});
