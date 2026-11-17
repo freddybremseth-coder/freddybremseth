@@ -54,10 +54,17 @@
    </form>
    <div class="stratism-project-actions" aria-label="Privat prosjektarkiv">
     <button id="stratism-export-project" type="button" disabled>Lagre prosjektfil med bilder</button>
+    <button id="stratism-cloud-save" type="button" disabled>Lagre privat i skyarkivet</button>
+    <button id="stratism-cloud-refresh" type="button">Vis mine lagrede prosjekter</button>
+    <label>Skyarkiv – velg et tidligere prosjekt
+     <select id="stratism-cloud-select"><option value="">Ingen prosjekter hentet</option></select>
+    </label>
+    <button id="stratism-cloud-open" type="button" disabled>Åpne valgt skyprosjekt</button>
+
     <label for="stratism-import-project" class="stratism-project-import">Åpne lagret prosjektfil
       <input id="stratism-import-project" type="file" accept=".json,application/json">
     </label>
-    <p class="stratism-notice">Prosjektfilen lagres kun på din enhet. Den inneholder private kunstbilder og må oppbevares sikkert. Originalt referansefoto må velges på nytt etter import.</p>
+    <p class="stratism-notice">Nedlastet prosjektfil lagres på din enhet. Skyarkivet lagrer prosjektfilen privat i Supabase, bare for godkjente administratorer. Alle prosjektbilder er fortsatt arbeidskopier, ikke printmastere. Originalt referansefoto må velges på nytt ved åpning.</p>
    </div>
    <p id="stratism-brief-status" class="stratism-notice" role="status" aria-live="polite">Ingen brief generert.</p>
    <div id="stratism-result" class="stratism-result" hidden>
