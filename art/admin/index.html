@@ -34,6 +34,16 @@
      <label>Arbeidstittel<input id="stratism-title" maxlength="100" placeholder="Living Memory – Doña Anna"></label>
      <label>Referansefoto (beskrivelse, ikke filopplasting)<input id="stratism-source" maxlength="120" placeholder="Doña Anna – gammelt oliventre"></label>
     </div>
+    <div class="stratism-reference">
+     <label>Referansefoto (valgfritt – analyseres kun i nettleseren)
+      <input id="stratism-reference-file" type="file" accept="image/jpeg,image/png,image/webp">
+     </label>
+     <div class="stratism-reference-overview">
+      <img id="stratism-reference-preview" alt="Valgt referansefoto" hidden>
+      <div><p id="stratism-reference-status" role="status" aria-live="polite">Ingen referansefil valgt.</p>
+      <p id="stratism-print-capacity" class="stratism-notice">Oppløsningskontrollen gjelder kun valgt fil, ikke en fremtidig generert kunstoriginal.</p></div>
+     </div>
+    </div>
     <label>Motiv og fortelling<textarea id="stratism-description" required minlength="12" maxlength="2000" placeholder="Et gammelt oliventre fra gården vår. Kronen er fullt til stede; utvalgte røtter overlever som grafittspor."></textarea></label>
     <div class="stratism-grid">
      <label>Fargeakkord<select id="stratism-chord"><option value="muted olive green and warm ochre">Olivengrønn og varm oker</option><option value="restrained ultramarine and slate">Dempet ultramarin</option><option value="soft amber and oxblood">Myk rav og oker-rød</option><option value="muted violet and mauve">Dempet fiolett</option><option value="neutral earth and linen">Jordfarger og lin</option></select></label>
