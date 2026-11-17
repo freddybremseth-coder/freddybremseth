@@ -339,3 +339,31 @@ test('archive import rejects corrupt JPEG and invalid dimensions before project 
  assert.match(restore,/const revUrl=base64ToJpegUrl\(entry\.revision\.image_base64\)/);
  assert.match(restore,/Only commit restored data after every image and field has been validated/);
 });
+
+test('quality reviews round-trip in both versions and malformed data is rejected before export',()=>{
+ const start=js.indexOf('function validateQuality(value)');
+ const end=js.indexOf('function updateQualityUI()',start);
+ assert.ok(start>0&&end>start);
+ const validate=vm.runInNewContext(
+  "const QUALITY_FIELDS=['subject','colour','brush','transitions','linen','texture'];"+
+  "const QUALITY_VALUES=['pending','pass','revise'];"+
+  js.slice(start,end)+'; validateQuality'
+ );
+ const original={ratings:{subject:'pass',colour:'revise'},notes:'Bevar kronen',updated_at:null};
+ const revision={ratings:{subject:'pass',colour:'pass'},notes:'Bedre balanse',updated_at:null};
+ const both={original,revision};
+ const result=validate(both);
+ assert.equal(result.original.ratings.colour,'revise');
+ assert.equal(result.revision.ratings.colour,'pass');
+ assert.equal(validate(null),null); // legacy archives
+ assert.throws(()=>validate({original:{...original,ratings:[]}}),/Ugyldig vurderingsnotat/);
+ assert.throws(()=>validate({original:{...original,secret:'extra'}}),/Ugyldig vurderingsnotat/);
+ assert.throws(()=>validate({original,unknown:{}}),/Ukjent vurderingsfelt/);
+ assert.throws(()=>validate({revision:{...revision,ratings:{subject:'approved-for-sale'}}}),/Ugyldig vurderingsstatus/);
+ const serialize=js.slice(js.indexOf('async function serializePrivateProject()'),
+  js.indexOf("$('stratism-export-project').addEventListener"));
+ assert.match(serialize,/validateQuality\(v\.reviews&&Object\.keys\(v\.reviews\)\.length\?v\.reviews:null\)/);
+ assert.match(serialize,/if\(reviews\?\.revision&&!v\.revision\)/);
+ assert.match(serialize,/if\(v\.showRevision&&!v\.revision\)/);
+ assert.match(serialize,/reviews:reviews\|\|null/);
+});
