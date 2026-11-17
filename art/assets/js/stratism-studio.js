@@ -331,8 +331,7 @@ $('stratism-generate-private').addEventListener('click',async()=>{
      source_kind:state.brief.provenance?.source_kind||'concept',
      place:state.brief.provenance?.place||'',story:state.brief.provenance?.story||'',
      photo_credit:state.brief.provenance?.photo_credit||'',
-     reference_rights:state.brief.provenance?.reference_rights_confirmed===true,
-     ...(mode==='qa-guided'?{qa_failed:qaFailed}:{})});
+     reference_rights:state.brief.provenance?.reference_rights_confirmed===true});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
   if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset||data.composition_mode!==(state.brief.composition_mode||'five-states'))
