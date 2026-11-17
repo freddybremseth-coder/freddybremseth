@@ -66,7 +66,7 @@ test('approved admin generates only private review result, never sale or print a
  assert.equal(r.payload.published,false);assert.equal(h.stats().calls,1);
 });
 
-const jpeg=Buffer.concat([Buffer.from([0xff,0xd8,0xff]),Buffer.alloc(120,1)]).toString('base64');
+const jpeg=fakeJpeg(1024,1280);
 test('reference photograph uses image edits, not text-only generation',async()=>{
  const h=harness({enabled:true,userId:'user-1',member:true});
  const r=await h.request({token:'valid',body:{...validBody,reference_jpeg_base64:jpeg,reference_rights:true}});
@@ -238,4 +238,16 @@ test('provider rate limit and access failures have safe categorical error codes'
   assert.equal(r.payload.image_base64,undefined);
   assert.equal(h.stats().calls,1);
  }
+});
+
+test('malformed JPEG reference cannot consume image credits even with admin access',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const fakeHeader=Buffer.concat([Buffer.from([0xff,0xd8,0xff]),Buffer.alloc(128,1)]).toString('base64');
+ const tooSmall=fakeJpeg(10,20);
+ const tooLarge=fakeJpeg(12001,12001);
+ for(const reference_jpeg_base64 of [fakeHeader,tooSmall,tooLarge]){
+  const r=await h.request({token:'valid',body:{...validBody,reference_jpeg_base64,reference_rights:true}});
+  assert.equal(r.code,400);
+ }
+ assert.equal(h.stats().calls,0);
 });
