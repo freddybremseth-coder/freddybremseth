@@ -55,7 +55,7 @@ test('photo edit path validates JPEG and does not persist reference image',()=>{
  assert.match(apiText,/reference_used:!!reference/);
  assert.match(js,/canvas\.toDataURL\('image\/jpeg'/);
  assert.match(js,/reference_jpeg_base64:referenceJpeg/);
- assert.match(html,/Generer privat forslag/);
+ assert.match(html,/id="stratism-generate-private"/);
  assert.doesNotMatch(apiText,/\.storage\.from\(|\.insert\(|\.upsert\(/);
 });
 
