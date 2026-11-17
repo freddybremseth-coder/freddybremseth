@@ -207,7 +207,7 @@ test('paid generation and revision require explicit user approval and show helpf
  const generate=js.slice(js.indexOf("$('stratism-generate-private').addEventListener"),js.indexOf("$('stratism-save-preview').addEventListener"));
  const revise=js.slice(js.indexOf("$('stratism-refine-selected').addEventListener"),js.indexOf('// A portable, private archive'));
  assert.match(generate,/if\(!approveImageCharge\('Generering'\)\)\{/);
- assert.match(revise,/if\(!approveImageCharge\('Revisjon'\)\)return/);
+ assert.match(revise,/if\(!approveImageCharge\('Revisjon'\)\)\{/);
  assert.match(generate,/providerErrorMessage\(response,data\)/);
  assert.match(revise,/providerErrorMessage\(response,data\)/);
  assert.match(js,/PROVIDER_RATE_LIMIT/);
@@ -256,7 +256,7 @@ test('QA revisions send selected failed criteria to the API and never unlock on 
  const section=js.slice(begin,end);
  assert.match(section,/const qaFailed=mode==='qa-guided'\?failedQualityKeys\(variant\):null/);
  assert.match(section,/\.\.\.\(mode==='qa-guided'\?\{qa_failed:qaFailed\}:\{\}\)/);
- assert.match(section,/stratismRequest\(\{/);
+ assert.match(section,/stratismRequest\(payload\)/);
  assert.match(js,/\$\('stratism-refine-selected'\)\.disabled=!variant\|\|!!variant\.revision\|\|state\.busy\|\|!providerReadiness\.canGenerate/);
  const refresh=js.slice(js.indexOf('function refreshVariantUI()'),js.indexOf('// Changing the chosen artistic model'));
  assert.doesNotMatch(refresh,/disabled=\$\('stratism-refine-selected'\)\.disabled\|\|/);
@@ -395,7 +395,7 @@ test('preflight gives actionable Norwegian errors and validates the exact photo 
  const end=js.indexOf("$('stratism-generate-private').addEventListener",start);
  const part=js.slice(start,end);
  assert.match(js,/data\.source_kind!==payload\.source_kind/);
- assert.match(js,/data\.reference_used!==!!payload\.reference_jpeg_base64/);
+ assert.match(js,/data\.reference_used!==!!\(payload\.reference_jpeg_base64\|\|payload\.revision_jpeg_base64\)/);
  assert.match(js,/data\.variation!==payload\.variation/);
 });
 
@@ -415,7 +415,7 @@ test('paid generation requires free preflight of identical payload before charge
  assert.match(check,/data\.no_provider_call!==true/);
  assert.match(check,/data\.preset!==payload\.preset/);
  assert.match(check,/data\.source_kind!==payload\.source_kind/);
- assert.match(check,/data\.reference_used!==!!payload\.reference_jpeg_base64/);
+ assert.match(check,/data\.reference_used!==!!\(payload\.reference_jpeg_base64\|\|payload\.revision_jpeg_base64\)/);
  assert.match(check,/data\.revision!==\(payload\.revision_mode\|\|null\)/);
  assert.match(check,/data\.sale_approval!==false\|\|data\.print_approval!==false/);
 });
