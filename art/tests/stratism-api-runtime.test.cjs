@@ -251,3 +251,41 @@ test('malformed JPEG reference cannot consume image credits even with admin acce
  }
  assert.equal(h.stats().calls,0);
 });
+
+test('Olivos de Biar targeted revisions preserve naturalistic character rather than adding fixed five layers',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const body={...validBody,preset:'olivos-de-biar-v1',revision_jpeg_base64:jpeg};
+ const r=await h.request({token:'valid',body:{...body,revision_mode:'qa-guided',qa_failed:['colour','brush','transitions','texture']}});
+ assert.equal(r.code,200);
+ const prompt=h.stats().lastOptions.body.get('prompt');
+ assert.match(prompt,/natural olive-green/);
+ assert.match(prompt,/softly and organically into linen/);
+ assert.match(prompt,/no palette-knife gouges or oxblood scraping/i);
+ assert.doesNotMatch(prompt,/five fixed layers of paint/i);
+ const detail=await h.request({token:'valid',body:{...body,revision_mode:'preserve-details'}});
+ assert.equal(detail.code,200);
+ assert.match(h.stats().lastOptions.body.get('prompt'),/Never impose five fixed material states/);
+});
+test('three-anchor mode does not force five rigid bands during generation or revisions',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const shared={...validBody,preset:'stratum-no4-v1',composition_mode:'three-anchors'};
+ const gen=await h.request({token:'valid',body:shared});
+ assert.equal(gen.code,200);
+ assert.match(JSON.parse(h.stats().lastOptions.body).prompt,/never impose five equally spaced bands/i);
+ const edit=await h.request({token:'valid',body:{...shared,revision_mode:'qa-guided',
+  revision_jpeg_base64:jpeg,qa_failed:['transitions','texture']}});
+ assert.equal(edit.code,200);
+ const prompt=h.stats().lastOptions.body.get('prompt');
+ assert.match(prompt,/without imposing five equally sized horizontal stripes/i);
+ assert.match(prompt,/without forcing a scraped fourth band/i);
+});
+test('original No.4 retains its distinct saturated opaque paint language',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const r=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1',revision_mode:'qa-guided',
+  revision_jpeg_base64:jpeg,qa_failed:['colour','brush','texture']}});
+ assert.equal(r.code,200);
+ const prompt=h.stats().lastOptions.body.get('prompt');
+ assert.match(prompt,/exactly one strong saturated colour chord/);
+ assert.match(prompt,/flat opaque paint/);
+ assert.match(prompt,/palette-knife drag marks/);
+});
