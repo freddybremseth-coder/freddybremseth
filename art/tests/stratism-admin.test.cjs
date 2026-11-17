@@ -13,9 +13,19 @@ test('Stratism composer is nested in protected admin panel',()=>{
 test('all composer controls are present',()=>{
  for(const id of ['stratism-title','stratism-source','stratism-description','stratism-chord',
  'stratism-emphasis','stratism-strength','stratism-download-brief','stratism-brief-output',
- 'stratism-brief-status'])assert.ok(html.includes('id="'+id+'"'),id);
+ 'stratism-brief-status','stratism-reference-file','stratism-reference-preview',
+ 'stratism-reference-status','stratism-print-capacity'])assert.ok(html.includes('id="'+id+'"'),id);
 });
 test('client script parses and cannot auto publish or call external API',()=>{
  new vm.Script(js);assert.doesNotMatch(js,/\bfetch\s*\(|\bXMLHttpRequest\b|\bpublishArtwork\s*\(/);
  assert.match(js,/commercial_release:false/);assert.match(js,/print_release:false/);
+});
+
+test('reference inspection stays local with no upload or false print certification',()=>{
+ assert.match(js,/reference_metadata:state\.reference/);
+ assert.match(js,/image\.naturalWidth/);
+ assert.match(js,/pixelPass/);
+ assert.match(js,/aspectPass/);
+ assert.match(js,/ikke printgodkjenning/);
+ assert.doesNotMatch(js,/\bfetch\s*\(|\bXMLHttpRequest\b/);
 });
