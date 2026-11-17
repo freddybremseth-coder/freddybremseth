@@ -45,3 +45,17 @@ test('AI generation is server authorized and cannot publish or sell',()=>{
  assert.doesNotMatch(js,/api\.openai\.com|supabase\.co|art_gallery_works/);
  assert.doesNotMatch(api,/\.storage\.from\(|\.insert\(|\.upsert\(/);
 });
+
+test('photo edit path validates JPEG and does not persist reference image',()=>{
+ const apiText=fs.readFileSync(path.join(root,'api/stratism-generate.js'),'utf8');
+ const endpoint=require('../api/stratism-generate.js');
+ assert.match(apiText,/MAX_REFERENCE_BYTES=1_350_000/);
+ assert.match(apiText,/reference_jpeg_base64/);
+ assert.match(apiText,/\/v1\/images\/edits/);
+ assert.match(apiText,/\/v1\/images\/generations/);
+ assert.match(apiText,/reference_used:!!reference/);
+ assert.match(js,/canvas\.toDataURL\('image\/jpeg'/);
+ assert.match(js,/reference_jpeg_base64:referenceJpeg/);
+ assert.match(html,/Generer privat forslag/);
+ assert.doesNotMatch(apiText,/\.storage\.from\(|\.insert\(|\.upsert\(/);
+});
