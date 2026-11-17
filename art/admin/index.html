@@ -126,9 +126,38 @@
      <button id="stratism-refine-selected" type="button" disabled>Forbedre valgt bilde (AI-kall)</button>
     </div>
 
+    <div class="stratism-quality-panel" id="stratism-quality-panel" aria-labelledby="stratism-quality-title">
+     <h4 id="stratism-quality-title">Kunstnerisk kvalitetskontroll – valgt versjon</h4>
+     <p id="stratism-quality-context" class="stratism-notice">Dette er din manuelle vurdering, ikke automatisk AI-analyse eller salgs-/printgodkjenning.</p>
+     <div class="stratism-quality-grid">
+      <label>Motivets særpreg og referansetrofasthet
+       <select data-stratism-quality="subject"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Kun én tydelig fargeakkord
+       <select data-stratism-quality="colour"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Penselstrøk, ikke digital glød
+       <select data-stratism-quality="brush"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Dryp og maleriske overganger
+       <select data-stratism-quality="transitions"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Rå lin, grafitt og signatur
+       <select data-stratism-quality="linen"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Ingen skjellaktig/digital tekstur
+       <select data-stratism-quality="texture"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+     </div>
+     <label>Notat til neste revisjon (valgfritt)
+      <textarea id="stratism-quality-notes" maxlength="700" rows="2" placeholder="Beskriv konkret hva som bør forbedres ..."></textarea>
+     </label>
+     <p id="stratism-quality-status" role="status" aria-live="polite">Ingen kunstnerisk vurdering registrert.</p>
+     <p class="stratism-notice">Vurderingen lagres bare i prosjektfilen/privat skyarkiv når du velger Lagre. Den kan aldri åpne for salg eller print.</p>
+    </div>
     <button id="stratism-save-preview" type="button" disabled>Last ned valgt prøve</button>
     <button id="stratism-reset-variants" type="button">Tøm lokale forslag</button>
-    <p>Kun private AI-konsepter · ikke lagret på server · ikke godkjent for salg eller print.</p>
+    <p>Kun private AI-konsepter · lagres bare dersom du velger privat prosjektarkiv · ikke godkjent for salg eller print.</p>
    </div><pre id="stratism-brief-output" class="stratism-output" aria-label="Stratism produksjonsinstruksjon">Produksjonsinstruksjonen vises her.</pre>
    <p class="stratism-notice">Privat AI-bildegenerering er implementert, men deaktivert i testmiljøet inntil leverandør og tilgang er verifisert. Digitalt salg og printgodkjenning er ikke koblet til denne modulen.</p>
   </section>
