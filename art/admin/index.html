@@ -58,6 +58,21 @@
     <p>Hvert forslag opprettes med et eget AI-kall som kan koste penger. Du bestemmer selv når en ny variant skal lages.</p>
     <div id="stratism-variant-gallery" class="stratism-variant-gallery" role="group" aria-label="Sammenlign Stratism-forslag"></div>
     <p id="stratism-selected-description" class="stratism-notice">Velg et bilde for å laste ned en prøve.</p>
+    <div class="stratism-refine-controls">
+     <label>Forbedre valgt forslag – bevar motivet
+      <select id="stratism-refinement-kind">
+       <option value="subtler-colour">Demp fargene ytterligere</option>
+       <option value="preserve-details">Bevar viktige detaljer bedre</option>
+       <option value="more-linen">Mer synlig rå lin og utvalgte grafittspor</option>
+       <option value="remove-texture">Fjern digital/skjellaktig tekstur</option>
+      </select>
+     </label>
+     <label>Visjon av valgt forslag
+      <select id="stratism-revision-select" aria-label="Velg original eller forbedret versjon"><option value="0">Originalforslag</option></select>
+     </label>
+     <button id="stratism-refine-selected" type="button" disabled>Forbedre valgt bilde (AI-kall)</button>
+    </div>
+
     <button id="stratism-save-preview" type="button" disabled>Last ned valgt prøve</button>
     <button id="stratism-reset-variants" type="button">Tøm lokale forslag</button>
     <p>Kun private AI-konsepter · ikke lagret på server · ikke godkjent for salg eller print.</p>
