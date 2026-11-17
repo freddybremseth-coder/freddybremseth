@@ -194,7 +194,7 @@ test('ordinary generation never references QA-revision-only variables',()=>{
  assert.ok(begin>0&&end>begin);
  const generation=js.slice(begin,end);
  assert.doesNotMatch(generation,/mode==='qa-guided'|qaFailed/);
- assert.match(generation,/stratismRequest\(requestFromCurrentBrief\(variation,referenceJpeg\)\)/);
+ assert.match(generation,/stratismRequest\(payload\)/);
  const revision=js.slice(js.indexOf("$('stratism-refine-selected').addEventListener"),js.indexOf('const ARCHIVE_SCHEMA'));
  assert.match(revision,/qa_failed:qaFailed/);
  assert.match(revision,/revision_mode:mode/);
@@ -206,7 +206,7 @@ test('paid generation and revision require explicit user approval and show helpf
  assert.match(js,/window\.confirm\(/);
  const generate=js.slice(js.indexOf("$('stratism-generate-private').addEventListener"),js.indexOf("$('stratism-save-preview').addEventListener"));
  const revise=js.slice(js.indexOf("$('stratism-refine-selected').addEventListener"),js.indexOf('// A portable, private archive'));
- assert.match(generate,/if\(!approveImageCharge\('Generering'\)\)return/);
+ assert.match(generate,/if\(!approveImageCharge\('Generering'\)\)\{/);
  assert.match(revise,/if\(!approveImageCharge\('Revisjon'\)\)return/);
  assert.match(generate,/providerErrorMessage\(response,data\)/);
  assert.match(revise,/providerErrorMessage\(response,data\)/);
