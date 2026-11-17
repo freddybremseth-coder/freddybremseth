@@ -242,7 +242,7 @@ test('reference photos must be valid and transparent areas are flattened before 
 });
 test('preflight verdict is cleared whenever source, brief or project changes',()=>{
  assert.match(js,/function invalidatePreflight\(\)/);
- assert.match(js,/form\.addEventListener\('change',\(\)=>\{\n if\(state\.busy\)return;\n invalidatePreflight\(\)/);
+ assert.match(js,/form\.addEventListener\('change',event=>\{\n if\(state\.busy\)return;\n invalidatePreflight\(\)/);
  assert.match(js,/referenceInput\.addEventListener\('change',async\(\)=>\{\n if\(state\.busy\)return;\n invalidatePreflight\(\)/);
  assert.match(js,/function restorePrivateProject\(archive\)\{\n invalidatePreflight\(\)/);
 });
@@ -366,4 +366,19 @@ test('quality reviews round-trip in both versions and malformed data is rejected
  assert.match(serialize,/if\(reviews\?\.revision&&!v\.revision\)/);
  assert.match(serialize,/if\(v\.showRevision&&!v\.revision\)/);
  assert.match(serialize,/reviews:reviews\|\|null/);
+});
+
+test('renewing photo rights on imported work preserves artwork and review state without bypassing consent',()=>{
+ const start=js.indexOf("form.addEventListener('change',event=>");
+ const end=js.indexOf("$('stratism-preset').addEventListener",start);
+ const handler=js.slice(start,end);
+ assert.ok(start>0&&end>start);
+ assert.match(handler,/if\(event\.target===\$\('stratism-reference-rights'\)\)/);
+ assert.match(handler,/state\.brief\.provenance\.reference_rights_confirmed=\$\('stratism-reference-rights'\)\.checked===true/);
+ assert.match(handler,/refreshVariantUI\(\);\n  return;/);
+ const rightsBranch=handler.slice(handler.indexOf("if(event.target==="),handler.indexOf(" updatePresetDescription();"));
+ assert.doesNotMatch(rightsBranch,/clearVariants\(\)|state\.brief=null/);
+ assert.match(handler,/clearVariants\(\);state\.brief=null/);
+ assert.match(js,/\$\('stratism-reference-rights'\)\.checked=false/);
+ assert.match(js,/state\.brief\.provenance\.reference_rights_confirmed=false/);
 });
