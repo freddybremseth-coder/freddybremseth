@@ -96,3 +96,35 @@ test('malformed reference and provider errors do not approve artworks',async()=>
  assert.equal(r.code,502);assert.equal(r.payload.image_base64,undefined);
  assert.equal(unavailable.stats().calls,1);
 });
+
+test('three art models generate distinct server prompts without changing provider generation contract',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const cases=[
+  ['stratum-no4-v1',/BROAD FLAT OPAQUE wet-into-wet/],
+  ['olivos-de-biar-v1',/ORIGINAL OLIVOS DE BIAR aesthetic/],
+  ['stratism-working-v09',/developing Stratism art system/]
+ ];
+ for(const [preset,expected] of cases){
+  const response=await h.request({token:'valid',body:{...validBody,preset}});
+  assert.equal(response.code,200);
+  assert.equal(response.payload.preset,preset);
+  assert.match(JSON.parse(h.stats().lastOptions.body).prompt,expected);
+  assert.equal(response.payload.not_sale_approved,true);
+  assert.equal(response.payload.not_print_approved,true);
+ }
+ assert.equal(h.stats().calls,3);
+});
+test('unknown preset cannot reach paid generation',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const r=await h.request({token:'valid',body:{...validBody,preset:'unapproved-foreign-model'}});
+ assert.equal(r.code,400);
+ assert.equal(h.stats().calls,0);
+});
+test('Stratum No. 4 reference-photo edit carries flat opaque paint rule',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const r=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1',reference_jpeg_base64:jpeg}});
+ assert.equal(r.code,200);
+ assert.equal(r.payload.reference_used,true);
+ assert.match(h.stats().lastOptions.body.get('prompt'),/DRAG MARKS WITH A FLAT BLADE/);
+ assert.match(h.stats().lastOptions.body.get('prompt'),/NO DISTANT TREES, NO HILLS, NO ORANGE SOIL/);
+});
