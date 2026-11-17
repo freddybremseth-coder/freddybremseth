@@ -136,6 +136,10 @@
        <input id="stratism-master-file" type="file" accept="image/jpeg,image/png,image/webp,image/tiff,.tif,.tiff">
       </label>
       <p id="stratism-master-check" role="status" aria-live="polite">Ingen masterfil kontrollert. Filen blir ikke lastet opp, lagret eller godkjent.</p>
+      <div class="stratism-web-export">
+       <button id="stratism-export-web" type="button" disabled>Lag lokal webversjon (JPEG, maks 1600 px)</button>
+       <p id="stratism-web-export-status" class="stratism-notice" role="status" aria-live="polite">Velg en JPG-, PNG- eller WebP-fil for å lage en lokal webprøve. TIFF krever separat konvertering.</p>
+      </div>
      </div>
      <p id="stratism-concept-limit" class="stratism-notice">En JPEG-prøve er ikke en digital salgs-master eller print-master. 300 DPI i metadata gir ikke flere piksler.</p>
      <p class="stratism-notice">En egen senere arbeidsflyt må kontrollere kildefil, oppskalering, faktisk oppløsning, fargerom og manuell printgodkjenning før salg.</p>
