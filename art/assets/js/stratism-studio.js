@@ -25,6 +25,16 @@ function printCheck(width,height){
   aspectPass:Math.abs(short/long-size.shortCm/size.longCm)<=0.015}))
  .map(v=>({...v,passes:v.pixelPass&&v.aspectPass}));
 }
+const STRATISM_PRESET_IDS=['stratum-no4-v1','olivos-de-biar-v1','stratism-working-v09'];
+const PRESET_HELP=Object.freeze({
+ 'stratum-no4-v1':'Hovedmodell (Stratum No. 4): én sterk turkis fargeakkord, presise detaljer, bred ugjennomsiktig maling, mauve vask og lange dryp, skrapet stamme og naturlig rå lin. Format 4:5.',
+ 'olivos-de-biar-v1':'Bevart første oliventremodell (Olivos de Biar): naturtro bladverk og stamme, myk overgang mot bar lin og fine blyantrøtter. Ingen påtvungne farge- eller skrapebånd.',
+ 'stratism-working-v09':'Bevart opprinnelig eksperimentell Stratism-motor v0.9. Fem stadier med en friere malerisk overgang, som tidligere.'
+});
+function activePreset(){return $('stratism-preset').value;}
+function updatePresetDescription(){
+ $('stratism-preset-description').textContent=PRESET_HELP[activePreset()]||PRESET_HELP['stratum-no4-v1'];
+}
 const MAX_VARIANTS=3;
 function refreshVariantUI(){
  const gallery=$('stratism-variant-gallery');
@@ -72,6 +82,22 @@ function refreshVariantUI(){
  generate.textContent=count?'Generer nytt forslag ('+(count+1)+' av '+MAX_VARIANTS+')':'Generer forslag 1 (AI)';
  generate.disabled=!state.brief||count>=MAX_VARIANTS||state.busy;
 }
+// Changing the chosen artistic model must not silently send an outdated brief.
+form.addEventListener('change',()=>{
+ if(state.busy)return;
+ updatePresetDescription();
+ if(!state.brief)return;
+ clearVariants();state.brief=null;output.textContent='Modellen eller innstillingene er endret. Lag en ny brief før generering.';
+ $('stratism-download-brief').disabled=true;
+ $('stratism-brief-status').textContent='Innstillinger endret. Lag ny brief før videre generering.';
+ refreshVariantUI();
+});
+$('stratism-preset').addEventListener('change',()=>{
+ if(activePreset()==='stratum-no4-v1')$('stratism-chord').value='cobalt turquoise and teal';
+ else $('stratism-chord').value='muted olive green and warm ochre';
+ updatePresetDescription();
+});
+updatePresetDescription();
 function clearVariants(){
  if(state.busy)return;
  for(const variant of state.variants){URL.revokeObjectURL(variant.url);if(variant.revision)URL.revokeObjectURL(variant.revision.url);}
@@ -115,13 +141,15 @@ function buildBrief(){
  const emphasis=$('stratism-emphasis').value;
  const strength=$('stratism-strength').value;
  const title=clean($('stratism-title').value,100)||'Untitled Stratism';
+ const preset=activePreset();
+ if(!STRATISM_PRESET_IDS.includes(preset))throw Error('Ukjent Stratism-modell.');
  return {
-  schema:'stratism-brief-v1',title,description,reference_note:source||null,reference_metadata:state.reference,
-  style:{name:'Stratism',rules_version:'working-v0.9',sequence:['presence','feeling','memory','erasure','absence'],
+  schema:'stratism-brief-v1',title,description,preset,reference_note:source||null,reference_metadata:state.reference,
+  style:{name:'Stratism',preset,rules_version:preset,sequence:['presence','feeling','memory','erasure','absence'],
    palette:chord,emphasis,colour_strength:strength,signature:'Freddy Bremseth',
    constraints:['one continuous subject','no broad dominant colour stripe','no global embossed texture',
     'no paper-flake simulation','preserve selected meaningful features','visible unpainted linen']},
-  render_instruction:`Create one contemplative fine-art Stratism painting of: ${description}. The subject must remain recognizable, while five states of time unfold from precise presence, through restrained emotion, translucent memory, selective abrasion and finally absence on bare linen. Preserve the subject's defining features. Palette: ${chord}; intensity: ${strength}. Emphasize: ${emphasis}. Avoid repeated digital texture, hard horizontal boundaries and peeled-paper collage. A small discreet cursive signature "Freddy Bremseth" must appear at the bottom right, and no other text.`,
+  render_instruction:`Model: ${preset}. Create one contemplative fine-art Stratism painting of: ${description}. The subject must remain recognizable, while five states of time unfold from precise presence, through restrained emotion, translucent memory, selective abrasion and finally absence on bare linen. Preserve the subject's defining features. Palette: ${chord}; intensity: ${strength}. Emphasize: ${emphasis}. Avoid repeated digital texture, hard horizontal boundaries and peeled-paper collage. A small discreet cursive signature "Freddy Bremseth" must appear at the bottom right, and no other text.`,
   production:{provider:'NOT_CONNECTED',generation_status:'BRIEF_ONLY',commercial_release:false,
    print_release:false,planned_assets:['web','digital-master','print-300ppi-after-proofing'],
    human_approval_required:true}
@@ -166,10 +194,10 @@ $('stratism-generate-private').addEventListener('click',async()=>{
   }
   const response=await stratismRequest({description:state.brief.description,
      chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
-     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation});
+     strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,variation,preset:state.brief.preset});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Generering feilet').slice(0,180));
-  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false)
+  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.preset!==state.brief.preset)
    throw Error('Uventet genereringsstatus. Bildet er ikke vist.');
   // Hold de tre forslagene privat i denne nettlesersesjonen.
   const encoded=data.image_base64;
@@ -214,10 +242,10 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const mode=$('stratism-refinement-kind').value;
   const response=await stratismRequest({description:state.brief.description,chord:state.brief.style.palette,
     emphasis:state.brief.style.emphasis,strength:state.brief.style.colour_strength,
-    variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData});
+    variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData,preset:state.brief.preset});
   const data=await response.json();
   if(!response.ok)throw Error(String(data.error||'Revisjon feilet').slice(0,180));
-  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode)
+  if(data.not_print_approved!==true||data.not_sale_approved!==true||data.stored!==false||data.refinement_applied!==mode||data.preset!==state.brief.preset)
    throw Error('Uventet svar fra revisjonsmotoren.');
   const encoded=data.image_base64;
   if(typeof encoded!=='string'||encoded.length>9_000_000)throw Error('Ugyldig revisjonsbilde.');
@@ -262,7 +290,8 @@ function validArchiveBrief(brief){
  return !!brief&&brief.schema==='stratism-brief-v1'&&
  typeof brief.title==='string'&&brief.title.length<=100&&
  typeof brief.description==='string'&&brief.description.length>=12&&brief.description.length<=2000&&
- !!brief.style&&['muted olive green and warm ochre','restrained ultramarine and slate',
+ (brief.preset===undefined||STRATISM_PRESET_IDS.includes(brief.preset))&&
+ !!brief.style&&['cobalt turquoise and teal','muted olive green and warm ochre','restrained ultramarine and slate',
  'soft amber and oxblood','muted violet and mauve','neutral earth and linen'].includes(brief.style.palette)&&
  ['selected roots and trunk contours','the eyes and a few facial contours',
  'the principal architectural lines',"the main subject's distinctive features"].includes(brief.style.emphasis)&&
@@ -338,9 +367,11 @@ function restorePrivateProject(archive){
   // Only commit restored data after every image and field has been validated.
   for(const old of state.variants){URL.revokeObjectURL(old.url);if(old.revision)URL.revokeObjectURL(old.revision.url)}
   state.variants=restored;state.selectedVariant=archive.selected_variant;
-  state.brief={...archive.brief,reference_metadata:null,
+  state.brief={...archive.brief,preset:archive.brief.preset||'stratism-working-v09',reference_metadata:null,
    production:{provider:'NOT_CONNECTED',generation_status:'BRIEF_ONLY',
     commercial_release:false,print_release:false,human_approval_required:true}};
+  $('stratism-preset').value=state.brief.preset;
+  updatePresetDescription();
   $('stratism-title').value=state.brief.title;
   $('stratism-source').value=state.brief.reference_note||'';
   $('stratism-description').value=state.brief.description;
