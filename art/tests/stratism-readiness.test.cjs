@@ -59,3 +59,21 @@ test('readiness does not depend on a service role',()=>{
  assert.doesNotMatch(api,/SUPABASE_SERVICE_ROLE_KEY/);
  assert.match(api,/STRATISM_SUPABASE_PUBLISHABLE_KEY/);
 });
+
+test('readiness tells admins which private generation prerequisites are missing without exposing secrets',async()=>{
+ const disabled=await harness({enabled:false,configured:false}).request();
+ assert.equal(disabled.code,200);
+ assert.equal(disabled.body.provider_verified,false);
+ assert.deepEqual(Array.from(disabled.body.blockers),['GENERATION_DISABLED','PROVIDER_KEY_MISSING']);
+ const keyOnly=await harness({enabled:false,configured:true}).request();
+ assert.deepEqual(Array.from(keyOnly.body.blockers),['GENERATION_DISABLED']);
+ const enabled=await harness({enabled:true,configured:true}).request();
+ assert.deepEqual(Array.from(enabled.body.blockers),[]);
+ assert.equal(enabled.body.provider_verified,false);
+ assert.equal(JSON.stringify(enabled.body).includes('test'),false);
+});
+test('client never mistakes configured image provider for a successfully tested image',()=>{
+ assert.match(client,/Modelltilgang og kreditter er IKKE bekreftet hos OpenAI/);
+ assert.match(client,/Privat generering er deaktivert i Vercel/);
+ assert.match(client,/OpenAI API-nøkkel mangler i dette miljøet/);
+});
