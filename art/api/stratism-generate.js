@@ -5,6 +5,12 @@ const CHORDS=new Set(['muted olive green and warm ochre','restrained ultramarine
 const EMPHASES=new Set(['selected roots and trunk contours','the eyes and a few facial contours','the principal architectural lines',"the main subject's distinctive features"]);
 const STRENGTHS=new Set(['subtle','very subtle','moderate but subordinate to subject']);
 const MAX_REFERENCE_BYTES=1_350_000;
+const REFINEMENTS=Object.freeze({
+ 'subtler-colour':'Revise the attached existing Stratism painting with notably subtler chroma; preserve subject identity, geometry, all surviving details and composition. Do not introduce a strong colour stripe.',
+ 'preserve-details':'Revise the attached existing Stratism painting to preserve more of the existing meaningful contours and identity, particularly the chosen focal details; maintain all five material states.',
+ 'more-linen':'Revise the attached existing Stratism painting with slightly more visible raw linen and a few subtle graphite traces in the absence area. Preserve the motif and existing composition.',
+ 'remove-texture':'Revise the attached existing Stratism painting to remove repeated scales, embossed uniform texture and paper-flake effects. Replace with physically credible smooth pigment, translucent wash, local abrasion and bare linen. Keep composition unchanged.'
+});
 const VARIATION_DIRECTIVES=Object.freeze({
  1:'First interpretation: prioritize faithful subject identity, calm brushwork, restrained chroma and a strong center of presence.',
  2:'Second interpretation: maintain the subject and five states, but use more irregular, selective memory transitions and preserve a few additional evocative contours.',
@@ -40,11 +46,16 @@ module.exports=async(req,res)=>{
  const token=header.match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
  if(!token)return res.status(401).json({error:'Administrator sign-in required'});
  if(Number(req.headers['content-length']||0)>2_600_000)return res.status(413).json({error:'Request too large'});
- let prompt,reference,variation;try{
+ let prompt,reference,variation,revisionMode;try{
  variation=req.body?.variation===undefined?1:req.body?.variation;
  if(!Number.isInteger(variation)||variation<1||variation>3)throw new Error('INVALID_VARIATION');
- prompt=promptFrom(req.body)+' '+VARIATION_DIRECTIVES[variation];reference=readReference(req.body?.reference_jpeg_base64)}
- catch{return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'})}
+ revisionMode=req.body?.revision_mode;
+ if(revisionMode!==undefined&&(!Object.hasOwn(REFINEMENTS,revisionMode)||req.body?.reference_jpeg_base64!=null))throw new Error('INVALID_REFINEMENT');
+ reference=readReference(revisionMode===undefined?req.body?.reference_jpeg_base64:req.body?.revision_jpeg_base64);
+ if(revisionMode!==undefined&&!reference)throw new Error('MISSING_REVISION_IMAGE');
+ prompt=promptFrom(req.body)+' '+VARIATION_DIRECTIVES[variation];
+ if(revisionMode!==undefined)prompt+=' IMPORTANT: This is an EDIT of the supplied Stratism painting, not a new generation. '+REFINEMENTS[revisionMode];
+ }catch{return res.status(400).json({error:'Invalid Stratism description, variant or reference photo'})}
  const admin=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
  try{
   const {data:user,error:authError}=await admin.auth.getUser(token);
@@ -59,7 +70,7 @@ module.exports=async(req,res)=>{
       const payload=new FormData();
       payload.append('model',model);
       payload.append('image',new Blob([reference],{type:'image/jpeg'}),'reference.jpg');
-      payload.append('prompt',prompt+' Faithfully use the attached reference photograph as the source of subject identity, silhouette and scene structure. Do not replace the subject with a generic alternative.');
+      payload.append('prompt',prompt+' Faithfully preserve the attached image identity, silhouette and scene structure. If this is a revision, do not replace the artwork or rearrange the subject.');
       payload.append('size','1024x1536');
       payload.append('quality','high');
       payload.append('output_format','jpeg');
@@ -79,7 +90,7 @@ module.exports=async(req,res)=>{
   if(!response.ok){console.error('Stratism image provider status',response.status);return res.status(502).json({error:'Image provider declined the request',code:'PROVIDER_'+response.status})}
   const result=await response.json(),b64=result?.data?.[0]?.b64_json;
   if(typeof b64!=='string'||b64.length<100||b64.length>9_000_000)return res.status(502).json({error:'Generated preview missing or too large'});
-  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference,variation});
+  return res.status(200).json({image_base64:b64,mime_type:'image/jpeg',model,not_sale_approved:true,not_print_approved:true,stored:false,published:false,reference_used:!!reference,variation,refinement_applied:revisionMode||null});
  }catch(error){console.error('Stratism generation failed',error?.name||'unknown');return res.status(502).json({error:'Private preview generation unavailable'})}
 };
 module.exports.promptFrom=promptFrom;
