@@ -419,3 +419,21 @@ test('paid generation requires free preflight of identical payload before charge
  assert.match(check,/data\.revision!==\(payload\.revision_mode\|\|null\)/);
  assert.match(check,/data\.sale_approval!==false\|\|data\.print_approval!==false/);
 });
+
+test('paid revision checks exact image and QA checklist via free preflight before charge approval',()=>{
+ const start=js.indexOf("$('stratism-refine-selected').addEventListener");
+ const end=js.indexOf('// A portable, private archive',start);
+ assert.ok(start>0&&end>start);
+ const body=js.slice(start,end);
+ const prepare=body.indexOf('const payload={description:state.brief.description');
+ const preflight=body.indexOf('await verifyFreePreflight(payload)');
+ const charge=body.indexOf("approveImageCharge('Revisjon')");
+ const provider=body.indexOf('await stratismRequest(payload)');
+ assert.ok(prepare>=0&&preflight>prepare&&charge>preflight&&provider>charge);
+ assert.match(body,/revision_jpeg_base64:imageData/);
+ assert.match(body,/\.\.\.\(mode==='qa-guided'\?\{qa_failed:qaFailed\}:\{\}\)/);
+ assert.match(body,/Revisjonen ble avbrutt/);
+ const helper=js.slice(js.indexOf('async function verifyFreePreflight(payload)'),start);
+ assert.match(helper,/payload\.reference_jpeg_base64\|\|payload\.revision_jpeg_base64/);
+ assert.match(helper,/data\.revision!==\(payload\.revision_mode\|\|null\)/);
+});
