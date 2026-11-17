@@ -2,7 +2,46 @@
 const $=id=>document.getElementById(id);
 const form=$('stratism-brief-form');if(!form)return;
 const output=$('stratism-brief-output');
-const state={brief:null};
+const state={brief:null,reference:null,previewUrl:null};
+const CM_PER_INCH=2.54;
+function printCheck(width,height){
+ const short=Math.min(width,height),long=Math.max(width,height);
+ return [{shortCm:30,longCm:40},{shortCm:40,longCm:50},{shortCm:60,longCm:75},{shortCm:80,longCm:100}]
+ .map(size=>({label:size.shortCm+' × '+size.longCm+' cm',
+  requiredShort:Math.ceil(size.shortCm/CM_PER_INCH*300),
+  requiredLong:Math.ceil(size.longCm/CM_PER_INCH*300),
+  pixelPass:short>=Math.ceil(size.shortCm/CM_PER_INCH*300)&&long>=Math.ceil(size.longCm/CM_PER_INCH*300),
+  aspectPass:Math.abs(short/long-size.shortCm/size.longCm)<=0.015}))
+ .map(v=>({...v,passes:v.pixelPass&&v.aspectPass}));
+}
+const referenceInput=$('stratism-reference-file');
+referenceInput.addEventListener('change',async()=>{
+ const file=referenceInput.files?.[0];
+ state.reference=null;
+ if(state.previewUrl){URL.revokeObjectURL(state.previewUrl);state.previewUrl=null;}
+ const preview=$('stratism-reference-preview');
+ preview.hidden=true;preview.removeAttribute('src');
+ $('stratism-reference-status').textContent='Ingen referansefil valgt.';
+ $('stratism-print-capacity').textContent='Oppløsningskontrollen gjelder bare valgt fil.';
+ if(!file)return;
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>50*1024*1024||file.size<100)
+ { $('stratism-reference-status').textContent='Velg JPG, PNG eller WebP mellom 100 byte og 50 MB.';return; }
+ const url=URL.createObjectURL(file);state.previewUrl=url;
+ try{
+  const image=new Image();
+  image.src=url;await image.decode();
+  if(!image.naturalWidth||!image.naturalHeight||image.naturalWidth*image.naturalHeight>160000000)throw Error('Ugyldige eller for store bildedimensjoner.');
+  state.reference={name:file.name.slice(0,120),width:image.naturalWidth,height:image.naturalHeight,bytes:file.size,type:file.type};
+  preview.src=url;preview.hidden=false;
+  $('stratism-reference-status').textContent='Referanse: '+state.reference.width+' × '+state.reference.height+' px · '+(file.size/1048576).toFixed(1)+' MB. Ikke lastet opp.';
+  const checks=printCheck(state.reference.width,state.reference.height);
+  $('stratism-print-capacity').textContent=checks.map(v=>v.label+': '+(v.passes?'pikselkrav oppfylt':'ikke oppfylt')).join(' · ')+'. Dette er bare matematisk oppløsning, ikke printgodkjenning.';
+ }catch(e){
+  state.reference=null;URL.revokeObjectURL(url);state.previewUrl=null;
+  $('stratism-reference-status').textContent='Kunne ikke lese bildet: '+e.message;
+ }
+});
+
 const clean=(value,max=2000)=>String(value||'').trim().slice(0,max);
 function buildBrief(){
  const description=clean($('stratism-description').value);
@@ -13,7 +52,7 @@ function buildBrief(){
  const strength=$('stratism-strength').value;
  const title=clean($('stratism-title').value,100)||'Untitled Stratism';
  return {
-  schema:'stratism-brief-v1',title,description,reference_note:source||null,
+  schema:'stratism-brief-v1',title,description,reference_note:source||null,reference_metadata:state.reference,
   style:{name:'Stratism',rules_version:'working-v0.9',sequence:['presence','feeling','memory','erasure','absence'],
    palette:chord,emphasis,colour_strength:strength,signature:'Freddy Bremseth',
    constraints:['one continuous subject','no broad dominant colour stripe','no global embossed texture',
