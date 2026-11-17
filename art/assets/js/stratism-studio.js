@@ -296,9 +296,21 @@ function refreshVariantUI(){
  updateQualityUI();
 }
 // Changing the chosen artistic model must not silently send an outdated brief.
-form.addEventListener('change',()=>{
+form.addEventListener('change',event=>{
  if(state.busy)return;
  invalidatePreflight();
+ // A previously imported client-photo project intentionally loses old rights confirmation.
+ // Renewing that confirmation is NOT a new artistic brief: keep already-generated private art.
+ if(event.target===$('stratism-reference-rights')){
+  if(state.brief?.provenance){
+   state.brief.provenance.reference_rights_confirmed=$('stratism-reference-rights').checked===true;
+   $('stratism-brief-status').textContent=state.brief.provenance.reference_rights_confirmed?
+    'Bruksrett bekreftet på nytt for dette prosjektet. Eksisterende kunstverk og vurderinger er beholdt.':
+    'Bruksrett er ikke bekreftet. Bekreft den før videre AI-bruk av kundemotiv.';
+  }
+  refreshVariantUI();
+  return;
+ }
  updatePresetDescription();
  if(!state.brief)return;
  clearVariants();state.brief=null;output.textContent='Modellen eller innstillingene er endret. Lag en ny brief før generering.';
