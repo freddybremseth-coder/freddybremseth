@@ -228,3 +228,14 @@ test('generation never requires or uses service-role credentials',()=>{
  assert.match(code,/process\.env\.STRATISM_SUPABASE_PUBLISHABLE_KEY/);
  assert.match(code,/global:\{headers:\{Authorization:'Bearer '\+token\}\}/);
 });
+
+test('provider rate limit and access failures have safe categorical error codes',async()=>{
+ for(const [providerStatus,code] of [[429,'PROVIDER_RATE_LIMIT'],[401,'PROVIDER_AUTH'],[403,'PROVIDER_ACCESS'],[400,'PROVIDER_INVALID_REQUEST'],[503,'PROVIDER_UNAVAILABLE']]){
+  const h=harness({enabled:true,userId:'user-1',member:true,providerStatus});
+  const r=await h.request({token:'valid'});
+  assert.equal(r.code,502);
+  assert.equal(r.payload.code,code);
+  assert.equal(r.payload.image_base64,undefined);
+  assert.equal(h.stats().calls,1);
+ }
+});
