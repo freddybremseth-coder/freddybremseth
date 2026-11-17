@@ -165,3 +165,36 @@ test('authorized personal client photo uses user-supplied place and story, not a
  assert.match(prompt,/Location supplied by creator: Benidorm/);
  assert.match(prompt,/Creator-supplied personal story/);
 });
+
+test('QA-guided edit repairs only approved failed criteria while retaining the original work',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const r=await h.request({token:'valid',body:{...validBody,preset:'stratum-no4-v1',
+  revision_mode:'qa-guided',revision_jpeg_base64:jpeg,qa_failed:['colour','transitions','texture']}});
+ assert.equal(r.code,200);assert.equal(r.payload.refinement_applied,'qa-guided');
+ assert.equal(r.payload.not_print_approved,true);assert.equal(r.payload.not_sale_approved,true);
+ assert.match(h.stats().lastEndpoint,/\/images\/edits$/);
+ const prompt=h.stats().lastOptions.body.get('prompt');
+ assert.match(prompt,/Correct ONLY these creator-identified weaknesses/);
+ assert.match(prompt,/exactly one strong saturated colour chord/);
+ assert.match(prompt,/long vertical drips/);
+ assert.match(prompt,/reptile-scale emboss/);
+ assert.doesNotMatch(prompt,/remove the original subject completely/i);
+});
+test('QA-guided revisions require a known nonempty unique set of failed criteria',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ for(const qa_failed of [[],['unknown'],['texture','texture'],['colour','repaint-people'],Array(7).fill('subject')]){
+  const r=await h.request({token:'valid',body:{...validBody,revision_mode:'qa-guided',
+   revision_jpeg_base64:jpeg,qa_failed}});
+  assert.equal(r.code,400);
+ }
+ assert.equal(h.stats().calls,0);
+});
+test('legacy refinement modes reject QA directives and remain available',async()=>{
+ const h=harness({enabled:true,userId:'user-1',member:true});
+ const denied=await h.request({token:'valid',body:{...validBody,
+  revision_mode:'subtler-colour',revision_jpeg_base64:jpeg,qa_failed:['texture']}});
+ assert.equal(denied.code,400);assert.equal(h.stats().calls,0);
+ const allowed=await h.request({token:'valid',body:{...validBody,
+  revision_mode:'subtler-colour',revision_jpeg_base64:jpeg}});
+ assert.equal(allowed.code,200);assert.equal(allowed.payload.refinement_applied,'subtler-colour');
+});
