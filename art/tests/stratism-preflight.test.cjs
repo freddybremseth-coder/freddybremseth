@@ -60,3 +60,28 @@ test('anonymous and unauthorized callers cannot preflight private content',async
  assert.equal((await harness({member:false}).request()).code,403);
  assert.equal((await harness().request({method:'GET'})).code,405);
 });
+
+test('free preflight returns safe actionable validation codes and makes no paid calls',async()=>{
+ const h=harness();
+ const cases=[
+  [{...validBody,description:'Short'},'DESCRIPTION_REQUIRED'],
+  [{...validBody,preset:'invalid'},'INVALID_PRESET'],
+  [{...validBody,variation:5},'INVALID_VARIATION'],
+  [{...validBody,source_kind:'own-photo'},'PHOTO_REQUIRED'],
+  [{...validBody,source_kind:'client-photo'},'CLIENT_CONSENT_REQUIRED'],
+  [{...validBody,composition_mode:'bad'},'INVALID_SOURCE_OR_COMPOSITION']
+ ];
+ for(const [body,code] of cases){
+  const r=await h.request({body});
+  assert.equal(r.code,400);
+  assert.equal(r.payload.code,code);
+  assert.equal(r.payload.image_base64,undefined);
+ }
+ assert.equal(h.providerCalls(),0);
+});
+test('preflight and billable endpoint use the same allowlisted validation codes',()=>{
+ assert.match(code,/generator\.validationErrorCode\(error\)/);
+ assert.match(generatorCode,/module\.exports\.validationErrorCode=validationErrorCode/);
+ assert.match(generatorCode,/code:validationErrorCode\(error\)/);
+ assert.doesNotMatch(code,/OPENAI_API_KEY|STRATISM_GENERATION_ENABLED|api\.openai\.com/);
+});
