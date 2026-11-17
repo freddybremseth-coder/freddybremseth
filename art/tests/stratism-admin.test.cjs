@@ -128,7 +128,7 @@ test('three art presets are selectable and saved with individual briefs',()=>{
  for(const value of ['stratum-no4-v1','olivos-de-biar-v1','stratism-working-v09'])
   assert.match(html,new RegExp('<option value="'+value+'">'));
  assert.match(html,/id="stratism-preset"/);
- assert.match(js,/preset,reference_note/);
+ assert.match(js,/preset,composition_mode:compositionMode/);
  assert.match(js,/style:\{name:'Stratism',preset/);
  assert.match(js,/preset:state\.brief\.preset/);
  assert.match(js,/state\.brief=\{\.\.\.archive\.brief,preset:archive\.brief\.preset\|\|'stratism-working-v09'/);
