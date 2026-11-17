@@ -137,8 +137,14 @@
       </label>
       <p id="stratism-master-check" role="status" aria-live="polite">Ingen masterfil kontrollert. Filen blir ikke lastet opp, lagret eller godkjent.</p>
       <div class="stratism-web-export">
-       <button id="stratism-export-web" type="button" disabled>Lag lokal webversjon (JPEG, maks 1600 px)</button>
-       <p id="stratism-web-export-status" class="stratism-notice" role="status" aria-live="polite">Velg en JPG-, PNG- eller WebP-fil for å lage en lokal webprøve. TIFF krever separat konvertering.</p>
+       <label for="stratism-web-export-size">Velg fil for nettbruk
+        <select id="stratism-web-export-size">
+         <option value="800">Forhåndsvisning – maks 800 px</option>
+         <option value="1600" selected>Webfil – maks 1600 px</option>
+        </select>
+       </label>
+       <button id="stratism-export-web" type="button" disabled>Lag lokal webfil (JPEG)</button>
+       <p id="stratism-web-export-status" class="stratism-notice" role="status" aria-live="polite">Velg en JPG-, PNG- eller WebP-fil for å lage en lokal nettprøve. TIFF krever separat konvertering. Fargerom og innebygd profil bevares ikke nødvendigvis ved nettlesereksport.</p>
       </div>
      </div>
      <p id="stratism-concept-limit" class="stratism-notice">En JPEG-prøve er ikke en digital salgs-master eller print-master. 300 DPI i metadata gir ikke flere piksler.</p>
