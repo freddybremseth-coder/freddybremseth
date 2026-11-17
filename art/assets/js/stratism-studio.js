@@ -59,6 +59,10 @@ function refreshVariantUI(){
  $('stratism-save-preview').disabled=!selected||state.busy;
  $('stratism-reset-variants').disabled=state.busy;
  $('stratism-export-project').disabled=!state.brief||state.busy;
+ $('stratism-cloud-save').disabled=!state.brief||state.busy;
+ $('stratism-cloud-refresh').disabled=state.busy;
+ $('stratism-cloud-select').disabled=state.busy;
+ $('stratism-cloud-open').disabled=state.busy||!$('stratism-cloud-select').value;
  $('stratism-import-project').disabled=state.busy;
  $('stratism-reference-file').disabled=state.busy;
  for(const input of form.querySelectorAll('input,select,textarea,button'))input.disabled=state.busy;
@@ -272,11 +276,8 @@ function saveDownload(data,name){
  document.body.appendChild(link);link.click();link.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-$('stratism-export-project').addEventListener('click',async()=>{
- if(state.busy||!state.brief)return;
- state.busy=true;refreshVariantUI();
- $('stratism-brief-status').textContent='Pakker privat prosjektfil…';
- try{
+async function serializePrivateProject(){
+ if(!state.brief)throw Error('Opprett en brief før lagring.');
   const variants=[];
   for(const v of state.variants){
    variants.push({variation:v.variation,createdAt:v.createdAt,showRevision:!!v.showRevision,
@@ -290,6 +291,14 @@ $('stratism-export-project').addEventListener('click',async()=>{
    variants,selected_variant:state.selectedVariant,
    approvals:{commercial_release:false,print_release:false}};
   const json=JSON.stringify(archive);
+  return json;
+}
+$('stratism-export-project').addEventListener('click',async()=>{
+ if(state.busy||!state.brief)return;
+ state.busy=true;refreshVariantUI();
+ $('stratism-brief-status').textContent='Pakker privat prosjektfil…';
+ try{
+  const json=await serializePrivateProject();
   if(json.length>MAX_ARCHIVE_BYTES)throw Error('Prosjektet overskrider sikker størrelsesgrense for lokal eksport.');
   const slug=state.brief.title.toLowerCase().normalize('NFKD')
    .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,45)||'kunstverk';
@@ -298,16 +307,9 @@ $('stratism-export-project').addEventListener('click',async()=>{
  }catch(error){$('stratism-brief-status').textContent=error.message}
  finally{state.busy=false;refreshVariantUI()}
 });
-$('stratism-import-project').addEventListener('change',async()=>{
- const input=$('stratism-import-project');
- const file=input.files?.[0];
- input.value='';
- if(!file||state.busy)return;
- state.busy=true;refreshVariantUI();
+function restorePrivateProject(archive){
  let temporaryUrls=[];
  try{
-  if(file.size>MAX_ARCHIVE_BYTES||file.size<20)throw Error('Prosjektfilen er ugyldig eller for stor.');
-  const archive=JSON.parse(await file.text());
   if(archive?.schema!==ARCHIVE_SCHEMA||!validArchiveBrief(archive.brief)||
    !Array.isArray(archive.variants)||archive.variants.length>MAX_VARIANTS||
    archive.approvals?.commercial_release!==false||archive.approvals?.print_release!==false)
@@ -357,7 +359,21 @@ $('stratism-import-project').addEventListener('change',async()=>{
   temporaryUrls=[];
   $('stratism-brief-status').textContent='Privat prosjekt åpnet. Bilder og revisjoner er gjenopprettet; ingen publisering.';
  }catch(error){
-  for(const url of temporaryUrls)URL.revokeObjectURL(url);
+ for(const url of temporaryUrls)URL.revokeObjectURL(url);
+ throw error;
+ }
+}
+$('stratism-import-project').addEventListener('change',async()=>{
+ const input=$('stratism-import-project');
+ const file=input.files?.[0];
+ input.value='';
+ if(!file||state.busy)return;
+ state.busy=true;refreshVariantUI();
+ try{
+  if(file.size>MAX_ARCHIVE_BYTES||file.size<20)throw Error('Prosjektfilen er ugyldig eller for stor.');
+  const archive=JSON.parse(await file.text());
+  restorePrivateProject(archive);
+ }catch(error){
   $('stratism-brief-status').textContent='Import mislyktes: '+error.message;
  }finally{state.busy=false;refreshVariantUI()}
 });
