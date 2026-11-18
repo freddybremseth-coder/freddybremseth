@@ -659,3 +659,28 @@ test('master report fingerprints only the inspected local source and never appro
  assert.match(handler,/Filen overstiger 64 MB/);
  assert.match(handler,/finally\{\n  masterReportBusy=false;refreshMasterReportButton\(\)/);
 });
+
+test('local visual comparison shows selected Stratism work beside inspected master without upload',()=>{
+ new vm.Script(js);
+ for(const id of ['stratism-master-visual-compare','stratism-master-candidate-image',
+  'stratism-master-concept-image','stratism-master-concept-figure','stratism-master-compare-status'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ const begin=js.indexOf('function updateMasterVisualComparison()');
+ const end=js.indexOf('const MAX_LOCAL_HASH_BYTES=',begin);
+ assert.ok(begin>=0&&end>begin);
+ const comparison=js.slice(begin,end);
+ assert.match(comparison,/masterCandidate\.metadataOnly/);
+ assert.match(comparison,/panel\.hidden=!visible/);
+ assert.match(comparison,/selected\.showRevision&&selected\.revision\?selected\.revision\.url:selected\.url/);
+ assert.match(comparison,/conceptFigure\.hidden=!concept/);
+ assert.match(comparison,/Ingen godkjenning er gitt/);
+ assert.doesNotMatch(comparison,/fetch\(|stratismRequest\(|canvas\.toDataURL/);
+ const change=js.slice(js.indexOf("$('stratism-master-file').addEventListener"),
+  js.indexOf("$('stratism-print-target').addEventListener('change',updateMasterCheck)"));
+ assert.match(change,/URL\.revokeObjectURL\(masterVisualUrl\)/);
+ assert.match(change,/URL\.createObjectURL\(masterCandidateFile\)/);
+ assert.match(change,/if\(inspectionId!==masterInspectionId\)return/);
+ assert.match(change,/updateMasterVisualComparison\(\)/);
+ const gallery=js.slice(js.indexOf('function refreshVariantUI()'),js.indexOf('// Changing the chosen artistic model'));
+ assert.match(gallery,/updateMasterVisualComparison\(\)/);
+});
