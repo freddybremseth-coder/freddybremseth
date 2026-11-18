@@ -721,7 +721,7 @@ test('master quality checklist is scoped to current file and comparison, never c
  for(const key of ['subject','sharpness','brush','linen','colour','signature'])
   assert.match(js,new RegExp(key+":'"));
  const init=js.slice(js.indexOf('const MASTER_QA_FIELDS='),js.indexOf('function detailInspectionSettings('));
- assert.match(init,/all_reviewed:Object\.values\(ratings\)\.every\(value=>value!=='pending'\)/);
+ assert.match(init,/all_reviewed:pending===0/);
  assert.match(init,/masterQaRatings=\{\}/);
  assert.match(init,/notes:\$\('stratism-master-qa-notes'\)\.value\.slice\(0,1000\)/);
  const comparison=js.slice(js.indexOf('function updateMasterVisualComparison()'),
@@ -734,11 +734,42 @@ test('master quality checklist is scoped to current file and comparison, never c
  const report=js.slice(js.indexOf('function makeMasterInspectionReport('),
   js.indexOf('function webDerivativeSize('));
  assert.match(report,/manual_visual_review:candidate\.metadataOnly\?null:manualReview/);
- assert.match(report,/candidate\.metadataOnly\?null:readMasterQa\(\)/);
+ assert.match(report,/candidate\.metadataOnly\|\|!masterQaContext\?null:readMasterQa\(\)/);
  assert.match(report,/approvals:\{digital_sale:false,print:false,commercial_release:false\}/);
  assert.doesNotMatch(init+comparison,/fetch\(|stratismRequest\(/);
  const fig=html.slice(html.indexOf('id="stratism-master-compare-title"'),
   html.indexOf('id="stratism-master-compare-status"'));
  for(const id of ['stratism-master-concept-image','stratism-master-candidate-image'])
   assert.match(fig,new RegExp('<div class="stratism-master-detail-viewport"><img id="'+id+'"[^>]*></div>'));
+});
+
+test('manual master QA distinguishes pending, rework and completed human review without approving a product',()=>{
+ const start=js.indexOf('const MASTER_QA_FIELDS=');
+ const end=js.indexOf('function createMasterQaFields()',start);
+ const body=js.slice(start,end);
+ const fakeNotes={value:'Se på oliventreets linstruktur'};
+ const fn=vm.runInNewContext('const $=id=>({value:"Se på oliventreets linstruktur"});'+body+
+  ';({readMasterQa,setRating:(k,v)=>masterQaRatings[k]=v})');
+ const first=fn.readMasterQa();
+ assert.equal(first.all_reviewed,false);
+ assert.equal(first.review_outcome,'INCOMPLETE');
+ assert.equal(first.print_approved,false);
+ assert.equal(first.sale_approved,false);
+ for(const k of ['subject','sharpness','brush','linen','colour','signature'])fn.setRating(k,'pass');
+ assert.equal(fn.readMasterQa().review_outcome,'ALL_ITEMS_MARKED_PASS');
+ assert.equal(fn.readMasterQa().all_reviewed,true);
+ fn.setRating('linen','revise');
+ assert.equal(fn.readMasterQa().needs_revision,true);
+ assert.equal(fn.readMasterQa().review_outcome,'REQUIRES_CHANGES');
+ fn.setRating('signature','pending');
+ assert.equal(fn.readMasterQa().review_outcome,'INCOMPLETE');
+ fn.setRating('colour','invalid');
+ assert.throws(()=>fn.readMasterQa(),/Ugyldig manuell vurdering/);
+ const comparison=js.slice(js.indexOf('function updateMasterVisualComparison()'),js.indexOf('const MAX_LOCAL_HASH_BYTES='));
+ assert.match(comparison,/select\.disabled=!visible\|\|!concept/);
+ assert.match(comparison,/stratism-master-qa-notes'\)\.disabled=!visible\|\|!concept/);
+ const report=js.slice(js.indexOf('function makeMasterInspectionReport('),js.indexOf('function webDerivativeSize('));
+ assert.match(report,/manual_review_status:!manualReview\?'NOT_PERFORMED':manualReview\.review_outcome/);
+ assert.match(report,/candidate\.metadataOnly\|\|!masterQaContext\?null:readMasterQa\(\)/);
+ assert.match(report,/approvals:\{digital_sale:false,print:false,commercial_release:false\}/);
 });
