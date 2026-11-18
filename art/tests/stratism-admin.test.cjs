@@ -626,3 +626,36 @@ test('master handoff report is technical only and never grants digital sale or p
  assert.match(handler,/JSON\.stringify\(report,null,2\)/);
  assert.doesNotMatch(handler,/fetch\(|stratismRequest\(|approved:true/);
 });
+
+test('master report fingerprints only the inspected local source and never approves it',async()=>{
+ new vm.Script(js);
+ assert.match(html,/For filer opptil 64 MB beregnes en lokal SHA-256-kontrollsum/);
+ const beginning=js.indexOf('async function hashLocalMasterFile(file)');
+ const end=js.indexOf('function makeMasterInspectionReport(',beginning);
+ assert.ok(beginning>0&&end>beginning);
+ const hashSrc=js.slice(beginning,end);
+ assert.match(hashSrc,/file\.size>MAX_LOCAL_HASH_BYTES/);
+ assert.match(hashSrc,/crypto\.subtle\.digest\('SHA-256',bytes\)/);
+ assert.doesNotMatch(hashSrc,/fetch\(|stratismRequest\(/);
+ const makeStart=js.indexOf('function makeMasterInspectionReport(');
+ const makeEnd=js.indexOf("$('stratism-export-master-report').addEventListener",makeStart);
+ const prep=js.slice(js.indexOf('const STRATISM_PRINT_TARGETS='),js.indexOf('function updatePrintPlan('));
+ const screen=js.slice(js.indexOf('function screenMasterDimensions('),js.indexOf('let masterCandidate='));
+ const make=vm.runInNewContext('const CM_PER_INCH=2.54;'+prep+screen+
+  js.slice(makeStart,makeEnd)+';makeMasterInspectionReport');
+ const sample={name:'Olive.tif',width:9449,height:11812,metadataOnly:true};
+ const sum='a'.repeat(64);
+ const report=make(sample,'80x100','2026-11-18T00:00:00.000Z',sum);
+ assert.equal(report.source.sha256,sum);
+ assert.equal(report.source.checksum_status,'SHA256_COMPUTED');
+ assert.equal(report.approvals.print,false);
+ assert.equal(report.approvals.digital_sale,false);
+ const missing=make(sample,'80x100','2026-11-18T00:00:00.000Z',null);
+ assert.equal(missing.source.sha256,null);
+ assert.equal(missing.source.checksum_status,'NOT_COMPUTED');
+ const handler=js.slice(makeEnd,js.indexOf('function webDerivativeSize(',makeEnd));
+ assert.match(handler,/inspectionId!==masterInspectionId\|\|candidate!==masterCandidate/);
+ assert.match(handler,/const sha256=await hashLocalMasterFile\(file\)/);
+ assert.match(handler,/Filen overstiger 64 MB/);
+ assert.match(handler,/finally\{\n  masterReportBusy=false;refreshMasterReportButton\(\)/);
+});
