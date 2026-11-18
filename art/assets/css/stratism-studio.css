@@ -28,3 +28,11 @@
 .stratism-panel .stratism-print-plan{margin:12px 0;padding:12px;border:1px solid #8c8c8c55;border-radius:8px}
 .stratism-panel .stratism-print-plan label{margin:0 0 8px}
 .stratism-panel .stratism-print-plan p{margin:8px 0 0;text-align:left;line-height:1.55}
+
+.stratism-panel .stratism-master-visual-compare{margin:14px 0;padding:14px;border:1px solid #8c8c8c55;border-radius:10px}
+.stratism-panel .stratism-master-visual-compare h4{margin:0 0 12px}
+.stratism-panel .stratism-master-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.stratism-panel .stratism-master-compare-grid figure{min-width:0;margin:0}
+.stratism-panel .stratism-master-compare-grid img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#e9e3d9;border-radius:6px}
+.stratism-panel .stratism-master-compare-grid figcaption{padding:8px 0;font-size:.88rem;line-height:1.5}
+@media(max-width:640px){.stratism-panel .stratism-master-compare-grid{grid-template-columns:1fr}.stratism-panel .stratism-master-compare-grid img{max-height:420px}}
