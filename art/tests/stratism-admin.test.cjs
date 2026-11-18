@@ -684,3 +684,32 @@ test('local visual comparison shows selected Stratism work beside inspected mast
  const gallery=js.slice(js.indexOf('function refreshVariantUI()'),js.indexOf('// Changing the chosen artistic model'));
  assert.match(gallery,/updateMasterVisualComparison\(\)/);
 });
+
+test('synchronized master detail zoom and focus are local, bounded, resettable and accessible',()=>{
+ new vm.Script(js);
+ for(const id of ['stratism-detail-zoom','stratism-detail-x','stratism-detail-y',
+  'stratism-detail-reset','stratism-detail-zoom-value','stratism-detail-x-value',
+  'stratism-detail-y-value'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(html,/samme relative utsnitt/i);
+ const start=js.indexOf('function detailInspectionSettings(zoom,x,y)');
+ const end=js.indexOf('function updateMasterVisualComparison()',start);
+ assert.ok(start>0&&end>start);
+ const section=js.slice(start,end);
+ const fn=vm.runInNewContext(section.slice(0,section.indexOf('function updateMasterDetailInspection()'))+
+  ';detailInspectionSettings');
+ const values=fn('3.5','25','80');
+ assert.deepEqual([values.scale,values.horizontal,values.vertical],[3.5,25,80]);
+ for(const args of [['0','50','50'],['4.5','50','50'],
+  ['2','-1','50'],['2','50','101'],['NaN','50','50'],['2','12.5','50']])
+  assert.throws(()=>fn(...args),/Ugyldige innstillinger/);
+ assert.match(section,/img\.style\.transform='scale\('/);
+ assert.match(section,/img\.style\.transformOrigin=settings\.horizontal/);
+ assert.match(section,/stratism-detail-reset/);
+ assert.match(section,/\$\('stratism-detail-zoom'\)\.value='1'/);
+ assert.match(section,/\$\('stratism-detail-x'\)\.value='50'/);
+ assert.match(section,/\$\('stratism-detail-y'\)\.value='50'/);
+ assert.doesNotMatch(section,/fetch\(|stratismRequest\(|URL\.createObjectURL/);
+ const comparison=js.slice(end,js.indexOf('const MAX_LOCAL_HASH_BYTES=',end));
+ assert.match(comparison,/updateMasterDetailInspection\(\)/);
+});
