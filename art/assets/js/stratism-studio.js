@@ -517,7 +517,7 @@ async function hashLocalMasterFile(file){
  const digest=await crypto.subtle.digest('SHA-256',bytes);
  return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
 }
-function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null){
+function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null,manualReview=null){
  if(!candidate||!Number.isInteger(candidate.width)||!Number.isInteger(candidate.height))
   throw Error('Ingen gyldig filkontroll tilgjengelig.');
  const plan=calculateConceptPrintPlan(target);
@@ -534,7 +534,7 @@ function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null){
   target:{width_cm:plan.shortCm,height_cm:plan.longCm,ppi:300,
    min_width_px:plan.requiredWidth,min_height_px:plan.requiredHeight},
   technical_checks:{pixel_count_sufficient:screen.pixelPass,aspect_ratio_compatible:screen.ratioMatches},
-  manual_visual_review:candidate.metadataOnly?null:readMasterQa(),
+  manual_visual_review:candidate.metadataOnly?null:manualReview,
   outstanding_checks:{artistic_review:false,source_rights_verified:false,
    colour_profile_verified:false,sharpness_verified:false,print_proof_verified:false},
   status:'TECHNICAL_SCREENING_ONLY',
@@ -554,7 +554,8 @@ $('stratism-export-master-report').addEventListener('click',async()=>{
   // Never attach a digest to the wrong file if the selection changed during hashing.
   if(inspectionId!==masterInspectionId||candidate!==masterCandidate)return;
   const report=makeMasterInspectionReport(candidate,
-   $('stratism-print-target').value,new Date().toISOString(),sha256);
+   $('stratism-print-target').value,new Date().toISOString(),sha256,
+   candidate.metadataOnly?null:readMasterQa());
   const json=JSON.stringify(report,null,2);
   const stem=masterCandidate.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60)||'kunstverk';
   const blob=new Blob([json],{type:'application/json'});
