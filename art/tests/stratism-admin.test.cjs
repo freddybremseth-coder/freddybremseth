@@ -598,7 +598,7 @@ test('master handoff report is technical only and never grants digital sale or p
  new vm.Script(js);
  assert.match(html,/id="stratism-export-master-report"/);
  assert.match(html,/id="stratism-master-report-status"/);
- const start=js.indexOf('function makeMasterInspectionReport(candidate,target,checkedAt)');
+ const start=js.indexOf('function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null)');
  const end=js.indexOf('function webDerivativeSize(',start);
  assert.ok(start>0&&end>start);
  const pure=js.slice(start,js.indexOf("$('stratism-export-master-report').addEventListener",start));
