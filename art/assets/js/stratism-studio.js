@@ -348,6 +348,49 @@ function screenMasterDimensions(width,height,target){
  return {pixelPass,ratioMatches,approved:false,requiredShort,requiredLong};
 }
 let masterCandidate=null,masterCandidateFile=null,masterInspectionId=0,webExportBusy=false,masterReportBusy=false,masterVisualUrl=null;
+const MASTER_QA_FIELDS=Object.freeze({
+ subject:'Motiv og komposisjon',sharpness:'Skarphet og fine detaljer',
+ brush:'Penselstrøk og naturlig overflate',linen:'Rå lin og teksturoverganger',
+ colour:'Farger og lysbalanse',signature:'Signatur og beskjæring'
+});
+const MASTER_QA_VALUES=['pending','pass','revise'];
+let masterQaRatings={},masterQaContext=null;
+function resetMasterQa(){
+ masterQaRatings={};$('stratism-master-qa-notes').value='';
+ updateMasterQaSummary();
+}
+function readMasterQa(){
+ const ratings={};
+ for(const key of Object.keys(MASTER_QA_FIELDS)){
+  const value=masterQaRatings[key]||'pending';
+  if(!MASTER_QA_VALUES.includes(value))throw Error('Ugyldig manuell vurdering.');
+  ratings[key]=value;
+ }
+ return {ratings,notes:$('stratism-master-qa-notes').value.slice(0,1000),
+  all_reviewed:Object.values(ratings).every(value=>value!=='pending')};
+}
+function updateMasterQaSummary(){
+ const {ratings}=readMasterQa();
+ const values=Object.values(ratings),passed=values.filter(v=>v==='pass').length,
+  revise=values.filter(v=>v==='revise').length,pending=values.filter(v=>v==='pending').length;
+ $('stratism-master-qa-summary').textContent='Manuell vurdering: '+passed+' OK, '+revise+
+  ' må forbedres, '+pending+' ikke vurdert. Ingen salgs- eller printgodkjenning.';
+}
+function createMasterQaFields(){
+ const container=$('stratism-master-qa-fields');
+ for(const [key,heading] of Object.entries(MASTER_QA_FIELDS)){
+  const label=document.createElement('label');label.textContent=heading;
+  const select=document.createElement('select');select.dataset.masterQa=key;
+  for(const [value,text] of [['pending','Ikke vurdert'],['pass','Ser bra ut'],['revise','Må forbedres']]){
+   const option=document.createElement('option');option.value=value;option.textContent=text;select.appendChild(option);
+  }
+  select.addEventListener('change',()=>{masterQaRatings[key]=select.value;updateMasterQaSummary()});
+  label.appendChild(select);container.appendChild(label);
+ }
+ $('stratism-master-qa-notes').addEventListener('input',updateMasterQaSummary);
+ updateMasterQaSummary();
+}
+createMasterQaFields();
 function detailInspectionSettings(zoom,x,y){
  const scale=Number(zoom),horizontal=Number(x),vertical=Number(y);
  if(!Number.isFinite(scale)||scale<1||scale>4||
@@ -382,6 +425,12 @@ function updateMasterVisualComparison(){
  const conceptImage=$('stratism-master-concept-image');
  const conceptFigure=$('stratism-master-concept-figure');
  const visible=!!masterCandidate&&!!masterVisualUrl&&!masterCandidate.metadataOnly;
+ const selected=state.variants[state.selectedVariant];
+ const concept=selected?(selected.showRevision&&selected.revision?selected.revision.url:selected.url):null;
+ if(visible){
+  if(masterQaContext!==concept){masterQaContext=concept;resetMasterQa();
+   for(const select of $('stratism-master-qa-fields').querySelectorAll('select'))select.value='pending';}
+ }else if(masterQaContext!==null){masterQaContext=null;resetMasterQa();}
  panel.hidden=!visible;
  updateMasterDetailInspection();
  if(!visible){
@@ -389,8 +438,6 @@ function updateMasterVisualComparison(){
   return;
  }
  candidateImage.src=masterVisualUrl;
- const selected=state.variants[state.selectedVariant];
- const concept=selected?(selected.showRevision&&selected.revision?selected.revision.url:selected.url):null;
  conceptFigure.hidden=!concept;
  if(concept)conceptImage.src=concept;
  else conceptImage.removeAttribute('src');
@@ -438,6 +485,8 @@ $('stratism-master-file').addEventListener('change',async()=>{
  const input=$('stratism-master-file'),file=input.files?.[0];
  const inspectionId=++masterInspectionId;
  masterCandidate=null;masterCandidateFile=null;
+ masterQaContext=null;resetMasterQa();
+ for(const select of $('stratism-master-qa-fields').querySelectorAll('select'))select.value='pending';
  if(masterVisualUrl){URL.revokeObjectURL(masterVisualUrl);masterVisualUrl=null;}
  updateMasterVisualComparison();
  refreshWebExportButton();refreshMasterReportButton();
@@ -485,6 +534,7 @@ function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null){
   target:{width_cm:plan.shortCm,height_cm:plan.longCm,ppi:300,
    min_width_px:plan.requiredWidth,min_height_px:plan.requiredHeight},
   technical_checks:{pixel_count_sufficient:screen.pixelPass,aspect_ratio_compatible:screen.ratioMatches},
+  manual_visual_review:candidate.metadataOnly?null:readMasterQa(),
   outstanding_checks:{artistic_review:false,source_rights_verified:false,
    colour_profile_verified:false,sharpness_verified:false,print_proof_verified:false},
   status:'TECHNICAL_SCREENING_ONLY',
