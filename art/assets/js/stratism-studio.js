@@ -347,9 +347,10 @@ function screenMasterDimensions(width,height,target){
  const ratioMatches=Math.abs(short/long-plan.shortCm/plan.longCm)<=0.015;
  return {pixelPass,ratioMatches,approved:false,requiredShort,requiredLong};
 }
-let masterCandidate=null,masterCandidateFile=null,masterInspectionId=0,webExportBusy=false;
+let masterCandidate=null,masterCandidateFile=null,masterInspectionId=0,webExportBusy=false,masterReportBusy=false;
+const MAX_LOCAL_HASH_BYTES=64*1024*1024;
 function refreshMasterReportButton(){
- $('stratism-export-master-report').disabled=!masterCandidate;
+ $('stratism-export-master-report').disabled=masterReportBusy||!masterCandidate;
 }
 function refreshWebExportButton(){
  $('stratism-export-web').disabled=webExportBusy||!masterCandidate||!masterCandidateFile||masterCandidate.metadataOnly;
@@ -405,7 +406,14 @@ $('stratism-master-file').addEventListener('change',async()=>{
  }
 });
 $('stratism-print-target').addEventListener('change',updateMasterCheck);
-function makeMasterInspectionReport(candidate,target,checkedAt){
+async function hashLocalMasterFile(file){
+ if(!file||file.size>MAX_LOCAL_HASH_BYTES)return null;
+ if(!globalThis.crypto?.subtle?.digest)throw Error('Nettleseren støtter ikke sikker SHA-256-kontroll.');
+ const bytes=await file.arrayBuffer();
+ const digest=await crypto.subtle.digest('SHA-256',bytes);
+ return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+}
+function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null){
  if(!candidate||!Number.isInteger(candidate.width)||!Number.isInteger(candidate.height))
   throw Error('Ingen gyldig filkontroll tilgjengelig.');
  const plan=calculateConceptPrintPlan(target);
@@ -416,7 +424,9 @@ function makeMasterInspectionReport(candidate,target,checkedAt){
    bytes:candidate.bytes??null,mime:candidate.mime??'unknown',
    last_modified_ms:candidate.lastModified??null,
    inspection_method:candidate.metadataOnly?'tiff-first-ifd-metadata':'browser-image-decoder',
-   image_content_verified:!candidate.metadataOnly},
+   image_content_verified:!candidate.metadataOnly,
+   sha256:sha256||null,
+   checksum_status:sha256?'SHA256_COMPUTED':'NOT_COMPUTED'},
   target:{width_cm:plan.shortCm,height_cm:plan.longCm,ppi:300,
    min_width_px:plan.requiredWidth,min_height_px:plan.requiredHeight},
   technical_checks:{pixel_count_sufficient:screen.pixelPass,aspect_ratio_compatible:screen.ratioMatches},
@@ -427,11 +437,19 @@ function makeMasterInspectionReport(candidate,target,checkedAt){
   disclaimer:'Dette er en lokal kontrollrapport, ikke sertifikat, oppløsningsoppgradering eller salgsgodkjenning.'
  };
 }
-$('stratism-export-master-report').addEventListener('click',()=>{
- if(!masterCandidate)return;
+$('stratism-export-master-report').addEventListener('click',async()=>{
+ if(!masterCandidate||masterReportBusy)return;
+ const candidate=masterCandidate,inspectionId=masterInspectionId;
+ const file=$('stratism-master-file').files?.[0];
+ if(!file)return;
+ masterReportBusy=true;refreshMasterReportButton();
+ $('stratism-master-report-status').textContent='Beregner lokal kontrollsum og klargjør teknisk rapport…';
  try{
-  const report=makeMasterInspectionReport(masterCandidate,
-   $('stratism-print-target').value,new Date().toISOString());
+  const sha256=await hashLocalMasterFile(file);
+  // Never attach a digest to the wrong file if the selection changed during hashing.
+  if(inspectionId!==masterInspectionId||candidate!==masterCandidate)return;
+  const report=makeMasterInspectionReport(candidate,
+   $('stratism-print-target').value,new Date().toISOString(),sha256);
   const json=JSON.stringify(report,null,2);
   const stem=masterCandidate.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60)||'kunstverk';
   const blob=new Blob([json],{type:'application/json'});
@@ -441,9 +459,14 @@ $('stratism-export-master-report').addEventListener('click',()=>{
    a.href=url;a.download=stem+'-technical-check-not-approved.json';
    document.body.appendChild(a);a.click();a.remove();
   }finally{setTimeout(()=>URL.revokeObjectURL(url),1000)}
-  $('stratism-master-report-status').textContent='Teknisk kontrollrapport lastet ned lokalt. Ingen godkjenning er gitt.';
+  $('stratism-master-report-status').textContent='Teknisk rapport lastet ned lokalt. '+
+   (sha256?'SHA-256-kontrollsum er inkludert.':'Filen overstiger 64 MB: rapporten har ingen SHA-256-kontrollsum.')+
+   ' Ingen godkjenning er gitt.';
  }catch(error){
-  $('stratism-master-report-status').textContent='Kunne ikke lage rapport: '+error.message;
+  if(inspectionId===masterInspectionId)
+   $('stratism-master-report-status').textContent='Kunne ikke lage rapport: '+error.message;
+ }finally{
+  masterReportBusy=false;refreshMasterReportButton();
  }
 });
 $('stratism-print-target').addEventListener('change',()=>{
