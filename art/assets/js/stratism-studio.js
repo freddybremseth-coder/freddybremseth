@@ -348,6 +348,34 @@ function screenMasterDimensions(width,height,target){
  return {pixelPass,ratioMatches,approved:false,requiredShort,requiredLong};
 }
 let masterCandidate=null,masterCandidateFile=null,masterInspectionId=0,webExportBusy=false,masterReportBusy=false,masterVisualUrl=null;
+function detailInspectionSettings(zoom,x,y){
+ const scale=Number(zoom),horizontal=Number(x),vertical=Number(y);
+ if(!Number.isFinite(scale)||scale<1||scale>4||
+  !Number.isInteger(horizontal)||horizontal<0||horizontal>100||
+  !Number.isInteger(vertical)||vertical<0||vertical>100)
+  throw Error('Ugyldige innstillinger for detaljvisning.');
+ return {scale,horizontal,vertical};
+}
+function updateMasterDetailInspection(){
+ const settings=detailInspectionSettings($('stratism-detail-zoom').value,
+  $('stratism-detail-x').value,$('stratism-detail-y').value);
+ $('stratism-detail-zoom-value').textContent=settings.scale.toLocaleString('no-NO')+'×';
+ $('stratism-detail-x-value').textContent=settings.horizontal+' %';
+ $('stratism-detail-y-value').textContent=settings.vertical+' %';
+ for(const id of ['stratism-master-concept-image','stratism-master-candidate-image']){
+  const img=$(id);
+  img.style.transform='scale('+settings.scale+')';
+  img.style.transformOrigin=settings.horizontal+'% '+settings.vertical+'%';
+ }
+}
+for(const id of ['stratism-detail-zoom','stratism-detail-x','stratism-detail-y'])
+ $(id).addEventListener('input',updateMasterDetailInspection);
+$('stratism-detail-reset').addEventListener('click',()=>{
+ $('stratism-detail-zoom').value='1';
+ $('stratism-detail-x').value='50';
+ $('stratism-detail-y').value='50';
+ updateMasterDetailInspection();
+});
 function updateMasterVisualComparison(){
  const panel=$('stratism-master-visual-compare');
  const candidateImage=$('stratism-master-candidate-image');
@@ -355,6 +383,7 @@ function updateMasterVisualComparison(){
  const conceptFigure=$('stratism-master-concept-figure');
  const visible=!!masterCandidate&&!!masterVisualUrl&&!masterCandidate.metadataOnly;
  panel.hidden=!visible;
+ updateMasterDetailInspection();
  if(!visible){
   candidateImage.removeAttribute('src');conceptImage.removeAttribute('src');conceptFigure.hidden=true;
   return;
