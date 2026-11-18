@@ -347,7 +347,29 @@ function screenMasterDimensions(width,height,target){
  const ratioMatches=Math.abs(short/long-plan.shortCm/plan.longCm)<=0.015;
  return {pixelPass,ratioMatches,approved:false,requiredShort,requiredLong};
 }
-let masterCandidate=null,masterCandidateFile=null,masterInspectionId=0,webExportBusy=false,masterReportBusy=false;
+let masterCandidate=null,masterCandidateFile=null,masterInspectionId=0,webExportBusy=false,masterReportBusy=false,masterVisualUrl=null;
+function updateMasterVisualComparison(){
+ const panel=$('stratism-master-visual-compare');
+ const candidateImage=$('stratism-master-candidate-image');
+ const conceptImage=$('stratism-master-concept-image');
+ const conceptFigure=$('stratism-master-concept-figure');
+ const visible=!!masterCandidate&&!!masterVisualUrl&&!masterCandidate.metadataOnly;
+ panel.hidden=!visible;
+ if(!visible){
+  candidateImage.removeAttribute('src');conceptImage.removeAttribute('src');conceptFigure.hidden=true;
+  return;
+ }
+ candidateImage.src=masterVisualUrl;
+ const selected=state.variants[state.selectedVariant];
+ const concept=selected?(selected.showRevision&&selected.revision?selected.revision.url:selected.url):null;
+ conceptFigure.hidden=!concept;
+ if(concept)conceptImage.src=concept;
+ else conceptImage.removeAttribute('src');
+ $('stratism-master-compare-status').textContent=concept?
+  'Sammenlign de to visningene manuelt: motiv, linstruktur, penselstrøk, signatur, farger og beskjæring. Dette er ikke en pikselnøyaktig, fargekalibrert eller automatisk kvalitetskontroll. Ingen godkjenning er gitt.':
+  'Masterkandidaten vises lokalt. Velg et Stratism-konsept for side-ved-side-sammenligning. Ingen godkjenning er gitt.';
+}
+
 const MAX_LOCAL_HASH_BYTES=64*1024*1024;
 function refreshMasterReportButton(){
  $('stratism-export-master-report').disabled=masterReportBusy||!masterCandidate;
@@ -387,6 +409,8 @@ $('stratism-master-file').addEventListener('change',async()=>{
  const input=$('stratism-master-file'),file=input.files?.[0];
  const inspectionId=++masterInspectionId;
  masterCandidate=null;masterCandidateFile=null;
+ if(masterVisualUrl){URL.revokeObjectURL(masterVisualUrl);masterVisualUrl=null;}
+ updateMasterVisualComparison();
  refreshWebExportButton();refreshMasterReportButton();
  $('stratism-master-report-status').textContent='Ingen kontrollrapport laget for gjeldende fil.';
  $('stratism-web-export-status').textContent='Ingen webfil laget. Originalen er uendret.';
@@ -397,6 +421,8 @@ $('stratism-master-file').addEventListener('change',async()=>{
   if(inspectionId!==masterInspectionId)return;
   masterCandidate={...inspected,bytes:file.size,mime:file.type||'unknown',lastModified:file.lastModified||null};
   masterCandidateFile=inspected.metadataOnly?null:file;
+  if(masterCandidateFile)masterVisualUrl=URL.createObjectURL(masterCandidateFile);
+  updateMasterVisualComparison();
   refreshWebExportButton();refreshMasterReportButton();
   updateMasterCheck();
  }catch(error){
@@ -554,6 +580,7 @@ function refreshVariantUI(){
  });
  $('stratism-result').hidden=count===0;
  const selected=state.variants[state.selectedVariant];
+ updateMasterVisualComparison();
  updatePrintPlan(selected);
  updateConceptFileStatus(selected);
  updateRevisionComparison(selected);
