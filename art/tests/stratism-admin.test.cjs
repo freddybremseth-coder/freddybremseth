@@ -598,7 +598,7 @@ test('master handoff report is technical only and never grants digital sale or p
  new vm.Script(js);
  assert.match(html,/id="stratism-export-master-report"/);
  assert.match(html,/id="stratism-master-report-status"/);
- const start=js.indexOf('function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null)');
+ const start=js.indexOf('function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null,manualReview=null)');
  const end=js.indexOf('function webDerivativeSize(',start);
  assert.ok(start>0&&end>start);
  const pure=js.slice(start,js.indexOf("$('stratism-export-master-report').addEventListener",start));
@@ -712,4 +712,33 @@ test('synchronized master detail zoom and focus are local, bounded, resettable a
  assert.doesNotMatch(section,/fetch\(|stratismRequest\(|URL\.createObjectURL/);
  const comparison=js.slice(end,js.indexOf('const MAX_LOCAL_HASH_BYTES=',end));
  assert.match(comparison,/updateMasterDetailInspection\(\)/);
+});
+
+test('master quality checklist is scoped to current file and comparison, never commercial approval',()=>{
+ new vm.Script(js);
+ for(const id of ['stratism-master-qa','stratism-master-qa-fields','stratism-master-qa-notes',
+  'stratism-master-qa-summary'])assert.match(html,new RegExp('id="'+id+'"'));
+ for(const key of ['subject','sharpness','brush','linen','colour','signature'])
+  assert.match(js,new RegExp(key+":'"));
+ const init=js.slice(js.indexOf('const MASTER_QA_FIELDS='),js.indexOf('function detailInspectionSettings('));
+ assert.match(init,/all_reviewed:Object\.values\(ratings\)\.every\(value=>value!=='pending'\)/);
+ assert.match(init,/masterQaRatings=\{\}/);
+ assert.match(init,/notes:\$\('stratism-master-qa-notes'\)\.value\.slice\(0,1000\)/);
+ const comparison=js.slice(js.indexOf('function updateMasterVisualComparison()'),
+  js.indexOf('const MAX_LOCAL_HASH_BYTES='));
+ assert.match(comparison,/masterQaContext!==concept/);
+ assert.match(comparison,/resetMasterQa\(\)/);
+ const fileChange=js.slice(js.indexOf("$('stratism-master-file').addEventListener"),
+  js.indexOf("$('stratism-print-target').addEventListener('change',updateMasterCheck)"));
+ assert.match(fileChange,/masterQaContext=null;resetMasterQa\(\)/);
+ const report=js.slice(js.indexOf('function makeMasterInspectionReport('),
+  js.indexOf('function webDerivativeSize('));
+ assert.match(report,/manual_visual_review:candidate\.metadataOnly\?null:manualReview/);
+ assert.match(report,/candidate\.metadataOnly\?null:readMasterQa\(\)/);
+ assert.match(report,/approvals:\{digital_sale:false,print:false,commercial_release:false\}/);
+ assert.doesNotMatch(init+comparison,/fetch\(|stratismRequest\(/);
+ const fig=html.slice(html.indexOf('id="stratism-master-compare-title"'),
+  html.indexOf('id="stratism-master-compare-status"'));
+ for(const id of ['stratism-master-concept-image','stratism-master-candidate-image'])
+  assert.match(fig,new RegExp('<div class="stratism-master-detail-viewport"><img id="'+id+'"[^>]*></div>'));
 });
