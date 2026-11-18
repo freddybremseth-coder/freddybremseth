@@ -36,3 +36,14 @@
 .stratism-panel .stratism-master-compare-grid img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#e9e3d9;border-radius:6px}
 .stratism-panel .stratism-master-compare-grid figcaption{padding:8px 0;font-size:.88rem;line-height:1.5}
 @media(max-width:640px){.stratism-panel .stratism-master-compare-grid{grid-template-columns:1fr}.stratism-panel .stratism-master-compare-grid img{max-height:420px}}
+
+.stratism-panel .stratism-master-detail-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:12px;align-items:end;margin:12px 0}
+.stratism-panel .stratism-master-detail-controls label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.stratism-panel .stratism-master-detail-controls input[type=range]{width:100%;min-width:0}
+.stratism-panel .stratism-master-detail-controls output{font-weight:600}
+.stratism-panel .stratism-master-detail-controls button{min-height:38px}
+.stratism-panel .stratism-master-detail-viewport{width:100%;aspect-ratio:4/5;overflow:hidden;background:#e9e3d9;border-radius:6px}
+.stratism-panel .stratism-master-detail-viewport img{width:100%;height:100%;max-height:none;object-fit:contain;transform:scale(1);transform-origin:50% 50%;transition:transform .15s ease-out}
+@media(max-width:800px){.stratism-panel .stratism-master-detail-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.stratism-panel .stratism-master-detail-controls{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.stratism-panel .stratism-master-detail-viewport img{transition:none}}
