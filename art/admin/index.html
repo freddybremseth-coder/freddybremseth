@@ -136,6 +136,20 @@
        <input id="stratism-master-file" type="file" accept="image/jpeg,image/png,image/webp,image/tiff,.tif,.tiff">
       </label>
       <p id="stratism-master-check" role="status" aria-live="polite">Ingen masterfil kontrollert. Filen blir ikke lastet opp, lagret eller godkjent.</p>
+      <section id="stratism-master-visual-compare" class="stratism-master-visual-compare" aria-labelledby="stratism-master-compare-title" hidden>
+       <h4 id="stratism-master-compare-title">Visuell sammenligning – konsept og masterkandidat</h4>
+       <div class="stratism-master-compare-grid">
+        <figure id="stratism-master-concept-figure" hidden>
+         <img id="stratism-master-concept-image" alt="Valgt privat Stratism-konsept">
+         <figcaption>Valgt original eller revisjon fra Stratism</figcaption>
+        </figure>
+        <figure>
+         <img id="stratism-master-candidate-image" alt="Lokal masterkandidat, kun forhåndsvisning">
+         <figcaption>Lokal masterkandidat – ikke godkjent</figcaption>
+        </figure>
+       </div>
+       <p id="stratism-master-compare-status" class="stratism-notice" role="status" aria-live="polite">Sammenlign motiv, tekstur og detaljer manuelt. Ingen automatisk vurdering eller godkjenning.</p>
+      </section>
       <div class="stratism-master-report">
        <button id="stratism-export-master-report" type="button" disabled>Last ned teknisk kontrollrapport (JSON)</button>
        <p id="stratism-master-report-status" class="stratism-notice" role="status" aria-live="polite">Rapporten kan lages når en masterkandidat er undersøkt. For filer opptil 64 MB beregnes en lokal SHA-256-kontrollsum; større filer får en rapport uten kontrollsum. Ingen godkjenning gis.</p>
