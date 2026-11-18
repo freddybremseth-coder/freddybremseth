@@ -366,15 +366,23 @@ function readMasterQa(){
   if(!MASTER_QA_VALUES.includes(value))throw Error('Ugyldig manuell vurdering.');
   ratings[key]=value;
  }
+ const values=Object.values(ratings);
+ const pending=values.filter(value=>value==='pending').length;
+ const revise=values.filter(value=>value==='revise').length;
  return {ratings,notes:$('stratism-master-qa-notes').value.slice(0,1000),
-  all_reviewed:Object.values(ratings).every(value=>value!=='pending')};
+  all_reviewed:pending===0,needs_revision:revise>0,review_outcome:
+   pending>0?'INCOMPLETE':revise>0?'REQUIRES_CHANGES':'ALL_ITEMS_MARKED_PASS',
+  print_approved:false,sale_approved:false};
 }
 function updateMasterQaSummary(){
  const {ratings}=readMasterQa();
  const values=Object.values(ratings),passed=values.filter(v=>v==='pass').length,
   revise=values.filter(v=>v==='revise').length,pending=values.filter(v=>v==='pending').length;
  $('stratism-master-qa-summary').textContent='Manuell vurdering: '+passed+' OK, '+revise+
-  ' må forbedres, '+pending+' ikke vurdert. Ingen salgs- eller printgodkjenning.';
+  ' må forbedres, '+pending+' ikke vurdert. '+
+  (pending?'Vurderingen er ufullstendig. ':revise?'Minst ett punkt må forbedres. ':
+   'Alle punkter er markert OK; kontrollen er likevel ikke en printgodkjenning. ')+
+  'Ingen salgs- eller printgodkjenning.';
 }
 function createMasterQaFields(){
  const container=$('stratism-master-qa-fields');
@@ -430,7 +438,10 @@ function updateMasterVisualComparison(){
  if(visible){
   if(masterQaContext!==concept){masterQaContext=concept;resetMasterQa();
    for(const select of $('stratism-master-qa-fields').querySelectorAll('select'))select.value='pending';}
- }else if(masterQaContext!==null){masterQaContext=null;resetMasterQa();}
+ }else if(masterQaContext!==null){masterQaContext=null;resetMasterQa();
+  for(const select of $('stratism-master-qa-fields').querySelectorAll('select'))select.value='pending';}
+ for(const select of $('stratism-master-qa-fields').querySelectorAll('select'))select.disabled=!visible||!concept;
+ $('stratism-master-qa-notes').disabled=!visible||!concept;
  panel.hidden=!visible;
  updateMasterDetailInspection();
  if(!visible){
@@ -443,7 +454,7 @@ function updateMasterVisualComparison(){
  else conceptImage.removeAttribute('src');
  $('stratism-master-compare-status').textContent=concept?
   'Sammenlign de to visningene manuelt: motiv, linstruktur, penselstrøk, signatur, farger og beskjæring. Dette er ikke en pikselnøyaktig, fargekalibrert eller automatisk kvalitetskontroll. Ingen godkjenning er gitt.':
-  'Masterkandidaten vises lokalt. Velg et Stratism-konsept for side-ved-side-sammenligning. Ingen godkjenning er gitt.';
+  'Masterkandidaten vises lokalt. Velg et Stratism-konsept for side-ved-side-sammenligning og manuell kvalitetsvurdering. Ingen godkjenning er gitt.';
 }
 
 const MAX_LOCAL_HASH_BYTES=64*1024*1024;
@@ -535,6 +546,7 @@ function makeMasterInspectionReport(candidate,target,checkedAt,sha256=null,manua
    min_width_px:plan.requiredWidth,min_height_px:plan.requiredHeight},
   technical_checks:{pixel_count_sufficient:screen.pixelPass,aspect_ratio_compatible:screen.ratioMatches},
   manual_visual_review:candidate.metadataOnly?null:manualReview,
+  manual_review_status:!manualReview?'NOT_PERFORMED':manualReview.review_outcome,
   outstanding_checks:{artistic_review:false,source_rights_verified:false,
    colour_profile_verified:false,sharpness_verified:false,print_proof_verified:false},
   status:'TECHNICAL_SCREENING_ONLY',
@@ -555,7 +567,7 @@ $('stratism-export-master-report').addEventListener('click',async()=>{
   if(inspectionId!==masterInspectionId||candidate!==masterCandidate)return;
   const report=makeMasterInspectionReport(candidate,
    $('stratism-print-target').value,new Date().toISOString(),sha256,
-   candidate.metadataOnly?null:readMasterQa());
+   candidate.metadataOnly||!masterQaContext?null:readMasterQa());
   const json=JSON.stringify(report,null,2);
   const stem=masterCandidate.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60)||'kunstverk';
   const blob=new Blob([json],{type:'application/json'});
