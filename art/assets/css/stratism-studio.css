@@ -47,3 +47,11 @@
 @media(max-width:800px){.stratism-panel .stratism-master-detail-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.stratism-panel .stratism-master-detail-controls{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.stratism-panel .stratism-master-detail-viewport img{transition:none}}
+
+.stratism-panel .stratism-master-qa{margin:16px 0 0;padding:14px;border:1px solid #8c8c8c55;border-radius:9px;min-width:0}
+.stratism-panel .stratism-master-qa legend{font-weight:700;padding:0 5px}
+.stratism-panel #stratism-master-qa-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.stratism-panel #stratism-master-qa-fields label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.stratism-panel #stratism-master-qa-fields select{width:100%}
+.stratism-panel .stratism-master-qa textarea{display:block;width:100%;max-width:100%;margin:8px 0}
+@media(max-width:640px){.stratism-panel #stratism-master-qa-fields{grid-template-columns:1fr}}
