@@ -138,13 +138,26 @@
       <p id="stratism-master-check" role="status" aria-live="polite">Ingen masterfil kontrollert. Filen blir ikke lastet opp, lagret eller godkjent.</p>
       <section id="stratism-master-visual-compare" class="stratism-master-visual-compare" aria-labelledby="stratism-master-compare-title" hidden>
        <h4 id="stratism-master-compare-title">Visuell sammenligning – konsept og masterkandidat</h4>
+       <div class="stratism-master-detail-controls" role="group" aria-label="Synkron detaljkontroll">
+        <label for="stratism-detail-zoom">Forstørrelse <output id="stratism-detail-zoom-value">1×</output>
+         <input id="stratism-detail-zoom" type="range" min="1" max="4" step="0.5" value="1">
+        </label>
+        <label for="stratism-detail-x">Vannrett posisjon <output id="stratism-detail-x-value">50 %</output>
+         <input id="stratism-detail-x" type="range" min="0" max="100" step="5" value="50">
+        </label>
+        <label for="stratism-detail-y">Loddrett posisjon <output id="stratism-detail-y-value">50 %</output>
+         <input id="stratism-detail-y" type="range" min="0" max="100" step="5" value="50">
+        </label>
+        <button id="stratism-detail-reset" type="button">Nullstill detaljvisning</button>
+       </div>
+       <p class="stratism-notice">Begge bildene følger samme relative utsnitt. Ved forskjellig beskjæring eller sideforhold vil detaljene ikke nødvendigvis treffe nøyaktig.</p>
        <div class="stratism-master-compare-grid">
         <figure id="stratism-master-concept-figure" hidden>
-         <img id="stratism-master-concept-image" alt="Valgt privat Stratism-konsept">
+         <div class="stratism-master-detail-viewport"></div><img id="stratism-master-concept-image" alt="Valgt privat Stratism-konsept">
          <figcaption>Valgt original eller revisjon fra Stratism</figcaption>
         </figure>
         <figure>
-         <img id="stratism-master-candidate-image" alt="Lokal masterkandidat, kun forhåndsvisning">
+         <div class="stratism-master-detail-viewport"></div><img id="stratism-master-candidate-image" alt="Lokal masterkandidat, kun forhåndsvisning">
          <figcaption>Lokal masterkandidat – ikke godkjent</figcaption>
         </figure>
        </div>
