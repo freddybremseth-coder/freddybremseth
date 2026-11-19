@@ -802,3 +802,20 @@ test('Stratism composer starts with only photo, optional description and an expl
  assert.match(js,/approveImageCharge\('Generering'\)/);
  assert.match(js,/await verifyFreePreflight\(payload\)/);
 });
+
+test('secondary Stratism project archive and verbose prompt are accessible but collapsed initially',()=>{
+ const start=html.indexOf('id="stratism-project-archive"');
+ const end=html.indexOf('id="stratism-brief-status"',start);
+ assert.ok(start>=0&&end>start);
+ const archive=html.slice(start,end);
+ assert.match(archive,/id="stratism-cloud-save"/);
+ assert.match(archive,/id="stratism-cloud-refresh"/);
+ assert.match(archive,/id="stratism-export-project"/);
+ assert.match(archive,/<\/details>/);
+ assert.match(html,/<details id="stratism-production-instructions"/);
+ assert.match(html,/id="stratism-brief-output"/);
+ const composer=html.slice(html.indexOf('id="stratism-studio-title"'),html.indexOf('id="stratism-result"'));
+ assert.match(composer,/Lag kunst med Stratism-stilen/);
+ assert.match(composer,/id="stratism-quick-create"/);
+ assert.doesNotMatch(composer,/id="stratism-project-archive"[^>]* open/);
+});
