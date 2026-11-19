@@ -55,3 +55,20 @@
 .stratism-panel #stratism-master-qa-fields select{width:100%}
 .stratism-panel .stratism-master-qa textarea{display:block;width:100%;max-width:100%;margin:8px 0}
 @media(max-width:640px){.stratism-panel #stratism-master-qa-fields{grid-template-columns:1fr}}
+
+/* Beginner-first composer: preserve all existing controls behind native disclosures. */
+.stratism-panel .stratism-simple-intro{padding:4px 0 10px}
+.stratism-panel .stratism-simple-intro h3{margin:0 0 6px;font-size:1.35rem}
+.stratism-panel .stratism-simple-intro p{margin:0;color:inherit;opacity:.8;max-width:65ch;line-height:1.5}
+.stratism-panel .stratism-quick-actions{margin:14px 0 20px}
+.stratism-panel .stratism-quick-actions .primary{min-height:48px;padding:12px 23px;font-size:1.04rem}
+.stratism-panel .stratism-quick-actions p{margin:8px 0;max-width:65ch}
+.stratism-panel .stratism-disclosure{border:1px solid #8c8c8c55;border-radius:10px;margin:10px 0;background:rgba(128,128,128,.025)}
+.stratism-panel .stratism-disclosure>summary{cursor:pointer;padding:15px 16px;font-weight:700;line-height:1.5}
+.stratism-panel .stratism-disclosure>summary span{display:block;font-size:.84rem;font-weight:400;opacity:.72;margin-left:19px}
+.stratism-panel .stratism-disclosure[open]>summary{border-bottom:1px solid #8c8c8c35}
+.stratism-panel .stratism-disclosure-content{padding:12px 16px 16px}
+.stratism-panel #stratism-visible-consent:not([hidden]){display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #8c8c8c55;border-radius:8px}
+.stratism-panel #stratism-visible-consent input{flex:none;width:auto;margin:4px 0 0}
+.stratism-panel #stratism-print-capacity{display:none}
+@media(max-width:600px){.stratism-panel .stratism-quick-actions .primary{width:100%}.stratism-panel .stratism-disclosure-content{padding:10px 12px}}
