@@ -30,6 +30,33 @@
    <div class="panel-head"><span class="step">STRATISM</span><h2 id="stratism-studio-title">Stratism Studio · kunstnerisk brief</h2></div>
    <p>Velg mellom vår nye Stratum No. 4-standard, den opprinnelige naturtro oliventremodellen og den tidligere eksperimentelle Stratism-motoren. Dette er en <strong>privat arbeidsmodul</strong>. AI-generering krever godkjent administrator og et særskilt aktivert API. Ingen kunstverk publiseres automatisk.</p>
    <form id="stratism-brief-form">
+    <div class="stratism-simple-intro">
+     <h3>Lag et Stratism-bilde</h3>
+     <p>Last opp et bilde eller beskriv motivet. Stratism-reglene er allerede valgt for deg – du trenger ikke fylle ut et langt skjema.</p>
+    </div>
+    <div class="stratism-reference">
+     <label>1. Velg et bilde (valgfritt – behandles privat)
+      <input id="stratism-reference-file" type="file" accept="image/jpeg,image/png,image/webp">
+     </label>
+     <div class="stratism-reference-overview">
+      <img id="stratism-reference-preview" alt="Valgt referansefoto" hidden>
+      <div><p id="stratism-reference-status" role="status" aria-live="polite">Ingen referansefil valgt.</p>
+      <p id="stratism-print-capacity" class="stratism-notice">Oppløsningskontrollen gjelder kun valgt fil, ikke en fremtidig generert kunstoriginal.</p></div>
+     </div>
+    </div>
+
+    <label>2. Hva ønsker du å lage? (valgfritt når du har valgt foto)<textarea id="stratism-description" maxlength="2000" placeholder="For eksempel: Bevar ansiktet naturlig, bruk dempede farger og tydelige maleriske lag."></textarea></label>
+    <label class="stratism-consent" id="stratism-visible-consent" hidden>
+     <input id="stratism-reference-rights" type="checkbox">
+     Jeg bekrefter at jeg har rett til å bruke referansefotografiet for AI-bearbeiding, og ved kundebilde at kunden har samtykket til bruken.
+    </label>
+    <div class="stratism-quick-actions">
+     <button class="primary" id="stratism-quick-create" type="button">Lag bildeforslag</button>
+     <p id="stratism-quick-status" class="stratism-notice" role="status" aria-live="polite">Gratis kontroll før et eventuelt betalt AI-kall. Ingen publisering skjer automatisk.</p>
+    </div>
+    <details id="stratism-advanced-settings" class="stratism-disclosure">
+     <summary>Flere valg og detaljer <span>stil, farger, opphav og fortelling</span></summary>
+     <div class="stratism-disclosure-content">
     <div class="stratism-preset-control">
      <label for="stratism-preset">Kunstnerisk modell
       <select id="stratism-preset">
@@ -68,27 +95,20 @@
     <label>Historien bak motivet (valgfritt)
      <textarea id="stratism-story" maxlength="1000" rows="3" placeholder="Hva gjør akkurat dette treet, huset eller stedet spesielt?"></textarea>
     </label>
-    <label class="stratism-consent">
-     <input id="stratism-reference-rights" type="checkbox">
-     Jeg bekrefter at jeg har rett til å bruke referansefotografiet for AI-bearbeiding, og ved kundebilde at kunden har samtykket til bruken.
-    </label>
+
     <p class="stratism-notice">Opprinnelse og historie lagres som opplysninger fra deg, ikke som uavhengig dokumenterte fakta. Kundebilder behandles bare til private utkast, aldri automatisk publisering.</p>
-    <div class="stratism-reference">
-     <label>Referansefoto (valgfritt – analyseres kun i nettleseren)
-      <input id="stratism-reference-file" type="file" accept="image/jpeg,image/png,image/webp">
-     </label>
-     <div class="stratism-reference-overview">
-      <img id="stratism-reference-preview" alt="Valgt referansefoto" hidden>
-      <div><p id="stratism-reference-status" role="status" aria-live="polite">Ingen referansefil valgt.</p>
-      <p id="stratism-print-capacity" class="stratism-notice">Oppløsningskontrollen gjelder kun valgt fil, ikke en fremtidig generert kunstoriginal.</p></div>
-     </div>
-    </div>
-    <label>Motiv og fortelling<textarea id="stratism-description" required minlength="12" maxlength="2000" placeholder="Et gammelt oliventre fra gården vår. Kronen er fullt til stede; utvalgte røtter overlever som grafittspor."></textarea></label>
+
     <div class="stratism-grid">
      <label>Fargeakkord<select id="stratism-chord"><option value="cobalt turquoise and teal">Koboltturkis og teal (Stratum No. 4)</option><option value="muted olive green and warm ochre">Olivengrønn og varm oker</option><option value="restrained ultramarine and slate">Dempet ultramarin</option><option value="soft amber and oxblood">Myk rav og oker-rød</option><option value="muted violet and mauve">Dempet fiolett</option><option value="neutral earth and linen">Jordfarger og lin</option></select></label>
      <label>Det som overlever<select id="stratism-emphasis"><option value="selected roots and trunk contours">Røtter og stamme</option><option value="the eyes and a few facial contours">Øyne og ansikt</option><option value="the principal architectural lines">Arkitektur</option><option value="the main subject's distinctive features">Motivets særtrekk</option></select></label>
      <label>Fargestyrke<select id="stratism-strength"><option value="subtle">Subtil</option><option value="very subtle">Svært dempet</option><option value="moderate but subordinate to subject">Moderat, underordnet motivet</option></select></label>
     </div>
+
+     </div>
+    </details>
+    <details id="stratism-technical-settings" class="stratism-disclosure">
+     <summary>Tekniske kontroller <span>AI-status, gratis test og brief</span></summary>
+     <div class="stratism-disclosure-content">
     <div class="stratism-provider-status" aria-label="AI-forbindelse">
      <button id="stratism-check-provider" type="button">Kontroller AI-motoren (gratis statussjekk)</button>
      <p id="stratism-provider-readiness" role="status" aria-live="polite">AI-motorens tilkobling er ikke kontrollert. Ingen betalt generering starter automatisk.</p>
@@ -97,7 +117,11 @@
      <button id="stratism-preflight" type="button" disabled>Test kunstforespørselen gratis</button>
      <p id="stratism-preflight-status" class="stratism-notice" role="status" aria-live="polite">Lag en brief først. Denne testen sjekker innlogging, motiv, foto, rettigheter og format – ingen AI-generering.</p>
     </div>
-    <div class="stratism-actions"><button class="primary" type="submit">Lag Stratism-brief</button><button id="stratism-download-brief" type="button" disabled>Last ned JSON</button><button id="stratism-generate-private" type="button" disabled>Generer forslag 1 (AI)</button></div>
+
+    <div class="stratism-actions"><button class="primary" type="submit">Klargjør brief</button><button id="stratism-download-brief" type="button" disabled>Last ned JSON</button><button id="stratism-generate-private" type="button" disabled>Generer forslag 1 (AI)</button></div>
+
+     </div>
+    </details>
    </form>
    <div class="stratism-project-actions" aria-label="Privat prosjektarkiv">
     <button id="stratism-export-project" type="button" disabled>Lagre prosjektfil med bilder</button>
