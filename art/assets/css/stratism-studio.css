@@ -72,3 +72,5 @@
 .stratism-panel #stratism-visible-consent input{flex:none;width:auto;margin:4px 0 0}
 .stratism-panel #stratism-print-capacity{display:none}
 @media(max-width:600px){.stratism-panel .stratism-quick-actions .primary{width:100%}.stratism-panel .stratism-disclosure-content{padding:10px 12px}}
+
+.stratism-panel #stratism-visible-consent[hidden]{display:none!important}
