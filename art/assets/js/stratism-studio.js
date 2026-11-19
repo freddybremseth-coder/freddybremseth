@@ -741,11 +741,20 @@ function clearVariants(){
  for(const variant of state.variants){URL.revokeObjectURL(variant.url);if(variant.revision)URL.revokeObjectURL(variant.revision.url);}
  state.variants=[];state.selectedVariant=-1;refreshVariantUI();
 }
+function syncSimplePhotoFields(){
+ const file=$('stratism-reference-file').files?.[0];
+ const kind=$('stratism-source-kind');
+ if(file&&kind.value==='concept')kind.value='own-photo';
+ if(!file&&kind.value==='own-photo')kind.value='concept';
+ $('stratism-visible-consent').hidden=!file&&kind.value!=='client-photo';
+}
+$('stratism-source-kind').addEventListener('change',syncSimplePhotoFields);
 const referenceInput=$('stratism-reference-file');
 referenceInput.addEventListener('change',async()=>{
  if(state.busy)return;
  invalidatePreflight();
  const file=referenceInput.files?.[0];
+ syncSimplePhotoFields();
  clearVariants();state.reference=null;
  if(state.previewUrl){URL.revokeObjectURL(state.previewUrl);state.previewUrl=null;}
  const preview=$('stratism-reference-preview');
@@ -773,8 +782,10 @@ referenceInput.addEventListener('change',async()=>{
 
 const clean=(value,max=2000)=>String(value||'').trim().slice(0,max);
 function buildBrief(){
- const description=clean($('stratism-description').value);
- if(description.length<12)throw Error('Beskriv motivet med minst 12 tegn.');
+ let description=clean($('stratism-description').value);
+ if(!description&&state.reference)
+  description='Stratism-portrett eller kunstmotiv basert på vedlagt referansefoto. Bevar gjenkjennelige særtrekk og naturlige nyanser.';
+ if(description.length<12)throw Error('Legg inn et referansefoto eller beskriv motivet med minst 12 tegn.');
  const source=clean($('stratism-source').value,120);
  const chord=$('stratism-chord').value;
  const emphasis=$('stratism-emphasis').value;
@@ -813,6 +824,40 @@ function buildBrief(){
    human_approval_required:true}
  };
 }
+$('stratism-quick-create').addEventListener('click',async()=>{
+ if(state.busy)return;
+ const file=referenceInput.files?.[0];
+ if(file&&!state.reference){
+  $('stratism-quick-status').textContent='Referansebildet må være ferdig kontrollert før vi kan gå videre.';
+  return;
+ }
+ if(file&&!$('stratism-reference-rights').checked){
+  $('stratism-quick-status').textContent='Bekreft først at du har rett til å bruke bildet.';
+  $('stratism-reference-rights').focus();return;
+ }
+ try{
+  invalidatePreflight();
+  clearVariants();
+  state.brief=buildBrief();
+  output.textContent=state.brief.render_instruction;
+  $('stratism-download-brief').disabled=false;
+  $('stratism-brief-status').textContent='Stratism-oppsettet er klart. Ingen bildejobb er startet.';
+  refreshVariantUI();
+  $('stratism-quick-status').textContent='Kontrollerer om bildegenerering er tilgjengelig…';
+  if(!providerReadiness.checked)await checkProviderReadiness();
+  if(providerReadiness.canGenerate){
+   $('stratism-quick-status').textContent='Forbereder gratis kontroll og eventuell bekreftelse på bildekostnad.';
+   $('stratism-generate-private').click();
+  }else{
+   $('stratism-quick-status').textContent='Oppsettet er klart, men AI-generering er ennå ikke aktivert. Ingen bildekostnad påløper. Åpne «Tekniske kontroller» for mer informasjon.';
+  }
+ }catch(error){
+  $('stratism-quick-status').textContent=error.message;
+  $('stratism-brief-status').textContent=error.message;
+  state.brief=null;$('stratism-download-brief').disabled=true;refreshVariantUI();
+ }
+});
+syncSimplePhotoFields();
 form.addEventListener('submit',ev=>{
  ev.preventDefault();if(state.busy)return;
  invalidatePreflight();
