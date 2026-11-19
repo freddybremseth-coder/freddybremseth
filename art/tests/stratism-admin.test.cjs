@@ -773,3 +773,32 @@ test('manual master QA distinguishes pending, rework and completed human review 
  assert.match(report,/candidate\.metadataOnly\|\|!masterQaContext\?null:readMasterQa\(\)/);
  assert.match(report,/approvals:\{digital_sale:false,print:false,commercial_release:false\}/);
 });
+
+test('Stratism composer starts with only photo, optional description and an explicit create action',()=>{
+ new vm.Script(js);
+ const begin=html.indexOf('<form id="stratism-brief-form">');
+ const end=html.indexOf('</form>',begin);
+ const section=html.slice(begin,end);
+ const simple=section.slice(0,section.indexOf('<details id="stratism-advanced-settings"'));
+ assert.match(simple,/id="stratism-reference-file"/);
+ assert.match(simple,/id="stratism-description"/);
+ assert.match(simple,/id="stratism-quick-create"/);
+ assert.match(simple,/id="stratism-visible-consent" hidden/);
+ assert.doesNotMatch(simple,/id="stratism-preset"/);
+ assert.doesNotMatch(simple,/id="stratism-chord"/);
+ assert.doesNotMatch(simple,/id="stratism-check-provider"/);
+ assert.match(section,/<details id="stratism-advanced-settings"/);
+ assert.match(section,/<details id="stratism-technical-settings"/);
+ assert.doesNotMatch(section,/<details id="stratism-advanced-settings"[^>]* open/);
+ assert.match(section,/id="stratism-preset"/);
+ assert.match(section,/id="stratism-source-kind"/);
+ assert.match(section,/id="stratism-preflight"/);
+ assert.match(js,/if\(!description&&state\.reference\)/);
+ assert.match(js,/description='Stratism-portrett eller kunstmotiv basert på vedlagt referansefoto/);
+ assert.match(js,/if\(file&&kind\.value==='concept'\)kind\.value='own-photo'/);
+ assert.match(js,/if\(file&&!\$\('stratism-reference-rights'\)\.checked\)/);
+ assert.match(js,/if\(providerReadiness\.canGenerate\)/);
+ assert.match(js,/\$\('stratism-generate-private'\)\.click\(\)/);
+ assert.match(js,/approveImageCharge\('Generering'\)/);
+ assert.match(js,/await verifyFreePreflight\(payload\)/);
+});
