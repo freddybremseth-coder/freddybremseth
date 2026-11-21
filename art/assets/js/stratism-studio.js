@@ -828,18 +828,18 @@ function buildBrief(){
  return {
   schema:'stratism-brief-v1',title,description,preset,composition_mode:compositionMode,workflow_mode:workflow,experimental_direction:experimentalDirection,
   provenance:{source_kind:sourceKind,place,story,photo_credit:photoCredit,reference_rights_confirmed:referenceRights,
-   verified:false},reference_note:source||null,reference_metadata:state.reference,
+   verified:false},reference_note:source||null,reference_metadata:workflow==='create'?null:state.reference,
   style:{name:'Stratism',preset,rules_version:preset,sequence:['presence','feeling','memory','erasure','absence'],
    palette:chord,emphasis,colour_strength:strength,signature:'Freddy Bremseth',
    constraints:['one continuous subject','no broad dominant colour stripe','no global embossed texture',
     'no paper-flake simulation','preserve selected meaningful features','visible unpainted linen']},
-  render_instruction:preset==='stratum-no4-v1'&&compositionMode==='three-anchors'?
+  render_instruction:(workflow==='inspire'?'Referansefoto brukes kun som inspirasjon til stemning, farger og generelle komposisjonsprinsipper. Skap et tydelig nytt motiv uten å kopiere identifiserbare detaljer. ':workflow==='edit'?'Bearbeid det opplastede fotografiet og bevar motivets særtrekk. ':'Lag et nytt motiv fra tekstbeskrivelsen. ')+(experimentalDirection?'Eksperimentell retning, ikke verifisert: '+experimentalDirection+'. ':'')+(preset==='stratum-no4-v1'&&compositionMode==='three-anchors'?
    `Stratism three-anchor interpretation for ${description}. Mandatory: ONE saturated ${chord} band as flat opaque brush shapes with visible edges, THIN grey-mauve washes with long drips reaching the bare beige linen, and a delicate graphite sketch of ${emphasis} on the unprinted-looking digital linen with a small cursive signature. The five states remain the conceptual background, but composition may vary freely. No digital emboss or other strong colours; 4:5 portrait.`:
    preset==='olivos-de-biar-v1'?
    `Original Olivos de Biar model. Paint ${description} as a finely detailed, naturalistic, softly atmospheric olive-style artwork. Keep the subject recognizable and use delicate tempera-like brushwork, muted organic colours, natural fine raw linen gradually emerging below and pencil roots/defining contours. No saturated colour band and no scraped oxblood stripe. Avoid embossed uniform digital texture. 4:5 portrait, full subject visible, discreet Freddy Bremseth signature on the lower-right linen.`:
    preset==='stratum-no4-v1'?
    `Stratum No. 4 master. Paint ${description} with one coherent recognizable subject in FIVE states: finely precise matte tempera top, ONE saturated ${chord} chord as BROAD FLAT OPAQUE wet-into-wet paint with VISIBLE BRUSH EDGES (not a glow), NARROW THIN WATERY grey-mauve wash with LONG DRIPS, long horizontal DRAG MARKS WITH A FLAT BLADE in oxblood and grey-green, then BARE BEIGE LINEN with faint pencil traces. Preserve ${emphasis}. The background is quiet pale muted grey-blue sky and raw linen; no hills, distant secondary motifs or orange soil. No digital embossed scale pattern. Keep the full subject inside the 4:5 portrait. Sign Freddy Bremseth discreetly bottom-right.`:
-   `Original working Stratism v0.9. Create one contemplative fine-art painting of ${description} with recognizable subject across presence, restrained feeling, translucent memory, selective abrasion and absence on bare linen. Emphasize ${emphasis}. Palette ${chord}; intensity ${strength}. Avoid repeated digital texture and hard collage bands. Portrait 4:5 and discreet Freddy Bremseth signature.`,
+   `Original working Stratism v0.9. Create one contemplative fine-art painting of ${description} with recognizable subject across presence, restrained feeling, translucent memory, selective abrasion and absence on bare linen. Emphasize ${emphasis}. Palette ${chord}; intensity ${strength}. Avoid repeated digital texture and hard collage bands. Portrait 4:5 and discreet Freddy Bremseth signature.`),
   production:{provider:'NOT_CONNECTED',generation_status:'BRIEF_ONLY',commercial_release:false,
    print_release:false,planned_assets:['web','digital-master','print-300ppi-after-proofing'],
    human_approval_required:true}
@@ -897,6 +897,7 @@ $('stratism-download-brief').addEventListener('click',()=>{
 });
 async function prepareReferenceJpeg(){
  let referenceJpeg=null;
+ if(state.brief?.workflow_mode==='create')return null;
   // The original reference stays local; a resized JPEG derivative is sent only on an explicit preflight or generation click.
   // Resize a temporary derivative: never use this JPEG as a sale or print master.
   if(referenceInput.files?.[0]&&!state.reference)throw Error('Referansefotoet er ikke validert. Velg bildet på nytt.');
@@ -973,7 +974,7 @@ $('stratism-preflight').addEventListener('click',async()=>{
 $('stratism-generate-private').addEventListener('click',async()=>{
  if(!state.brief||state.variants.length>=MAX_VARIANTS||state.busy)return;
  if(!providerReadiness.canGenerate){$('stratism-brief-status').textContent='Kontroller AI-motoren først. Generering starter aldri uten bekreftet tilkobling.';return;}
- if(referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
+ if(state.brief.workflow_mode!=='create'&&referenceInput.files?.[0]&&!state.brief.provenance?.reference_rights_confirmed){$('stratism-brief-status').textContent='Bekreft bruksrett til referansebildet og lag ny brief.';return;}
  if(state.brief.provenance?.source_kind!=='concept'&&!referenceInput.files?.[0]){$('stratism-brief-status').textContent='Velg referansefoto for et virkelig motiv.';return;}
  state.busy=true;refreshVariantUI();
  const variation=state.variants.length+1;
