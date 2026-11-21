@@ -5,8 +5,10 @@
 <title>Art Studio — Gallery Admin · Freddy Bremseth</title>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/css/admin.css">
+<link rel="stylesheet" href="/assets/css/stratism-studio.css">
 <script defer src="/assets/js/gallery-config.js"></script>
 <script defer src="/assets/js/admin.js"></script>
+<script defer src="/assets/js/stratism-studio.js"></script>
 </head><body>
 <header class="top"><a href="/" class="brand">FB <span>FREDDY BREMSETH <small>ART STUDIO / PRIVATE ADMIN</small></span></a><div><a href="/" class="quiet">← Public gallery</a> <button id="sign-out" class="quiet" hidden>Sign out</button></div></header>
 <main>
@@ -24,6 +26,273 @@
 <section id="awaiting-access" class="panel" hidden><h1>Administrator approval required</h1><p>You are signed in but your account is not yet approved for this private gallery. Only an existing Supabase project owner can grant access.</p><p>Your Supabase user ID: <code id="my-user-id"></code></p><p class="subtle">Open Supabase → Authentication → Users and confirm the account belongs to you. Then add this UUID to <code>public.art_gallery_admin_users</code> from the SQL Editor, or ask the project owner to do so.</p></section>
 <section id="admin-panel" hidden>
   <section class="intro"><div><p class="eyebrow">GALLERY CONTROL ROOM</p><h1>Add art. Set the story<span class="period">.</span></h1><p>Upload image files or one ZIP archive. For new artworks, AI can visually analyse each work and automatically choose the closest collection and artistic style from your existing gallery taxonomy. You can review and override every suggestion before upload. Full-resolution sources are stored in a private bucket; only reduced WebP previews are published.</p></div><div class="stat"><strong id="catalog-count">—</strong><span>catalogue works</span><strong id="master-count">—</strong><span>private masters registered · not necessarily verified</span></div></section>
+  <section class="panel stratism-panel" aria-labelledby="stratism-studio-title">
+   <div class="panel-head"><span class="step">STRATISM</span><h2 id="stratism-studio-title">Stratism Studio · kunstnerisk brief</h2></div>
+   <p>Lag kunst med Stratism-stilen. Start enkelt med et foto eller en kort beskrivelse, og åpne flere valg bare når du ønsker det. Ingen kunstverk publiseres automatisk.</p>
+   <form id="stratism-brief-form">
+    <div class="stratism-simple-intro">
+     <h3>Lag et Stratism-bilde</h3>
+     <p>Last opp et bilde eller beskriv motivet. Stratism-reglene er allerede valgt for deg – du trenger ikke fylle ut et langt skjema.</p>
+    </div>
+    <fieldset class="stratism-workflow" aria-label="Velg arbeidsmåte">
+     <legend>Hva vil du gjøre?</legend>
+     <label><input type="radio" name="stratism-workflow" value="edit"> Bearbeid bildet mitt <small>Behold motivet og gjør ønskede endringer</small></label>
+     <label><input type="radio" name="stratism-workflow" value="inspire"> Bruk bilde som inspirasjon <small>Skap et nytt motiv med stemning, farger eller komposisjon fra bildet</small></label>
+     <label><input type="radio" name="stratism-workflow" value="create" checked> Lag et helt nytt kunstverk <small>Beskriv motivet med egne ord</small></label>
+    </fieldset>
+    <fieldset class="stratism-style-selector">
+     <legend>Velg kunstnerisk retning</legend>
+     <label><input type="radio" name="stratism-style-mode" value="established" checked> Bruk eksisterende Stratism-modell <small>Modeller under kvalitetsvurdering – ikke automatisk godkjent for salg</small></label>
+     <label><input type="radio" name="stratism-style-mode" value="experimental"> Utforsk en ny stil <small>Eksperimentell, ikke verifisert</small></label>
+     <label id="stratism-experiment-wrap" hidden>Beskriv ny kunstnerisk retning
+      <textarea id="stratism-experimental-direction" maxlength="600" rows="3" placeholder="F.eks. mer atmosfærisk, færre harde overganger, men fortsatt én sammenhengende motivstruktur"></textarea>
+     </label>
+    </fieldset>
+    <div class="stratism-preset-control">
+     <label for="stratism-preset">Kunstnerisk modell
+      <select id="stratism-preset">
+       <option value="stratum-no4-v1">Stratum No. 4 – fem materialtilstander (hovedmodell)</option>
+       <option value="olivos-de-biar-v1">Olivos de Biar – første oliventremodell, naturtro</option>
+       <option value="stratism-working-v09">Stratism Original – tidligere eksperimentell motor v0.9</option>
+      </select>
+     </label>
+     <p id="stratism-preset-description" class="stratism-notice" aria-live="polite">Hovedmodell: ett motiv gjennom fem tydelige maleriske tilstander, én sterk turkis fargeakkord, vask med dryp, skraping og rå lin. 4:5 stående.</p>
+    </div>
+    <div class="stratism-reference" id="stratism-reference-zone">
+     <label>1. Velg et bilde (valgfritt – behandles privat)
+      <input id="stratism-reference-file" type="file" accept="image/jpeg,image/png,image/webp">
+     </label>
+     <div class="stratism-reference-overview">
+      <img id="stratism-reference-preview" alt="Valgt referansefoto" hidden>
+      <div><p id="stratism-reference-status" role="status" aria-live="polite">Ingen referansefil valgt.</p>
+      <p id="stratism-print-capacity" class="stratism-notice">Oppløsningskontrollen gjelder kun valgt fil, ikke en fremtidig generert kunstoriginal.</p></div>
+     </div>
+    </div>
+
+    <label>2. Hva ønsker du å lage? (valgfritt når du har valgt foto)<textarea id="stratism-description" maxlength="2000" placeholder="For eksempel: Bevar ansiktet naturlig, bruk dempede farger og tydelige maleriske lag."></textarea></label>
+    <label class="stratism-consent" id="stratism-visible-consent" hidden>
+     <input id="stratism-reference-rights" type="checkbox">
+     Jeg bekrefter at jeg har rett til å bruke referansefotografiet for AI-bearbeiding, og ved kundebilde at kunden har samtykket til bruken.
+    </label>
+    <div class="stratism-quick-actions">
+     <button class="primary" id="stratism-quick-create" type="button">Lag bildeforslag</button>
+     <p id="stratism-quick-status" class="stratism-notice" role="status" aria-live="polite">Gratis kontroll før et eventuelt betalt AI-kall. Ingen publisering skjer automatisk.</p>
+    </div>
+    <details id="stratism-advanced-settings" class="stratism-disclosure">
+     <summary>Flere valg og detaljer <span>stil, farger, opphav og fortelling</span></summary>
+     <div class="stratism-disclosure-content">
+    <div class="stratism-grid">
+     <label>Arbeidstittel<input id="stratism-title" maxlength="100" placeholder="Living Memory – Doña Anna"></label>
+     <label>Referansefoto (beskrivelse, ikke filopplasting)<input id="stratism-source" maxlength="120" placeholder="Doña Anna – gammelt oliventre"></label>
+    </div>
+    <div class="stratism-grid">
+     <label>Komposisjonsregel
+      <select id="stratism-composition-rule">
+       <option value="five-states">Fem tydelige materialtilstander – No. 4 standard</option>
+       <option value="three-anchors">Tre gjenkjennelige kjennetegn – friere maleri</option>
+      </select>
+     </label>
+     <label>Opphav til motivet
+      <select id="stratism-source-kind">
+       <option value="concept">Fritt konsept – uten fotografisk bevis</option>
+       <option value="own-photo">Eget fotografi fra et virkelig sted</option>
+       <option value="client-photo">Kundens fotografi – privat bestillingsverk</option>
+      </select>
+     </label>
+     <label>Sted / motivets identitet (valgfritt)
+      <input id="stratism-place" maxlength="140" placeholder="Olivenlunden på Doña Anna, Biar">
+     </label>
+     <label>Fotografens navn / kilde (valgfritt)
+      <input id="stratism-photo-credit" maxlength="120" placeholder="Eget foto / fotograf">
+     </label>
+    </div>
+    <label>Historien bak motivet (valgfritt)
+     <textarea id="stratism-story" maxlength="1000" rows="3" placeholder="Hva gjør akkurat dette treet, huset eller stedet spesielt?"></textarea>
+    </label>
+
+    <p class="stratism-notice">Opprinnelse og historie lagres som opplysninger fra deg, ikke som uavhengig dokumenterte fakta. Kundebilder behandles bare til private utkast, aldri automatisk publisering.</p>
+
+    <div class="stratism-grid">
+     <label>Fargeakkord<select id="stratism-chord"><option value="cobalt turquoise and teal">Koboltturkis og teal (Stratum No. 4)</option><option value="muted olive green and warm ochre">Olivengrønn og varm oker</option><option value="restrained ultramarine and slate">Dempet ultramarin</option><option value="soft amber and oxblood">Myk rav og oker-rød</option><option value="muted violet and mauve">Dempet fiolett</option><option value="neutral earth and linen">Jordfarger og lin</option></select></label>
+     <label>Det som overlever<select id="stratism-emphasis"><option value="selected roots and trunk contours">Røtter og stamme</option><option value="the eyes and a few facial contours">Øyne og ansikt</option><option value="the principal architectural lines">Arkitektur</option><option value="the main subject's distinctive features">Motivets særtrekk</option></select></label>
+     <label>Fargestyrke<select id="stratism-strength"><option value="subtle">Subtil</option><option value="very subtle">Svært dempet</option><option value="moderate but subordinate to subject">Moderat, underordnet motivet</option></select></label>
+    </div>
+
+     </div>
+    </details>
+    <details id="stratism-technical-settings" class="stratism-disclosure">
+     <summary>Tekniske kontroller <span>AI-status, gratis test og brief</span></summary>
+     <div class="stratism-disclosure-content">
+    <div class="stratism-provider-status" aria-label="AI-forbindelse">
+     <button id="stratism-check-provider" type="button">Kontroller AI-motoren (gratis statussjekk)</button>
+     <p id="stratism-provider-readiness" role="status" aria-live="polite">AI-motorens tilkobling er ikke kontrollert. Ingen betalt generering starter automatisk.</p>
+    </div>
+    <div class="stratism-preflight">
+     <button id="stratism-preflight" type="button" disabled>Test kunstforespørselen gratis</button>
+     <p id="stratism-preflight-status" class="stratism-notice" role="status" aria-live="polite">Lag en brief først. Denne testen sjekker innlogging, motiv, foto, rettigheter og format – ingen AI-generering.</p>
+    </div>
+
+    <div class="stratism-actions"><button class="primary" type="submit">Klargjør brief</button><button id="stratism-download-brief" type="button" disabled>Last ned JSON</button><button id="stratism-generate-private" type="button" disabled>Generer forslag 1 (AI)</button></div>
+
+     </div>
+    </details>
+   </form>
+   <details id="stratism-project-archive" class="stratism-disclosure">
+    <summary>Prosjekter og lagring <span>åpne, lagre og hente tidligere arbeid</span></summary>
+    <div class="stratism-disclosure-content">
+   <div class="stratism-project-actions" aria-label="Privat prosjektarkiv">
+    <button id="stratism-export-project" type="button" disabled>Lagre prosjektfil med bilder</button>
+    <button id="stratism-cloud-save" type="button" disabled>Lagre privat i skyarkivet</button>
+    <button id="stratism-cloud-refresh" type="button">Vis mine lagrede prosjekter</button>
+    <label>Skyarkiv – velg et tidligere prosjekt
+     <select id="stratism-cloud-select"><option value="">Ingen prosjekter hentet</option></select>
+    </label>
+    <button id="stratism-cloud-open" type="button" disabled>Åpne valgt skyprosjekt</button>
+
+    <label for="stratism-import-project" class="stratism-project-import">Åpne lagret prosjektfil
+      <input id="stratism-import-project" type="file" accept=".json,application/json">
+    </label>
+    <p class="stratism-notice">Nedlastet prosjektfil lagres på din enhet. Skyarkivet lagrer prosjektfilen privat i Supabase, bare for godkjente administratorer. Alle prosjektbilder er fortsatt arbeidskopier, ikke printmastere. Originalt referansefoto må velges på nytt ved åpning.</p>
+   </div>
+    </div>
+   </details>
+   <p id="stratism-brief-status" class="stratism-notice" role="status" aria-live="polite">Ingen brief generert.</p>
+   <div id="stratism-result" class="stratism-result" hidden>
+    <h3>Private bildeforslag <small id="stratism-variant-count">0 av 3</small></h3>
+    <p>Hvert forslag opprettes med et eget AI-kall som kan koste penger. Du bestemmer selv når en ny variant skal lages.</p>
+    <div id="stratism-variant-gallery" class="stratism-variant-gallery" role="group" aria-label="Sammenlign Stratism-forslag"></div>
+    <p id="stratism-selected-description" class="stratism-notice">Velg et bilde for å laste ned en prøve.</p>
+    <section id="stratism-concept-file-status" class="stratism-concept-file-status" aria-labelledby="stratism-concept-file-title">
+     <h4 id="stratism-concept-file-title">Filstatus – ikke salg eller print</h4>
+     <p id="stratism-concept-resolution">Nye AI-konsepter produseres i 1280 × 1600 px. Velg et forslag for å se beregnet printstørrelse.</p>
+     <div class="stratism-print-plan">
+      <label for="stratism-print-target">Planlegg ønsket kunsttrykk (300 PPI)
+       <select id="stratism-print-target">
+        <option value="40x50">40 × 50 cm – 4:5-format</option>
+        <option value="60x75">60 × 75 cm – 4:5-format</option>
+        <option value="80x100">80 × 100 cm – 4:5-format</option>
+        <option value="30x40">30 × 40 cm – avvikende 3:4-format</option>
+       </select>
+      </label>
+      <p id="stratism-print-plan-result" role="status" aria-live="polite">Velg en størrelse for å beregne nødvendig pikselantall.</p>
+      <label for="stratism-master-file">Kontroller en ferdig eksportert masterfil lokalt (JPG, PNG, WebP eller TIFF)
+       <input id="stratism-master-file" type="file" accept="image/jpeg,image/png,image/webp,image/tiff,.tif,.tiff">
+      </label>
+      <p id="stratism-master-check" role="status" aria-live="polite">Ingen masterfil kontrollert. Filen blir ikke lastet opp, lagret eller godkjent.</p>
+      <section id="stratism-master-visual-compare" class="stratism-master-visual-compare" aria-labelledby="stratism-master-compare-title" hidden>
+       <h4 id="stratism-master-compare-title">Visuell sammenligning – konsept og masterkandidat</h4>
+       <div class="stratism-master-detail-controls" role="group" aria-label="Synkron detaljkontroll">
+        <label for="stratism-detail-zoom">Forstørrelse <output id="stratism-detail-zoom-value">1×</output>
+         <input id="stratism-detail-zoom" type="range" min="1" max="4" step="0.5" value="1">
+        </label>
+        <label for="stratism-detail-x">Vannrett posisjon <output id="stratism-detail-x-value">50 %</output>
+         <input id="stratism-detail-x" type="range" min="0" max="100" step="5" value="50">
+        </label>
+        <label for="stratism-detail-y">Loddrett posisjon <output id="stratism-detail-y-value">50 %</output>
+         <input id="stratism-detail-y" type="range" min="0" max="100" step="5" value="50">
+        </label>
+        <button id="stratism-detail-reset" type="button">Nullstill detaljvisning</button>
+       </div>
+       <p class="stratism-notice">Begge bildene følger samme relative utsnitt. Ved forskjellig beskjæring eller sideforhold vil detaljene ikke nødvendigvis treffe nøyaktig.</p>
+       <div class="stratism-master-compare-grid">
+        <figure id="stratism-master-concept-figure" hidden>
+         <div class="stratism-master-detail-viewport"><img id="stratism-master-concept-image" alt="Valgt privat Stratism-konsept"></div>
+         <figcaption>Valgt original eller revisjon fra Stratism</figcaption>
+        </figure>
+        <figure>
+         <div class="stratism-master-detail-viewport"><img id="stratism-master-candidate-image" alt="Lokal masterkandidat, kun forhåndsvisning"></div>
+         <figcaption>Lokal masterkandidat – ikke godkjent</figcaption>
+        </figure>
+       </div>
+       <p id="stratism-master-compare-status" class="stratism-notice" role="status" aria-live="polite">Sammenlign motiv, tekstur og detaljer manuelt. Ingen automatisk vurdering eller godkjenning.</p>
+       <fieldset id="stratism-master-qa" class="stratism-master-qa">
+        <legend>Manuell kvalitetsvurdering av masterkandidaten</legend>
+        <p class="stratism-notice">Velg først et Stratism-konsept og en lokal masterkandidat. Vurder hvert punkt manuelt. «Ser bra ut» betyr bare at det aktuelle punktet er vurdert, ikke at filen er godkjent for salg eller print. Rapporten skiller mellom ufullstendig vurdering og punkter som må forbedres.</p>
+        <div id="stratism-master-qa-fields"></div>
+        <label for="stratism-master-qa-notes">Merknader fra vurderingen
+         <textarea id="stratism-master-qa-notes" rows="3" maxlength="1000" placeholder="Noter avvik, områder som må kontrolleres eller forbedringer"></textarea>
+        </label>
+        <p id="stratism-master-qa-summary" role="status" aria-live="polite">Ingen punkter er vurdert.</p>
+       </fieldset>
+      </section>
+      <div class="stratism-master-report">
+       <button id="stratism-export-master-report" type="button" disabled>Last ned teknisk kontrollrapport (JSON)</button>
+       <p id="stratism-master-report-status" class="stratism-notice" role="status" aria-live="polite">Rapporten kan lages når en masterkandidat er undersøkt. For filer opptil 64 MB beregnes en lokal SHA-256-kontrollsum; større filer får en rapport uten kontrollsum. Ingen godkjenning gis.</p>
+      </div>
+      <div class="stratism-web-export">
+       <label for="stratism-web-export-size">Velg fil for nettbruk
+        <select id="stratism-web-export-size">
+         <option value="800">Forhåndsvisning – maks 800 px</option>
+         <option value="1600" selected>Webfil – maks 1600 px</option>
+        </select>
+       </label>
+       <button id="stratism-export-web" type="button" disabled>Lag lokal webfil (JPEG)</button>
+       <p id="stratism-web-export-status" class="stratism-notice" role="status" aria-live="polite">Velg en JPG-, PNG- eller WebP-fil for å lage en lokal nettprøve. TIFF krever separat konvertering. Fargerom og innebygd profil bevares ikke nødvendigvis ved nettlesereksport.</p>
+      </div>
+     </div>
+     <p id="stratism-concept-limit" class="stratism-notice">En JPEG-prøve er ikke en digital salgs-master eller print-master. 300 DPI i metadata gir ikke flere piksler.</p>
+     <p class="stratism-notice">En egen senere arbeidsflyt må kontrollere kildefil, oppskalering, faktisk oppløsning, fargerom og manuell printgodkjenning før salg.</p>
+    </section>
+    <div class="stratism-refine-controls">
+     <label>Forbedre valgt forslag – bevar motivet
+      <select id="stratism-refinement-kind">
+       <option value="qa-guided">Rett punktene markert «Må forbedres»</option>
+       <option value="subtler-colour">Demp fargene ytterligere</option>
+       <option value="preserve-details">Bevar viktige detaljer bedre</option>
+       <option value="more-linen">Mer synlig rå lin og utvalgte grafittspor</option>
+       <option value="remove-texture">Fjern digital/skjellaktig tekstur</option>
+      </select>
+     </label>
+     <label>Visjon av valgt forslag
+      <select id="stratism-revision-select" aria-label="Velg original eller forbedret versjon"><option value="0">Originalforslag</option></select>
+     </label>
+     <button id="stratism-refine-selected" type="button" disabled>Forbedre valgt bilde (AI-kall)</button>
+     <p id="stratism-refine-hint" class="stratism-notice" role="status" aria-live="polite">Marker først punkter som må forbedres, eller velg en enkelt forbedring.</p>
+    </div>
+
+    <section id="stratism-before-after" class="stratism-before-after" aria-labelledby="stratism-compare-title" hidden>
+     <h4 id="stratism-compare-title">Original og forbedret versjon – side om side</h4>
+     <p class="stratism-notice">Se begge versjonene samtidig før du velger. Hvert bilde har sin egen kvalitetsvurdering. Ingen nye AI-kall startes her.</p>
+     <div class="stratism-compare-grid">
+      <figure><img id="stratism-compare-original" alt="Originalt Stratism-konsept"><figcaption>Originalversjon <span id="stratism-original-score"></span></figcaption><button id="stratism-choose-original" type="button" aria-pressed="false">Velg originalen</button></figure>
+      <figure><img id="stratism-compare-revision" alt="Målrettet revidert Stratism-konsept"><figcaption>Revidert versjon <span id="stratism-revision-score"></span></figcaption><button id="stratism-choose-revision" type="button" aria-pressed="false">Velg revisjonen</button></figure>
+     </div>
+    </section>
+    <div class="stratism-quality-panel" id="stratism-quality-panel" aria-labelledby="stratism-quality-title">
+     <h4 id="stratism-quality-title">Kunstnerisk kvalitetskontroll – valgt versjon</h4>
+     <p id="stratism-quality-context" class="stratism-notice">Dette er din manuelle vurdering, ikke automatisk AI-analyse eller salgs-/printgodkjenning.</p>
+     <div class="stratism-quality-grid">
+      <label>Motivets særpreg og referansetrofasthet
+       <select data-stratism-quality="subject"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Kun én tydelig fargeakkord
+       <select data-stratism-quality="colour"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Penselstrøk, ikke digital glød
+       <select data-stratism-quality="brush"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Dryp og maleriske overganger
+       <select data-stratism-quality="transitions"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Rå lin, grafitt og signatur
+       <select data-stratism-quality="linen"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+      <label>Ingen skjellaktig/digital tekstur
+       <select data-stratism-quality="texture"><option value="pending">Ikke vurdert</option><option value="pass">Bestått</option><option value="revise">Må forbedres</option></select>
+      </label>
+     </div>
+     <label>Notat til neste revisjon (valgfritt)
+      <textarea id="stratism-quality-notes" maxlength="700" rows="2" placeholder="Beskriv konkret hva som bør forbedres ..."></textarea>
+     </label>
+     <p id="stratism-quality-status" role="status" aria-live="polite">Ingen kunstnerisk vurdering registrert.</p>
+     <p class="stratism-notice">Vurderingen lagres bare i prosjektfilen/privat skyarkiv når du velger Lagre. Den kan aldri åpne for salg eller print.</p>
+    </div>
+    <button id="stratism-save-preview" type="button" disabled>Last ned valgt prøve</button>
+    <button id="stratism-reset-variants" type="button">Tøm lokale forslag</button>
+    <p>Kun private AI-konsepter · lagres bare dersom du velger privat prosjektarkiv · ikke godkjent for salg eller print.</p>
+   </div><details id="stratism-production-instructions" class="stratism-disclosure"><summary>Se full produksjonsinstruksjon <span>for avansert kontroll og feilsøking</span></summary><div class="stratism-disclosure-content"><pre id="stratism-brief-output" class="stratism-output" aria-label="Stratism produksjonsinstruksjon">Produksjonsinstruksjonen vises her.</pre></div></details>
+   <p class="stratism-notice">Privat AI-bildegenerering er implementert, men deaktivert i testmiljøet inntil leverandør og tilgang er verifisert. Digitalt salg og printgodkjenning er ikke koblet til denne modulen.</p>
+  </section>
   <section class="panel master-audit-panel" aria-labelledby="master-audit-title"><div class="panel-head"><span class="step">FILE CHECK</span><h2 id="master-audit-title">Private originals · upload progress</h2></div><p>Counts below check the <strong>actual private Storage object</strong>, not only its catalogue record. Private files are not published or available for purchase from this dashboard.</p><div class="master-audit-stats"><div><strong id="master-stored">—</strong><span>Files in private Storage</span></div><div><strong id="master-missing">—</strong><span>Works needing a private file</span></div><div><strong id="master-verified">—</strong><span>Sale masters verified · not print certification</span></div></div><p id="master-audit-note" class="subtle" aria-live="polite">Checking private files…</p><button id="show-missing" type="button">Show works needing files ↓</button></section>
   <section class="panel print-master-panel" aria-labelledby="print-master-title"><div class="panel-head"><span class="step">PRINT</span><h2 id="print-master-title">Print Master quality</h2></div><p>This checks the best private JPG/PNG source for each artwork and estimates the largest sensible Enhanced Matte print size from its real pixel dimensions. It does not invent detail or treat DPI metadata as resolution.</p><div class="print-master-stats"><div><strong id="print-master-statement">—</strong><span>Statement ready · approx. 60×90 cm+</span></div><div><strong id="print-master-large">—</strong><span>Large ready · approx. 50×70 cm+</span></div><div><strong id="print-master-medium">—</strong><span>Medium ready · approx. 40×50 cm+</span></div><div><strong id="print-master-upgrade">—</strong><span>Needs a larger print master</span></div></div><p id="print-master-note" class="subtle" aria-live="polite">Calculating print capability…</p><button id="show-print-upgrades" type="button">Show works needing a larger print master ↓</button></section>
   <section class="panel print-readiness-panel" aria-labelledby="print-readiness-title"><div class="panel-head"><span class="step">POD</span><h2 id="print-readiness-title">Print on demand · Prodigi</h2></div><p>The gallery integration is built server-side. This panel shows which production gates are actually configured; it never displays API keys or payment secrets.</p><div class="print-readiness-grid"><div><span>Prodigi API</span><strong id="print-provider-status">Checking…</strong></div><div><span>Environment</span><strong id="print-environment-status">—</strong></div><div><span>Stripe</span><strong id="print-stripe-status">—</strong></div><div><span>Stripe webhook</span><strong id="print-webhook-status">—</strong></div><div><span>Sample print</span><strong id="print-sample-status">—</strong></div><div><span>Legal review</span><strong id="print-legal-status">—</strong></div></div><div class="print-live-row"><span>Customer print checkout</span><strong id="print-live-status">LOCKED</strong></div><p id="print-status-note" class="subtle" aria-live="polite">Checking Prodigi and checkout configuration…</p><details><summary>What must be true before physical sales go live?</summary><p>Prodigi must be connected with the <strong>Live</strong> API key, Stripe and its webhook secret must be configured, one representative sample print must be approved, and the final physical-purchase terms must be reviewed. Until all gates are true, the public gallery can inspect eligible print sizes in Sandbox but cannot submit a live production order.</p><p><strong>Sandbox key:</strong> Prodigi uses a separate Sandbox API key. Sign in to the <a href="https://sandbox-beta-dashboard.pwinty.com/" target="_blank" rel="noopener noreferrer">Prodigi Sandbox dashboard ↗</a> with the same login details, click the gear icon in the top-right corner, then choose <strong>Show API key</strong>. Keep <code>PRODIGI_ENVIRONMENT=sandbox</code> while testing. A Live key from <a href="https://dashboard.prodigi.com/" target="_blank" rel="noopener noreferrer">the Live dashboard</a> will be rejected by the Sandbox API.</p></details></section>
