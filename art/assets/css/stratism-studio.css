@@ -74,3 +74,13 @@
 @media(max-width:600px){.stratism-panel .stratism-quick-actions .primary{width:100%}.stratism-panel .stratism-disclosure-content{padding:10px 12px}}
 
 .stratism-panel #stratism-visible-consent[hidden]{display:none!important}
+
+/* Clear beginner-first workflow selection; advanced controls stay collapsed. */
+.stratism-panel .stratism-workflow,.stratism-panel .stratism-style-selector{border:1px solid #8c8c8c55;border-radius:12px;padding:14px;margin:12px 0 16px;min-width:0}
+.stratism-panel .stratism-workflow legend,.stratism-panel .stratism-style-selector legend{font-weight:750;padding:0 6px}
+.stratism-panel .stratism-workflow>label,.stratism-panel .stratism-style-selector>label:not(#stratism-experiment-wrap){display:flex;gap:10px;align-items:flex-start;border:1px solid #8c8c8c35;border-radius:9px;padding:12px;margin:8px 0;cursor:pointer;flex-wrap:wrap}
+.stratism-panel .stratism-workflow input,.stratism-panel .stratism-style-selector input{width:auto;margin:3px 0 0;flex:none}
+.stratism-panel .stratism-workflow small,.stratism-panel .stratism-style-selector small{display:block;flex-basis:100%;padding-left:24px;opacity:.75;font-weight:400;line-height:1.5}
+.stratism-panel #stratism-experiment-wrap{padding:8px 4px}
+.stratism-panel #stratism-experiment-wrap textarea{width:100%}
+.stratism-panel [hidden]{display:none!important}
