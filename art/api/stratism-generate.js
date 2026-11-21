@@ -135,16 +135,23 @@ function sourceContext(body){
  if(sourceKind==='client-photo'&&body?.reference_rights!==true)throw new Error('CLIENT_CONSENT_REQUIRED');
  return {sourceKind,composition,place,story,photoCredit};
 }
-function sourceSupplement(context){
+function sourceSupplement(context,workflow='legacy'){
  let extra='';
  if(context.place)extra+=' Location supplied by creator: '+context.place+'.';
  if(context.story)extra+=' Creator-supplied personal story to inform subject detail: '+context.story+'.';
  if(context.photoCredit)extra+=' Creator-reported photograph credit: '+context.photoCredit+'.';
- if(context.sourceKind==='own-photo'||context.sourceKind==='client-photo')
+ if(workflow==='inspire')extra+=' Reference is solely for palette, mood, broad compositional rhythm and painterly treatment. Invent a distinctly different subject and composition; do not reproduce identifiable faces, places or unique elements of the photo.';
+ else if(context.sourceKind==='own-photo'||context.sourceKind==='client-photo')
   extra+=' Use the attached authorized photograph as the factual source of the distinct subject structure. Do not invent extra people, buildings or trees.';
  return extra;
 }
 function promptFrom(body){
+ const workflow=body?.workflow_mode??'legacy';
+ if(!['legacy','edit','inspire','create'].includes(workflow))throw new Error('INVALID_WORKFLOW');
+ const direction=text(body?.experimental_direction,600);
+ if(body?.experimental_direction!=null&&direction.length<12)throw new Error('INVALID_EXPERIMENTAL_DIRECTION');
+ const workflowRule=workflow==='inspire'?' Create NEW ART inspired only by broad visual qualities of the provided reference; change the main subject and do not recreate identifiable particulars.':workflow==='edit'?' EDIT the supplied reference image faithfully. Preserve the recognizable identity and key shapes of its subject while applying the chosen artistic treatment.':workflow==='create'?' Create solely from the text description, with no image reference.':'';
+ const experimentRule=direction?' Experimental artistic direction, not an approved or verified preset: '+direction+'. Maintain the underlying chosen Stratism model integrity.':'';
  const description=text(body?.description,1500);
  const preset=body?.preset??'stratism-working-v09';
  const context=sourceContext(body);
@@ -154,15 +161,17 @@ function promptFrom(body){
  const emphasis=choice(body?.emphasis,EMPHASES,"the main subject's distinctive features");
  const strength=choice(body?.strength,STRENGTHS,'subtle');
  const legacy=`Create an original fine-art painting in the developing Stratism art system by Freddy Bremseth. The artistic subject is: ${description}. A single coherent subject passes through five fixed states of time in descending order: precise matte presence, restrained emotional colour, translucent memory wash, localized physically believable abrasion, and near-absence on truly bare unprimed linen. The motif remains recognizable and continuous across all five states, but the techniques differ in material character and selected defining details survive low into the otherwise unfinished composition. Choose the following colour chord: ${chord}. Strength: ${strength}; the colour never becomes a broad, dominant horizontal stripe. Preserve ${emphasis}. Transition boundaries should be asymmetric and organic rather than straight bands. The exact material character must vary by state: very smooth matte fine detail, soft colour wash, thin translucent stain, a small area of rubbed-back pigment, then unpainted woven linen and a few delicate graphite traces. Avoid homogeneous embossed scale patterns, global grain filters, paper collage/peeling paper, decorative flourishes, frames and borders. Full-bleed vertical composition, 4:5 framing within portrait output. Add only a discreet cursive signature reading 'Freddy Bremseth' on the raw linen in the lower right. No other lettering. This is a review concept, not an approved printable or salable original.`;
- if(preset==='stratism-working-v09')return legacy+sourceSupplement(context);
+ if(preset==='stratism-working-v09')return legacy+workflowRule+experimentRule+sourceSupplement(context,workflow);
  const rules=preset==='stratum-no4-v1'&&context.composition==='three-anchors'?THREE_ANCHORS_RULE:PRESET_RULES[preset];
  const singleChord=preset==='stratum-no4-v1'?chord:'restrained natural olive-green, beige and muted earth tones';
- return `${rules} Main subject: ${description}. Keep ${emphasis}. Colour chord: ${singleChord}. Chroma intensity ${strength}. Make any physically possible cloth/grain natural and localized, never applied uniformly as a digital dot pattern. Add only a discreet small cursive graphite-like Freddy Bremseth signature on the lower-right linen; NO OTHER TEXT. Private review concept, never commercially or print approved.${sourceSupplement(context)}`;
+ return `${rules} ${workflowRule} ${experimentRule} Main subject: ${description}. Keep ${emphasis}. Colour chord: ${singleChord}. Chroma intensity ${strength}. Make any physically possible cloth/grain natural and localized, never applied uniformly as a digital dot pattern. Add only a discreet small cursive graphite-like Freddy Bremseth signature on the lower-right linen; NO OTHER TEXT. Private review concept, never commercially or print approved.${sourceSupplement(context,workflow)}`;
 }
 function validateGenerationRequest(body){
  let prompt,reference,variation,revisionMode,preset,source;
  preset=body?.preset??'stratism-working-v09';
  source=sourceContext(body);
+ const workflow=body?.workflow_mode??'legacy';
+ if(!['legacy','edit','inspire','create'].includes(workflow))throw new Error('INVALID_WORKFLOW');
  if(!PRESET_IDS.has(preset))throw new Error('INVALID_PRESET');
  variation=body?.variation===undefined?1:body?.variation;
  if(!Number.isInteger(variation)||variation<1||variation>3)throw new Error('INVALID_VARIATION');
@@ -174,6 +183,8 @@ function validateGenerationRequest(body){
   throw new Error('UNEXPECTED_QUALITY_REVIEW');
  reference=readReference(revisionMode===undefined?body?.reference_jpeg_base64:body?.revision_jpeg_base64);
  if(revisionMode!==undefined&&!reference)throw new Error('MISSING_REVISION_IMAGE');
+ if(revisionMode===undefined&&['edit','inspire'].includes(workflow)&&!reference)throw new Error('PHOTO_REQUIRED');
+ if(revisionMode===undefined&&workflow==='create'&&reference)throw new Error('UNEXPECTED_REFERENCE');
  if(revisionMode===undefined&&source.sourceKind!=='concept'&&!reference)throw new Error('PHOTO_REQUIRED');
  if(revisionMode===undefined&&reference&&body?.reference_rights!==true)throw new Error('PHOTO_RIGHTS_REQUIRED');
  prompt=promptFrom(body)+' '+(preset==='stratum-no4-v1'&&source.composition==='three-anchors'?
@@ -191,7 +202,7 @@ const VALIDATION_CODES=new Set([
  'DESCRIPTION_REQUIRED','INVALID_VARIATION','INVALID_REFINEMENT',
  'UNEXPECTED_QUALITY_REVIEW','INVALID_REFERENCE','INVALID_REFERENCE_DIMENSIONS',
  'MISSING_REVISION_IMAGE','PHOTO_REQUIRED','PHOTO_RIGHTS_REQUIRED',
- 'INVALID_QUALITY_REVIEW'
+ 'INVALID_QUALITY_REVIEW','INVALID_WORKFLOW','INVALID_EXPERIMENTAL_DIRECTION','UNEXPECTED_REFERENCE'
 ]);
 function validationErrorCode(error){
  return VALIDATION_CODES.has(error?.message)?error.message:'INVALID_ART_REQUEST';
