@@ -48,6 +48,16 @@
       <textarea id="stratism-experimental-direction" maxlength="600" rows="3" placeholder="F.eks. mer atmosfærisk, færre harde overganger, men fortsatt én sammenhengende motivstruktur"></textarea>
      </label>
     </fieldset>
+    <div class="stratism-preset-control">
+     <label for="stratism-preset">Kunstnerisk modell
+      <select id="stratism-preset">
+       <option value="stratum-no4-v1">Stratum No. 4 – fem materialtilstander (hovedmodell)</option>
+       <option value="olivos-de-biar-v1">Olivos de Biar – første oliventremodell, naturtro</option>
+       <option value="stratism-working-v09">Stratism Original – tidligere eksperimentell motor v0.9</option>
+      </select>
+     </label>
+     <p id="stratism-preset-description" class="stratism-notice" aria-live="polite">Hovedmodell: ett motiv gjennom fem tydelige maleriske tilstander, én sterk turkis fargeakkord, vask med dryp, skraping og rå lin. 4:5 stående.</p>
+    </div>
     <div class="stratism-reference" id="stratism-reference-zone">
      <label>1. Velg et bilde (valgfritt – behandles privat)
       <input id="stratism-reference-file" type="file" accept="image/jpeg,image/png,image/webp">
@@ -71,16 +81,6 @@
     <details id="stratism-advanced-settings" class="stratism-disclosure">
      <summary>Flere valg og detaljer <span>stil, farger, opphav og fortelling</span></summary>
      <div class="stratism-disclosure-content">
-    <div class="stratism-preset-control">
-     <label for="stratism-preset">Kunstnerisk modell
-      <select id="stratism-preset">
-       <option value="stratum-no4-v1">Stratum No. 4 – fem materialtilstander (hovedmodell)</option>
-       <option value="olivos-de-biar-v1">Olivos de Biar – første oliventremodell, naturtro</option>
-       <option value="stratism-working-v09">Stratism Original – tidligere eksperimentell motor v0.9</option>
-      </select>
-     </label>
-     <p id="stratism-preset-description" class="stratism-notice" aria-live="polite">Hovedmodell: ett motiv gjennom fem tydelige maleriske tilstander, én sterk turkis fargeakkord, vask med dryp, skraping og rå lin. 4:5 stående.</p>
-    </div>
     <div class="stratism-grid">
      <label>Arbeidstittel<input id="stratism-title" maxlength="100" placeholder="Living Memory – Doña Anna"></label>
      <label>Referansefoto (beskrivelse, ikke filopplasting)<input id="stratism-source" maxlength="120" placeholder="Doña Anna – gammelt oliventre"></label>
