@@ -1,6 +1,19 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const form=$('stratism-brief-form');if(!form)return;
+const workflowInputs=[...form.querySelectorAll('input[name="stratism-workflow"]')];
+const styleInputs=[...form.querySelectorAll('input[name="stratism-style-mode"]')];
+const selectedWorkflow=()=>workflowInputs.find(input=>input.checked)?.value||'create';
+const selectedStyleMode=()=>styleInputs.find(input=>input.checked)?.value||'established';
+function syncStudioModes(){
+ const workflow=selectedWorkflow();
+ $('stratism-reference-zone').hidden=workflow==='create';
+ $('stratism-experiment-wrap').hidden=selectedStyleMode()!=='experimental';
+ $('stratism-reference-zone').querySelector('input').required=workflow!=='create';
+ $('stratism-visible-consent').hidden=workflow==='create'||!$('stratism-reference-file').files?.length;
+}
+for(const input of [...workflowInputs,...styleInputs])input.addEventListener('change',()=>{syncStudioModes();});
+syncStudioModes();
 const output=$('stratism-brief-output');
 const state={brief:null,reference:null,previewUrl:null,variants:[],selectedVariant:-1,busy:false};
 async function stratismRequest(payload){
@@ -744,9 +757,11 @@ function clearVariants(){
 function syncSimplePhotoFields(){
  const file=$('stratism-reference-file').files?.[0];
  const kind=$('stratism-source-kind');
+ if(selectedWorkflow()==='create'){kind.value='concept';syncStudioModes();return;}
  if(file&&kind.value==='concept')kind.value='own-photo';
  if(!file&&kind.value==='own-photo')kind.value='concept';
  $('stratism-visible-consent').hidden=!file&&kind.value!=='client-photo';
+ syncStudioModes();
 }
 $('stratism-source-kind').addEventListener('change',syncSimplePhotoFields);
 const referenceInput=$('stratism-reference-file');
@@ -782,16 +797,22 @@ referenceInput.addEventListener('change',async()=>{
 
 const clean=(value,max=2000)=>String(value||'').trim().slice(0,max);
 function buildBrief(){
+ const workflow=selectedWorkflow();
+ const experimentalDirection=selectedStyleMode()==='experimental'?clean($('stratism-experimental-direction').value,600):'';
+ if(selectedStyleMode()==='experimental'&&experimentalDirection.length<12)throw Error('Beskriv den nye stilretningen med minst 12 tegn.');
+ if(workflow!=='create'&&!state.reference)throw Error('Last opp et gyldig bilde for valgt arbeidsmåte.');
  let description=clean($('stratism-description').value);
- if(!description&&state.reference)
-  description='Stratism-portrett eller kunstmotiv basert på vedlagt referansefoto. Bevar gjenkjennelige særtrekk og naturlige nyanser.';
+ if(!description&&state.reference&&workflow==='edit')
+  description='Bearbeid vedlagt referansefoto som Stratism-kunst. Bevar motivets identitet og naturlige særtrekk.';
+ if(!description&&state.reference&&workflow==='inspire')
+  description='Skap et nytt originalt kunstverk med stemning, farger og brede komposisjonsprinsipper fra referansebildet, men med et nytt motiv.';
  if(description.length<12)throw Error('Legg inn et referansefoto eller beskriv motivet med minst 12 tegn.');
  const source=clean($('stratism-source').value,120);
  const chord=$('stratism-chord').value;
  const emphasis=$('stratism-emphasis').value;
  const strength=$('stratism-strength').value;
  const compositionMode=$('stratism-composition-rule').value;
- const sourceKind=$('stratism-source-kind').value;
+ const sourceKind=workflow==='create'?'concept':$('stratism-source-kind').value;
  const place=clean($('stratism-place').value,140);
  const photoCredit=clean($('stratism-photo-credit').value,120);
  const story=clean($('stratism-story').value,1000);
@@ -805,7 +826,7 @@ function buildBrief(){
  const preset=activePreset();
  if(!STRATISM_PRESET_IDS.includes(preset))throw Error('Ukjent Stratism-modell.');
  return {
-  schema:'stratism-brief-v1',title,description,preset,composition_mode:compositionMode,
+  schema:'stratism-brief-v1',title,description,preset,composition_mode:compositionMode,workflow_mode:workflow,experimental_direction:experimentalDirection,
   provenance:{source_kind:sourceKind,place,story,photo_credit:photoCredit,reference_rights_confirmed:referenceRights,
    verified:false},reference_note:source||null,reference_metadata:state.reference,
   style:{name:'Stratism',preset,rules_version:preset,sequence:['presence','feeling','memory','erasure','absence'],
@@ -827,11 +848,11 @@ function buildBrief(){
 $('stratism-quick-create').addEventListener('click',async()=>{
  if(state.busy)return;
  const file=referenceInput.files?.[0];
- if(file&&!state.reference){
+ if(selectedWorkflow()!=='create'&&file&&!state.reference){
   $('stratism-quick-status').textContent='Referansebildet må være ferdig kontrollert før vi kan gå videre.';
   return;
  }
- if(file&&!$('stratism-reference-rights').checked){
+ if(selectedWorkflow()!=='create'&&file&&!$('stratism-reference-rights').checked){
   $('stratism-quick-status').textContent='Bekreft først at du har rett til å bruke bildet.';
   $('stratism-reference-rights').focus();return;
  }
@@ -899,6 +920,7 @@ async function prepareReferenceJpeg(){
 function requestFromCurrentBrief(variation,referenceJpeg){
  if(!state.brief)throw Error('Lag en kunstnerisk brief først.');
  return {description:state.brief.description,
+  workflow_mode:state.brief.workflow_mode||'legacy',experimental_direction:state.brief.experimental_direction||undefined,
   chord:state.brief.style.palette,emphasis:state.brief.style.emphasis,
   strength:state.brief.style.colour_strength,reference_jpeg_base64:referenceJpeg,
   variation,preset:state.brief.preset,composition_mode:state.brief.composition_mode||'five-states',
@@ -1208,6 +1230,12 @@ function restorePrivateProject(archive){
    reference_metadata:null,
    production:{provider:'NOT_CONNECTED',generation_status:'BRIEF_ONLY',
     commercial_release:false,print_release:false,human_approval_required:true}};
+  const restoredWorkflow=['edit','inspire','create'].includes(state.brief.workflow_mode)?state.brief.workflow_mode:'create';
+  workflowInputs.find(input=>input.value===restoredWorkflow).checked=true;
+  const experimental=!!state.brief.experimental_direction;
+  styleInputs.find(input=>input.value===(experimental?'experimental':'established')).checked=true;
+  $('stratism-experimental-direction').value=state.brief.experimental_direction||'';
+  syncStudioModes();
   $('stratism-preset').value=state.brief.preset;
   $('stratism-composition-rule').value=state.brief.composition_mode;
   $('stratism-source-kind').value=state.brief.provenance.source_kind;
