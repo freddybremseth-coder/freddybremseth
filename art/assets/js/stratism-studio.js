@@ -1232,7 +1232,7 @@ function restorePrivateProject(archive){
    reference_metadata:null,
    production:{provider:'NOT_CONNECTED',generation_status:'BRIEF_ONLY',
     commercial_release:false,print_release:false,human_approval_required:true}};
-  const restoredWorkflow=['edit','inspire','create'].includes(state.brief.workflow_mode)?state.brief.workflow_mode:'create';
+  const restoredWorkflow=['edit','inspire','create'].includes(state.brief.workflow_mode)?state.brief.workflow_mode:(state.brief.provenance?.source_kind==='concept'?'create':'edit');
   workflowInputs.find(input=>input.value===restoredWorkflow).checked=true;
   const experimental=!!state.brief.experimental_direction;
   styleInputs.find(input=>input.value===(experimental?'experimental':'established')).checked=true;
