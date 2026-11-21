@@ -23,7 +23,7 @@ test('client script parses and cannot auto publish or call external API',()=>{
 });
 
 test('reference inspection stays local with no upload or false print certification',()=>{
- assert.match(js,/reference_metadata:state\.reference/);
+ assert.match(js,/reference_metadata:workflow==='create'\?null:state\.reference/);
  assert.match(js,/image\.naturalWidth/);
  assert.match(js,/pixelPass/);
  assert.match(js,/aspectPass/);
@@ -774,29 +774,22 @@ test('manual master QA distinguishes pending, rework and completed human review 
  assert.match(report,/approvals:\{digital_sale:false,print:false,commercial_release:false\}/);
 });
 
-test('Stratism composer starts with only photo, optional description and an explicit create action',()=>{
+test('Stratism composer exposes three simple workflows with optional experiment and preserves advanced controls',()=>{
  new vm.Script(js);
  const begin=html.indexOf('<form id="stratism-brief-form">');
  const end=html.indexOf('</form>',begin);
  const section=html.slice(begin,end);
  const simple=section.slice(0,section.indexOf('<details id="stratism-advanced-settings"'));
- assert.match(simple,/id="stratism-reference-file"/);
- assert.match(simple,/id="stratism-description"/);
- assert.match(simple,/id="stratism-quick-create"/);
- assert.match(simple,/id="stratism-visible-consent" hidden/);
- assert.doesNotMatch(simple,/id="stratism-preset"/);
- assert.doesNotMatch(simple,/id="stratism-chord"/);
- assert.doesNotMatch(simple,/id="stratism-check-provider"/);
+ for(const mode of ['edit','inspire','create'])assert.match(simple,new RegExp('name="stratism-workflow" value="'+mode+'"'));
+ for(const id of ['stratism-reference-file','stratism-description','stratism-quick-create',
+   'stratism-experimental-direction','stratism-preset','stratism-visible-consent'])assert.match(simple,new RegExp('id="'+id+'"'));
  assert.match(section,/<details id="stratism-advanced-settings"/);
  assert.match(section,/<details id="stratism-technical-settings"/);
  assert.doesNotMatch(section,/<details id="stratism-advanced-settings"[^>]* open/);
- assert.match(section,/id="stratism-preset"/);
- assert.match(section,/id="stratism-source-kind"/);
- assert.match(section,/id="stratism-preflight"/);
- assert.match(js,/if\(!description&&state\.reference\)/);
- assert.match(js,/description='Stratism-portrett eller kunstmotiv basert på vedlagt referansefoto/);
+ assert.match(js,/selectedWorkflow/);
+ assert.match(js,/workflow_mode:workflow/);
+ assert.match(js,/experimental_direction:experimentalDirection/);
  assert.match(js,/if\(file&&kind\.value==='concept'\)kind\.value='own-photo'/);
- assert.match(js,/if\(file&&!\$\('stratism-reference-rights'\)\.checked\)/);
  assert.match(js,/if\(providerReadiness\.canGenerate\)/);
  assert.match(js,/\$\('stratism-generate-private'\)\.click\(\)/);
  assert.match(js,/approveImageCharge\('Generering'\)/);
