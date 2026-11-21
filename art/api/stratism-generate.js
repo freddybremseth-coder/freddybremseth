@@ -231,6 +231,7 @@ module.exports=async(req,res)=>{
   if(authError||!user?.user?.id)return res.status(401).json({error:'Invalid or expired session'});
   const {data:member,error:memberError}=await admin.from('art_gallery_admin_users').select('user_id').eq('user_id',user.user.id).maybeSingle();
   if(memberError||!member)return res.status(403).json({error:'Administrator approval required'});
+  const bodyWorkflow=req.body?.workflow_mode??'legacy';
   const model=ALLOWED_MODELS.has(process.env.STRATISM_IMAGE_MODEL)?process.env.STRATISM_IMAGE_MODEL:'gpt-image-2';
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),100000);
   let response;
@@ -239,7 +240,12 @@ module.exports=async(req,res)=>{
       const payload=new FormData();
       payload.append('model',model);
       payload.append('image',new Blob([reference],{type:'image/jpeg'}),'reference.jpg');
-      payload.append('prompt',prompt+' Faithfully preserve the attached image identity, silhouette and scene structure. If this is a revision, do not replace the artwork or rearrange the subject.');
+      const imageInstruction=revisionMode
+        ?' This is a revision of the previously generated painting. Preserve its subject, recognizable artistic identity and existing composition while changing only requested details.'
+        :bodyWorkflow==='inspire'
+        ?' The uploaded photo is an inspiration reference only, NOT a source image to replicate. Use general palette, atmosphere, broad visual rhythm and painterly energy while creating a clearly different, original subject and scene. Do not preserve the photo identity, silhouette or composition literally.'
+        :' Faithfully preserve the attached photo subject identity and defining structure while applying Stratism painting techniques.';
+      payload.append('prompt',prompt+imageInstruction);
       payload.append('size',CONCEPT_SIZE);
       payload.append('quality','high');
       payload.append('output_format','jpeg');
