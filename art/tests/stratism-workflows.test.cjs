@@ -34,3 +34,12 @@ test('invalid workflow is rejected',()=>{
 test('legacy requests remain compatible',()=>{
  assert.equal(generator.validateGenerationRequest({description,preset:'stratum-no4-v1'}).preset,'stratum-no4-v1');
 });
+
+test('image edit API distinguishes inspiration from faithful photo edits',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const api=fs.readFileSync(path.join(__dirname,'../api/stratism-generate.js'),'utf8');
+ assert.match(api,/bodyWorkflow==='inspire'/);
+ assert.match(api,/NOT a source image to replicate/);
+ assert.match(api,/do not preserve the photo identity/i);
+ assert.match(api,/revisionMode[\s\S]*previously generated painting/);
+});
