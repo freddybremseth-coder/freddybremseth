@@ -1,0 +1,86 @@
+.stratism-panel{margin-top:24px}.stratism-panel .stratism-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.stratism-panel label{display:block;font-weight:600;margin:8px 0}.stratism-panel input,.stratism-panel select,.stratism-panel textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px}.stratism-panel textarea{min-height:112px}.stratism-panel .stratism-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.stratism-panel .stratism-output{white-space:pre-wrap;overflow-wrap:anywhere;max-height:250px;overflow:auto;padding:16px;background:#122525;color:#f4f0e9;border-radius:8px;font-size:.9rem;line-height:1.5}.stratism-panel .stratism-notice{font-size:.9rem;opacity:.8}@media(max-width:680px){.stratism-panel .stratism-grid{grid-template-columns:1fr}}
+.stratism-panel .stratism-reference{padding:14px;border:1px solid #8c8c8c55;border-radius:10px;margin:12px 0}.stratism-panel .stratism-reference-overview{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.stratism-panel #stratism-reference-preview{width:108px;max-height:145px;object-fit:contain;border-radius:5px}.stratism-panel #stratism-reference-status{margin:.4rem 0}.stratism-panel #stratism-print-capacity{max-width:620px;line-height:1.5}
+
+.stratism-panel .stratism-result{margin:14px 0;padding:14px;border:1px solid #8c8c8c55;border-radius:10px}.stratism-panel .stratism-result img{display:block;max-width:min(100%,410px);height:auto;max-height:600px;object-fit:contain;margin:0 auto 10px}.stratism-panel .stratism-result p{font-size:.9rem;opacity:.8;text-align:center}
+
+.stratism-panel .stratism-variant-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 16px}.stratism-panel .stratism-variant-choice{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px;cursor:pointer;border:2px solid #b6aba0;border-radius:10px;background:transparent;color:inherit}.stratism-panel .stratism-variant-choice.chosen{border-color:#ae8c5e;box-shadow:0 0 0 2px #ae8c5e55}.stratism-panel .stratism-variant-choice img{display:block;width:100%;height:auto;max-height:270px;object-fit:contain}.stratism-panel .stratism-variant-choice span{font-size:.88rem;font-weight:650}.stratism-panel .stratism-result h3{display:flex;align-items:center;gap:10px}.stratism-panel .stratism-result h3 small{font-size:.75rem;opacity:.75}@media(max-width:620px){.stratism-panel .stratism-variant-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+
+.stratism-panel .stratism-refine-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:end;margin:12px 0 18px}.stratism-panel .stratism-refine-controls>button{grid-column:1/-1;justify-self:start}.stratism-panel .stratism-refine-controls select{min-width:0}@media(max-width:620px){.stratism-panel .stratism-refine-controls{grid-template-columns:1fr}}
+
+.stratism-panel .stratism-quality-panel{margin:18px 0;padding:16px;border:1px solid #8c8c8c55;border-radius:12px;background:rgba(128,128,128,.035)}.stratism-panel .stratism-quality-panel h4{font-size:1.08rem;margin:0 0 8px}.stratism-panel .stratism-quality-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;row-gap:2px}.stratism-panel #stratism-quality-status{font-size:.95rem;font-weight:650}.stratism-panel #stratism-quality-notes{min-height:74px}@media(max-width:680px){.stratism-panel .stratism-quality-grid{grid-template-columns:1fr}}
+
+.stratism-panel .stratism-before-after{margin:18px 0;padding:16px;border:1px solid #8c8c8c55;border-radius:12px}
+.stratism-panel .stratism-before-after h4{font-size:1.08rem;margin:0 0 8px}
+.stratism-panel .stratism-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.stratism-panel .stratism-compare-grid figure{margin:0;min-width:0}
+.stratism-panel .stratism-compare-grid img{width:100%;height:auto;max-height:540px;object-fit:contain;border-radius:6px;background:#f4f0e8}
+.stratism-panel .stratism-compare-grid figcaption{text-align:center;font-size:.87rem;line-height:1.5;margin-top:8px}
+@media(max-width:680px){.stratism-panel .stratism-compare-grid{grid-template-columns:1fr}}
+
+.stratism-panel .stratism-compare-grid button{display:block;width:100%;margin-top:9px;padding:10px 12px;border:1px solid #b6aba0;border-radius:8px;background:transparent;color:inherit;cursor:pointer;font-weight:600}
+.stratism-panel .stratism-compare-grid button[aria-pressed="true"]{border-color:#ae8c5e;background:rgba(174,140,94,.14);box-shadow:inset 0 0 0 1px #ae8c5e}
+.stratism-panel .stratism-compare-grid button:disabled{opacity:.55;cursor:not-allowed}
+
+.stratism-panel .stratism-concept-file-status{margin:14px 0;padding:15px;border:1px solid #8c8c8c55;border-radius:10px;background:rgba(128,128,128,.035)}
+.stratism-panel .stratism-concept-file-status h4{margin:0 0 9px;font-size:1.04rem}
+.stratism-panel .stratism-concept-file-status p{max-width:74ch;margin:6px 0;line-height:1.5;text-align:left}
+
+.stratism-panel .stratism-print-plan{margin:12px 0;padding:12px;border:1px solid #8c8c8c55;border-radius:8px}
+.stratism-panel .stratism-print-plan label{margin:0 0 8px}
+.stratism-panel .stratism-print-plan p{margin:8px 0 0;text-align:left;line-height:1.55}
+
+.stratism-panel .stratism-master-visual-compare{margin:14px 0;padding:14px;border:1px solid #8c8c8c55;border-radius:10px}
+.stratism-panel .stratism-master-visual-compare h4{margin:0 0 12px}
+.stratism-panel .stratism-master-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.stratism-panel .stratism-master-compare-grid figure{min-width:0;margin:0}
+.stratism-panel .stratism-master-compare-grid img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#e9e3d9;border-radius:6px}
+.stratism-panel .stratism-master-compare-grid figcaption{padding:8px 0;font-size:.88rem;line-height:1.5}
+@media(max-width:640px){.stratism-panel .stratism-master-compare-grid{grid-template-columns:1fr}.stratism-panel .stratism-master-compare-grid img{max-height:420px}}
+
+.stratism-panel .stratism-master-detail-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:12px;align-items:end;margin:12px 0}
+.stratism-panel .stratism-master-detail-controls label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.stratism-panel .stratism-master-detail-controls input[type=range]{width:100%;min-width:0}
+.stratism-panel .stratism-master-detail-controls output{font-weight:600}
+.stratism-panel .stratism-master-detail-controls button{min-height:38px}
+.stratism-panel .stratism-master-detail-viewport{width:100%;aspect-ratio:4/5;overflow:hidden;background:#e9e3d9;border-radius:6px}
+.stratism-panel .stratism-master-detail-viewport img{width:100%;height:100%;max-height:none;object-fit:contain;transform:scale(1);transform-origin:50% 50%;transition:transform .15s ease-out}
+@media(max-width:800px){.stratism-panel .stratism-master-detail-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.stratism-panel .stratism-master-detail-controls{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.stratism-panel .stratism-master-detail-viewport img{transition:none}}
+
+.stratism-panel .stratism-master-qa{margin:16px 0 0;padding:14px;border:1px solid #8c8c8c55;border-radius:9px;min-width:0}
+.stratism-panel .stratism-master-qa legend{font-weight:700;padding:0 5px}
+.stratism-panel #stratism-master-qa-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.stratism-panel #stratism-master-qa-fields label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.stratism-panel #stratism-master-qa-fields select{width:100%}
+.stratism-panel .stratism-master-qa textarea{display:block;width:100%;max-width:100%;margin:8px 0}
+@media(max-width:640px){.stratism-panel #stratism-master-qa-fields{grid-template-columns:1fr}}
+
+/* Beginner-first composer: preserve all existing controls behind native disclosures. */
+.stratism-panel .stratism-simple-intro{padding:4px 0 10px}
+.stratism-panel .stratism-simple-intro h3{margin:0 0 6px;font-size:1.35rem}
+.stratism-panel .stratism-simple-intro p{margin:0;color:inherit;opacity:.8;max-width:65ch;line-height:1.5}
+.stratism-panel .stratism-quick-actions{margin:14px 0 20px}
+.stratism-panel .stratism-quick-actions .primary{min-height:48px;padding:12px 23px;font-size:1.04rem}
+.stratism-panel .stratism-quick-actions p{margin:8px 0;max-width:65ch}
+.stratism-panel .stratism-disclosure{border:1px solid #8c8c8c55;border-radius:10px;margin:10px 0;background:rgba(128,128,128,.025)}
+.stratism-panel .stratism-disclosure>summary{cursor:pointer;padding:15px 16px;font-weight:700;line-height:1.5}
+.stratism-panel .stratism-disclosure>summary span{display:block;font-size:.84rem;font-weight:400;opacity:.72;margin-left:19px}
+.stratism-panel .stratism-disclosure[open]>summary{border-bottom:1px solid #8c8c8c35}
+.stratism-panel .stratism-disclosure-content{padding:12px 16px 16px}
+.stratism-panel #stratism-visible-consent:not([hidden]){display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #8c8c8c55;border-radius:8px}
+.stratism-panel #stratism-visible-consent input{flex:none;width:auto;margin:4px 0 0}
+.stratism-panel #stratism-print-capacity{display:none}
+@media(max-width:600px){.stratism-panel .stratism-quick-actions .primary{width:100%}.stratism-panel .stratism-disclosure-content{padding:10px 12px}}
+
+.stratism-panel #stratism-visible-consent[hidden]{display:none!important}
+
+/* Clear beginner-first workflow selection; advanced controls stay collapsed. */
+.stratism-panel .stratism-workflow,.stratism-panel .stratism-style-selector{border:1px solid #8c8c8c55;border-radius:12px;padding:14px;margin:12px 0 16px;min-width:0}
+.stratism-panel .stratism-workflow legend,.stratism-panel .stratism-style-selector legend{font-weight:750;padding:0 6px}
+.stratism-panel .stratism-workflow>label,.stratism-panel .stratism-style-selector>label:not(#stratism-experiment-wrap){display:flex;gap:10px;align-items:flex-start;border:1px solid #8c8c8c35;border-radius:9px;padding:12px;margin:8px 0;cursor:pointer;flex-wrap:wrap}
+.stratism-panel .stratism-workflow input,.stratism-panel .stratism-style-selector input{width:auto;margin:3px 0 0;flex:none}
+.stratism-panel .stratism-workflow small,.stratism-panel .stratism-style-selector small{display:block;flex-basis:100%;padding-left:24px;opacity:.75;font-weight:400;line-height:1.5}
+.stratism-panel #stratism-experiment-wrap{padding:8px 4px}
+.stratism-panel #stratism-experiment-wrap textarea{width:100%}
+.stratism-panel [hidden]{display:none!important}

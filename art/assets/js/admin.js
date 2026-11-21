@@ -34,6 +34,13 @@ async function refresh(){
  if(!r.ok){sessionStorage.removeItem('art-admin-session');state.session=null;throw Error('Your login expired. Please sign in again.')}
  remember(await r.json());
 }
+// Reuse the exact approved gallery session for private admin modules.
+window.ART_ADMIN_GET_ACCESS_TOKEN=async({forceRefresh=false}={})=>{
+ if(!state.authorized||!state.session?.access_token)throw Error('Logg inn som godkjent galleriadministrator.');
+ if(forceRefresh||Date.now()>Number(state.session.expires_at||0)*1000-60000)await refresh();
+ if(!state.authorized||!state.session?.access_token)throw Error('Administratorøkten er utløpt.');
+ return state.session.access_token;
+};
 async function signIn(email,password){
  const res=await fetch(cfg.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'apikey':cfg.anonKey,'Content-Type':'application/json'},body:JSON.stringify({email,password})});
  if(!res.ok)throw Error('Email or password was not accepted.');
