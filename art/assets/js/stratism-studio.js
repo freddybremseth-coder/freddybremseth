@@ -1040,7 +1040,8 @@ $('stratism-refine-selected').addEventListener('click',async()=>{
   const mode=$('stratism-refinement-kind').value;
   const qaFailed=mode==='qa-guided'?failedQualityKeys(variant):null;
   if(mode==='qa-guided'&&!qaFailed.length)throw Error('Marker minst ett kvalitetskriterium for forbedring.');
-  const payload={description:state.brief.description,chord:state.brief.style.palette,
+  const payload={description:state.brief.description,workflow_mode:state.brief.workflow_mode||'legacy',
+    experimental_direction:state.brief.experimental_direction||undefined,chord:state.brief.style.palette,
     emphasis:state.brief.style.emphasis,strength:state.brief.style.colour_strength,
     variation:variant.variation,revision_mode:mode,revision_jpeg_base64:imageData,preset:state.brief.preset,
      composition_mode:state.brief.composition_mode||'five-states',
