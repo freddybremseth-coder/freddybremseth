@@ -34,7 +34,21 @@
      <h3>Lag et Stratism-bilde</h3>
      <p>Last opp et bilde eller beskriv motivet. Stratism-reglene er allerede valgt for deg – du trenger ikke fylle ut et langt skjema.</p>
     </div>
-    <div class="stratism-reference">
+    <fieldset class="stratism-workflow" aria-label="Velg arbeidsmåte">
+     <legend>Hva vil du gjøre?</legend>
+     <label><input type="radio" name="stratism-workflow" value="edit" checked> Bearbeid bildet mitt <small>Behold motivet og gjør ønskede endringer</small></label>
+     <label><input type="radio" name="stratism-workflow" value="inspire"> Bruk bilde som inspirasjon <small>Skap et nytt motiv med stemning, farger eller komposisjon fra bildet</small></label>
+     <label><input type="radio" name="stratism-workflow" value="create"> Lag et helt nytt kunstverk <small>Beskriv motivet med egne ord</small></label>
+    </fieldset>
+    <fieldset class="stratism-style-selector">
+     <legend>Velg kunstnerisk retning</legend>
+     <label><input type="radio" name="stratism-style-mode" value="established" checked> Bruk eksisterende Stratism-modell <small>Modeller under kvalitetsvurdering – ikke automatisk godkjent for salg</small></label>
+     <label><input type="radio" name="stratism-style-mode" value="experimental"> Utforsk en ny stil <small>Eksperimentell, ikke verifisert</small></label>
+     <label id="stratism-experiment-wrap" hidden>Beskriv ny kunstnerisk retning
+      <textarea id="stratism-experimental-direction" maxlength="600" rows="3" placeholder="F.eks. mer atmosfærisk, færre harde overganger, men fortsatt én sammenhengende motivstruktur"></textarea>
+     </label>
+    </fieldset>
+    <div class="stratism-reference" id="stratism-reference-zone">
      <label>1. Velg et bilde (valgfritt – behandles privat)
       <input id="stratism-reference-file" type="file" accept="image/jpeg,image/png,image/webp">
      </label>
